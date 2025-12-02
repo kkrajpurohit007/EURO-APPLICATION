@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -6,22 +6,24 @@ import {
   CardBody,
   Col,
   Container,
-  Input,
   Label,
   Row,
   Button,
   Alert,
   Spinner,
   FormGroup,
+  Progress,
 } from "reactstrap";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 import logoLight from "../../assets/images/logo-light.png";
 import { createSelector } from "reselect";
 import { verifyOtp, resendOtp } from "../../slices/thunks";
+import "./OtpVerification.scss";
 
 const OtpVerification = () => {
   const dispatch: any = useDispatch();
   const navigate = useNavigate();
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const selectOtpState = (state: any) => state;
   const otpPageData = createSelector(selectOtpState, (state) => ({
@@ -36,7 +38,7 @@ const OtpVerification = () => {
   const { sessionToken, userEmail, otpLoading, otpError, otpExpiry, otpSent } =
     useSelector(otpPageData);
 
-  const [otp, setOtp] = useState("");
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [canResend, setCanResend] = useState(false);
 
@@ -68,6 +70,7 @@ const OtpVerification = () => {
   }, [sessionToken, otpSent, navigate]);
 
   const handleVerifyOtp = () => {
+    const otp = otpDigits.join("");
     if (otp.length !== 6) {
       return;
     }
@@ -77,12 +80,40 @@ const OtpVerification = () => {
     dispatch(verifyOtp(sessionToken, otp, navigate));
   };
 
-  const handleResendOtp = () => {
-    if (!sessionToken) return;
+  const handleOtpChange = (index: number, value: string) => {
+    // Only allow numbers
+    if (!/^[0-9]?$/.test(value)) return;
 
-    dispatch(resendOtp(sessionToken));
-    setCanResend(false);
-    setTimeLeft(300);
+    const newDigits = [...otpDigits];
+    newDigits[index] = value;
+    setOtpDigits(newDigits);
+
+    // Move to next input if digit entered
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit if all digits filled
+    if (newDigits.every((digit) => digit !== "")) {
+      setTimeout(() => {
+        if (sessionToken) {
+          dispatch(verifyOtp(sessionToken, newDigits.join(""), navigate));
+        }
+      }, 100);
+    }
+  };
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -90,6 +121,18 @@ const OtpVerification = () => {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
+
+  const handleResendOtp = () => {
+    if (!sessionToken) return;
+
+    dispatch(resendOtp(sessionToken));
+    setCanResend(false);
+    setTimeLeft(300);
+    setOtpDigits(["", "", "", "", "", ""]);
+    inputRefs.current[0]?.focus();
+  };
+
+  const isOtpComplete = otpDigits.every((digit) => digit !== "");
 
   document.title = "OTP Verification | ESRM Application";
 
@@ -104,7 +147,7 @@ const OtpVerification = () => {
                   <div>
                     <img src={logoLight} alt="" height="20" />
                   </div>
-                  <p className="mt-3 fs-15 fw-medium">Verify Your Identity</p>
+                  <p className="mt-3 fs-15 fw-medium">Two-Step Verification</p>
                 </div>
               </Col>
             </Row>
@@ -113,61 +156,80 @@ const OtpVerification = () => {
               <Col md={8} lg={6} xl={5}>
                 <Card className="mt-4">
                   <CardBody className="p-4">
-                    <div className="text-center mt-2">
-                      <h5 className="text-primary">Two-Step Verification</h5>
-                      <p className="text-muted text-truncate">
-                        We've sent a 6-digit OTP to <strong>{userEmail}</strong>
+                    {/* Step Progress */}
+                    <div className="mb-4">
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="small text-muted">Step 1 of 2</span>
+                        <span className="small fw-bold text-primary">
+                          OTP Verification
+                        </span>
+                      </div>
+                      <Progress value={100} style={{ height: "4px" }} />
+                    </div>
+
+                    <div className="text-center mt-4 mb-4">
+                      <h5 className="text-primary mb-2">Enter OTP</h5>
+                      <p className="text-muted">
+                        We've sent a 6-digit code to{" "}
+                        <strong>{userEmail}</strong>
                       </p>
                     </div>
 
-                    {otpError && <Alert color="danger">{otpError}</Alert>}
+                    {otpError && (
+                      <Alert color="danger" className="mb-3">
+                        {otpError}
+                      </Alert>
+                    )}
 
                     <div className="p-2 mt-4">
                       <FormGroup>
-                        <Label className="form-label">
-                          Enter OTP <span className="text-danger">*</span>
+                        <Label className="form-label mb-3">
+                          OTP Code <span className="text-danger">*</span>
                         </Label>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          placeholder="000000"
-                          maxLength={6}
-                          value={otp}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, "");
-                            setOtp(value.slice(0, 6));
-                          }}
-                          onKeyPress={(e) => {
-                            if (!/[0-9]/.test(e.key)) {
-                              e.preventDefault();
-                            }
-                            if (e.key === "Enter" && otp.length === 6) {
-                              handleVerifyOtp();
-                            }
-                          }}
-                          className="text-center"
-                          style={{ fontSize: "24px", letterSpacing: "8px" }}
-                          autoComplete="off"
-                        />
-                        <small className="text-muted d-block mt-2">
-                          For demo: Use 123456 or check browser console for
-                          generated OTP
+
+                        {/* 6-Digit OTP Input Boxes */}
+                        <div className="otp-input-container mb-4">
+                          <div className="otp-input-group">
+                            {otpDigits.map((digit, index) => (
+                              <input
+                                key={index}
+                                ref={(el) => {
+                                  inputRefs.current[index] = el;
+                                }}
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={1}
+                                value={digit}
+                                onChange={(e) =>
+                                  handleOtpChange(index, e.target.value)
+                                }
+                                onKeyDown={(e) => handleKeyDown(index, e)}
+                                className={`otp-input-box ${
+                                  digit ? "filled" : ""
+                                }`}
+                                placeholder="0"
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <small className="text-muted d-block mt-2 text-center">
+                          Demo OTP: 123456
                         </small>
                       </FormGroup>
 
-                      <div className="text-center mt-3 mb-3">
+                      <div className="text-center mt-4 mb-3">
                         <Button
                           color="success"
                           className="btn btn-success w-100"
                           onClick={handleVerifyOtp}
                           disabled={
-                            otpLoading || otp.length !== 6 || timeLeft === 0
+                            otpLoading || !isOtpComplete || timeLeft === 0
                           }
                         >
                           {otpLoading && (
                             <Spinner size="sm" className="me-2">
-                              {" "}
-                              Loading...{" "}
+                              Loading...
                             </Spinner>
                           )}
                           Verify OTP
@@ -175,7 +237,7 @@ const OtpVerification = () => {
                       </div>
 
                       <div className="text-center">
-                        <p className="text-muted mb-2">
+                        <p className="text-muted mb-3">
                           {timeLeft > 0 ? (
                             <>
                               OTP expires in:{" "}
@@ -184,21 +246,23 @@ const OtpVerification = () => {
                               </span>
                             </>
                           ) : (
-                            <span className="text-danger">OTP Expired</span>
+                            <span className="text-danger fw-bold">
+                              OTP Expired
+                            </span>
                           )}
                         </p>
 
-                        <p className="text-muted">
-                          Didn't receive the OTP?{" "}
+                        <div className="d-flex gap-2 justify-content-center">
+                          <span className="text-muted">Didn't receive?</span>
                           <Button
                             color="link"
-                            className="p-0"
+                            className="p-0 text-decoration-none"
                             onClick={handleResendOtp}
                             disabled={!canResend || otpLoading}
                           >
-                            Resend OTP
+                            {canResend ? "Resend OTP" : "Resend"}
                           </Button>
-                        </p>
+                        </div>
                       </div>
 
                       <div className="mt-4 text-center">
