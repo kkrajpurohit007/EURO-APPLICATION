@@ -11,7 +11,6 @@ import LeadEdit from "../pages/Leads/Lead/LeadEdit";
 import LeadView from "../pages/Leads/Lead/LeadView";
 
 // Client Management
-import ClientsList from "../pages/Clients/Client/ClientsList";
 import ClientList from "../pages/Clients/Client/ClientList";
 import ClientCreate from "../pages/Clients/Client/ClientCreate";
 import ClientEdit from "../pages/Clients/Client/ClientEdit";

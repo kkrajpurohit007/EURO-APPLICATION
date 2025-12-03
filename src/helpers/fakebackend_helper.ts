@@ -7,11 +7,20 @@ import { tenantRentalConfigData } from "../common/data/tenantRentalConfig";
 import { clientRentalConfigData } from "../common/data/clientRentalConfig";
 import { meetingsData } from "../common/data/meetings";
 import { initialLeads, LeadItem } from "../slices/leads/lead.fakeData";
-import { initialDepartments, DepartmentItem } from "../slices/departments/department.fakeData";
-import { initialCountries, CountryItem } from "../slices/countries/country.fakeData";
+import {
+  initialDepartments,
+  DepartmentItem,
+} from "../slices/departments/department.fakeData";
+import { initialCountries } from "../slices/countries/country.fakeData";
 import { initialClients, ClientItem } from "../slices/clients/client.fakeData";
-import { initialClientContacts, ClientContactItem } from "../slices/clientContacts/clientContact.fakeData";
-import { initialClientSites, ClientSiteItem } from "../slices/clientSites/clientSite.fakeData";
+import {
+  initialClientContacts,
+  ClientContactItem,
+} from "../slices/clientContacts/clientContact.fakeData";
+import {
+  initialClientSites,
+  ClientSiteItem,
+} from "../slices/clientSites/clientSite.fakeData";
 
 const api = new APIClient();
 
@@ -210,7 +219,10 @@ export const postFakeLoginWithOtp = (data: any) =>
 // Departments
 let departmentsData = [...initialDepartments];
 
-export const getDepartments = (pageNumber: number = 1, pageSize: number = 50) => {
+export const getDepartments = (
+  pageNumber: number = 1,
+  pageSize: number = 50
+) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const start = (pageNumber - 1) * pageSize;
@@ -603,7 +615,10 @@ export const deleteClient = (id: string) => {
 
 let clientContactsData = [...initialClientContacts];
 
-export const getClientContacts = (pageNumber: number = 1, pageSize: number = 50) => {
+export const getClientContacts = (
+  pageNumber: number = 1,
+  pageSize: number = 50
+) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const start = (pageNumber - 1) * pageSize;
@@ -641,7 +656,10 @@ export const updateClientContact = (id: string, contact: any) => {
     setTimeout(() => {
       const index = clientContactsData.findIndex((c) => c.id === id);
       if (index !== -1) {
-        clientContactsData[index] = { ...clientContactsData[index], ...contact };
+        clientContactsData[index] = {
+          ...clientContactsData[index],
+          ...contact,
+        };
         resolve(clientContactsData[index]);
       }
     }, 300);
@@ -663,7 +681,10 @@ export const deleteClientContact = (id: string) => {
 
 let clientSitesData = [...initialClientSites];
 
-export const getClientSites = (pageNumber: number = 1, pageSize: number = 50) => {
+export const getClientSites = (
+  pageNumber: number = 1,
+  pageSize: number = 50
+) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const start = (pageNumber - 1) * pageSize;

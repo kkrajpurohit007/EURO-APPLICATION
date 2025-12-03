@@ -1,11 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import {
-  initialLeads,
-  LeadItem,
-  LeadsResponse,
-  LeadStatus,
-  LeadNote,
-} from "./lead.fakeData";
+import { initialLeads, LeadItem, LeadsResponse } from "./lead.fakeData";
 import * as leadService from "../../services/leadService";
 
 interface LeadState {

@@ -109,7 +109,7 @@ export const PAGE_TITLES = {
 };
 
 // Email domains
-export const ADMIN_EMAIL = "admin@naxdc.com";
+export const ADMIN_EMAIL = "kamal.naxdc@hotmail.com";
 
 // External URLs
 export const COMPANY_WEBSITE = "https://naxdc.com/";

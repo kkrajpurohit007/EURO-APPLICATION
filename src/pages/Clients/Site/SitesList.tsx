@@ -103,7 +103,13 @@ const SitesList: React.FC = () => {
         cell: (cell: any) => {
           const required = cell.getValue();
           return (
-            <span className={`badge ${required ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary"}`}>
+            <span
+              className={`badge ${
+                required
+                  ? "bg-success-subtle text-success"
+                  : "bg-secondary-subtle text-secondary"
+              }`}
+            >
               {required ? "Enabled" : "Disabled"}
             </span>
           );
@@ -147,7 +153,7 @@ const SitesList: React.FC = () => {
         },
       },
     ],
-    [dispatch, navigate]
+    [navigate]
   );
 
   return (
