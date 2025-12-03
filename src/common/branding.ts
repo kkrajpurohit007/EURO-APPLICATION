@@ -3,7 +3,7 @@
  * Centralized configuration for all branding values used throughout the application
  */
 
-export const APP_NAME = "ESRM Application";
+export const APP_NAME = "EURO";
 export const COMPANY_NAME = "K.K Rajpurohit";
 export const APP_TAGLINE =
   "EURO Scaffold & Equipment Rental Services Management System";

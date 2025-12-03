@@ -25,7 +25,7 @@ const Dashboard = () => {
               <div className="card">
                 <div className="card-body">
                   <h4 className="card-title mb-4">
-                    Welcome to ESRM Application
+                    Welcome to EURO Scaffold & Equipment Rental Management System
                   </h4>
                   <p className="text-muted">
                     Your dashboard overview will appear here.
