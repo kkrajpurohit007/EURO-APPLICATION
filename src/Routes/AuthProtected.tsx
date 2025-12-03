@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { setAuthorization } from "../helpers/api_helper";
 import { useDispatch } from "react-redux";
@@ -6,18 +6,31 @@ import { useDispatch } from "react-redux";
 import { useProfile } from "../Components/Hooks/UserHooks";
 
 import { logoutUser } from "../slices/auth/login/thunk";
+import { appInitService } from "../services/AppInitService";
 
 const AuthProtected = (props: any) => {
   const dispatch: any = useDispatch();
   const { userProfile, loading, token } = useProfile();
+  const [isInitializing, setIsInitializing] = useState(false);
 
   useEffect(() => {
-    if (userProfile && !loading && token) {
-      setAuthorization(token);
-    } else if (!userProfile && loading && !token) {
-      dispatch(logoutUser());
-    }
-  }, [token, userProfile, loading, dispatch]);
+    const initializeApp = async () => {
+      if (userProfile && !loading && token) {
+        setAuthorization(token);
+
+        // Initialize app data if user is logged in and not already initialized
+        if (!appInitService.getIsInitialized() && !isInitializing) {
+          setIsInitializing(true);
+          await appInitService.initialize(dispatch);
+          setIsInitializing(false);
+        }
+      } else if (!userProfile && loading && !token) {
+        dispatch(logoutUser());
+      }
+    };
+
+    initializeApp();
+  }, [token, userProfile, loading, dispatch, isInitializing]);
 
   /*
     Navigate is un-auth access protected routes via url

@@ -17,7 +17,7 @@ import DepartmentsReducer from "./departments/department.slice";
 import StaffPositionsReducer from "./staffPositions/reducer";
 
 // Tenant Rental Config
-import TenantRentalConfigReducer from "./tenantRentalConfig/reducer";
+import TenantRentalConfigReducer from "./tenantRentalConfig/tenantRentalConfig.slice";
 
 // Client Rental Config
 import ClientRentalConfigReducer from "./clientRentalConfig/reducer";

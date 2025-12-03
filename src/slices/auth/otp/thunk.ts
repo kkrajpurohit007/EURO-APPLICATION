@@ -13,6 +13,7 @@ import {
 } from "./reducer";
 
 import { loginSuccess } from "../login/reducer";
+import { appInitService } from "../../../services/AppInitService";
 
 // Step 1: Request OTP via Email Login
 export const initiateLoginWithOtp =
@@ -87,6 +88,9 @@ export const verifyOtp =
         dispatch(otpVerifiedSuccess());
         dispatch(clearOtpData());
         dispatch(loginSuccess(userData));
+
+        // Initialize app data after successful login
+        await appInitService.initialize(dispatch);
 
         history("/dashboard");
       } else {

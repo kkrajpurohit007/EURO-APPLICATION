@@ -344,19 +344,23 @@ export const deleteStaffPosition = (id: number) => {
 };
 
 // Tenant Rental Configuration
-export const getTenantRentalConfig = () => {
+export const getTenantRentalConfig = (tenantId: string) => {
   return new Promise((resolve) => {
     setTimeout(() => {
+      // In a real implementation, this would filter by tenantId
+      // For fake backend, we return the singleton config
       resolve(tenantRentalConfigData);
     }, 300);
   });
 };
 
-export const updateTenantRentalConfig = (data: any) => {
+export const updateTenantRentalConfig = (id: number, data: any) => {
   return new Promise((resolve) => {
     setTimeout(() => {
+      // In a real implementation, this would update the config by id
       Object.assign(tenantRentalConfigData, {
         ...data,
+        id: id,
         updatedAt: new Date().toISOString().split("T")[0],
       });
       resolve(tenantRentalConfigData);

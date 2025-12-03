@@ -48,3 +48,7 @@ export const GET_CLIENT_SITES = "/ClientSite";
 export const ADD_NEW_CLIENT_SITE = "/ClientSite";
 export const UPDATE_CLIENT_SITE = "/ClientSite";
 export const DELETE_CLIENT_SITE = "/ClientSite";
+
+// TENANT RENTAL CONFIGURATION
+export const GET_TENANT_RENTAL_CONFIG = "/TenantRentalConfiguration";
+export const UPDATE_TENANT_RENTAL_CONFIG = "/TenantRentalConfiguration";

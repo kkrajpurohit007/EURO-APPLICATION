@@ -50,7 +50,7 @@ import StaffPositionEdit from "../pages/Account/StaffPosition/StaffPositionEdit"
 // Settings
 import SystemConfig from "../pages/Settings/General/SystemConfig";
 import BasicInfo from "../pages/Settings/General/BasicInfo";
-import TenantRentalConfigForm from "../pages/Settings/Rental/TenantRentalConfigForm";
+import TenantRentalConfig from "../pages/Settings/Rental/TenantRentalConfig";
 
 // Client Rental Config
 import ClientRentalConfigForm from "../pages/Clients/Client/ClientRentalConfigForm";
@@ -131,7 +131,7 @@ const authProtectedRoutes = [
   { path: "/settings/basic-info", component: <BasicInfo /> },
   {
     path: "/settings/tenant-rental-config",
-    component: <TenantRentalConfigForm />,
+    component: <TenantRentalConfig />,
   },
 
   // Client Rental Config

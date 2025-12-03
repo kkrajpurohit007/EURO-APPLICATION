@@ -11,6 +11,8 @@ import {
   reset_login_flag,
 } from "./reducer";
 
+import { appInitService } from "../../../services/AppInitService";
+
 export const loginUser = (user: any, history: any) => async (dispatch: any) => {
   try {
     let response;
@@ -36,12 +38,14 @@ export const loginUser = (user: any, history: any) => async (dispatch: any) => {
         data = finallogin.data;
         if (finallogin.status === "success") {
           dispatch(loginSuccess(data));
+          await appInitService.initialize(dispatch);
           history("/dashboard");
         } else {
           dispatch(apiError(finallogin));
         }
       } else {
         dispatch(loginSuccess(data));
+        await appInitService.initialize(dispatch);
         history("/dashboard");
       }
     }
@@ -54,6 +58,10 @@ export const logoutUser = () => async (dispatch: any) => {
   try {
     sessionStorage.removeItem("authUser");
     localStorage.removeItem("authUser");
+
+    // Reset AppInitService state
+    appInitService.reset();
+
     dispatch(logoutUserSuccess(true));
   } catch (error: any) {
     dispatch(apiError(error));
