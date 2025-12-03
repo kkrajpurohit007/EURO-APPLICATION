@@ -26,8 +26,10 @@ import {
 import { DepartmentItem } from "../../../slices/departments/department.fakeData";
 import { useNavigate } from "react-router-dom";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const DepartmentList: React.FC = () => {
-  document.title = "Departments | ESRM Application";
+  document.title = PAGE_TITLES.DEPARTMENTS_LIST;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const departments: DepartmentItem[] = useSelector(selectDepartmentList);

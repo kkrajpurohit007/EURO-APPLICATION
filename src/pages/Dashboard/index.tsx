@@ -3,9 +3,10 @@ import { useDispatch } from "react-redux";
 import { Container } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import { fetchLeads } from "../../slices/leads/lead.slice";
+import { PAGE_TITLES } from "../../common/branding";
 
-const DashboardEcommerce: React.FC = () => {
-  document.title = "Dashboard | ESRM Application";
+const Dashboard = () => {
+  document.title = PAGE_TITLES.dashboard;
   const dispatch = useDispatch<any>();
 
   // Load leads on dashboard mount (after login)
@@ -39,4 +40,4 @@ const DashboardEcommerce: React.FC = () => {
   );
 };
 
-export default DashboardEcommerce;
+export default Dashboard;

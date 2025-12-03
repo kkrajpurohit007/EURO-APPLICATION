@@ -14,6 +14,7 @@ import {
   Alert,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
+import { PAGE_TITLES } from "../../../common/branding";
 
 interface BasicInfoData {
   companyName: string;
@@ -33,7 +34,7 @@ interface BasicInfoData {
 }
 
 const BasicInfo: React.FC = () => {
-  document.title = "Basic Information | ESRM Application";
+  document.title = PAGE_TITLES.SETTINGS_BASIC_INFO;
 
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

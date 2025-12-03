@@ -12,6 +12,7 @@ import LeadView from "../pages/Leads/Lead/LeadView";
 
 // Client Management
 import ClientsList from "../pages/Clients/Client/ClientsList";
+import ClientList from "../pages/Clients/Client/ClientList";
 import ClientCreate from "../pages/Clients/Client/ClientCreate";
 import ClientEdit from "../pages/Clients/Client/ClientEdit";
 import ClientView from "../pages/Clients/Client/ClientView";
@@ -80,7 +81,8 @@ const authProtectedRoutes = [
   { path: "/leads/view/:id", component: <LeadView /> },
 
   // Client Management
-  { path: "/clients", component: <ClientsList /> },
+  { path: "/clients", component: <Navigate to="/clients/list" /> },
+  { path: "/clients/list", component: <ClientList /> },
   { path: "/clients/create", component: <ClientCreate /> },
   { path: "/clients/view/:id", component: <ClientView /> },
   { path: "/clients/edit/:id", component: <ClientEdit /> },

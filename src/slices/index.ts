@@ -31,6 +31,15 @@ import LeadsReducer from "./leads/lead.slice";
 // Countries
 import CountriesReducer from "./countries/country.slice";
 
+// Clients
+import ClientsReducer from "./clients/client.slice";
+
+// Client Contacts
+import ClientContactsReducer from "./clientContacts/clientContact.slice";
+
+// Client Sites
+import ClientSitesReducer from "./clientSites/clientSite.slice";
+
 const rootReducer = combineReducers({
   Layout: LayoutReducer,
   Login: LoginReducer,
@@ -45,6 +54,9 @@ const rootReducer = combineReducers({
   Meetings: MeetingsReducer,
   Leads: LeadsReducer,
   Countries: CountriesReducer,
+  Clients: ClientsReducer,
+  ClientContacts: ClientContactsReducer,
+  ClientSites: ClientSitesReducer,
 });
 
 export default rootReducer;

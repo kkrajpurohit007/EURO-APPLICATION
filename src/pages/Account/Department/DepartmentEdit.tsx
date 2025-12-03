@@ -20,8 +20,10 @@ import { updateDepartment, fetchDepartments, selectDepartmentById, selectDepartm
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const DepartmentEdit: React.FC = () => {
-  document.title = "Edit Department | ESRM Application";
+  document.title = PAGE_TITLES.DEPARTMENT_EDIT;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();

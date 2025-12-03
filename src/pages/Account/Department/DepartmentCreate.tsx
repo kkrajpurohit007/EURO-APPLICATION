@@ -27,8 +27,10 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const DepartmentCreate: React.FC = () => {
-  document.title = "Create Department | ESRM Application";
+  document.title = PAGE_TITLES.DEPARTMENT_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const loading = useSelector(selectDepartmentLoading);

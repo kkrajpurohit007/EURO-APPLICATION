@@ -16,109 +16,99 @@ import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import TableContainer from "../../../Components/Common/TableContainer";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
-  selectClientContactList,
-  selectClientContact,
-  fetchClientContacts,
-  deleteClientContact,
-  selectClientContactLoading,
-  selectClientContactError,
-} from "../../../slices/clientContacts/clientContact.slice";
-import { ClientContactItem } from "../../../slices/clientContacts/clientContact.fakeData";
+  selectClientList,
+  selectClient,
+  fetchClients,
+  deleteClient,
+  selectClientLoading,
+  selectClientError,
+} from "../../../slices/clients/client.slice";
+import { ClientItem } from "../../../slices/clients/client.fakeData";
 import { useNavigate } from "react-router-dom";
+
 import { PAGE_TITLES } from "../../../common/branding";
 
-const ContactsList: React.FC = () => {
-  document.title = PAGE_TITLES.CLIENT_CONTACTS_LIST;
+const ClientList: React.FC = () => {
+  document.title = PAGE_TITLES.CLIENTS_LIST;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
-  const clientContacts: ClientContactItem[] = useSelector(
-    selectClientContactList
-  );
-  const loading = useSelector(selectClientContactLoading);
-  const error = useSelector(selectClientContactError);
+  const clients: ClientItem[] = useSelector(selectClientList);
+  const loading = useSelector(selectClientLoading);
+  const error = useSelector(selectClientError);
 
   const [deleteModal, setDeleteModal] = useState(false);
-  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    if (!clientContacts) return [];
-    return clientContacts.filter((c) => !c.isDeleted);
-  }, [clientContacts]);
+    if (!clients) return [];
+    return clients.filter((c) => !c.isDeleted);
+  }, [clients]);
 
   const onDelete = (id: string) => {
-    setContactToDelete(id);
+    setClientToDelete(id);
     setDeleteModal(true);
   };
 
   const confirmDelete = async () => {
-    if (contactToDelete !== null) {
-      const result = await dispatch(deleteClientContact(contactToDelete));
+    if (clientToDelete !== null) {
+      const result = await dispatch(deleteClient(clientToDelete));
       if (result.meta.requestStatus === "fulfilled") {
-        // Refresh client contacts list after successful deletion
-        dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+        // Refresh clients list after successful deletion
+        dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
       }
     }
     setDeleteModal(false);
-    setContactToDelete(null);
+    setClientToDelete(null);
   };
 
   const columns = useMemo(
     () => [
       {
-        header: "Title",
-        accessorKey: "title",
+        header: "Name",
+        accessorKey: "name",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "First Name",
-        accessorKey: "contactFirstName",
+        header: "Register No.",
+        accessorKey: "ein",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "Last Name",
-        accessorKey: "contactLastName",
+        header: "Country",
+        accessorKey: "countryName",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "Email",
-        accessorKey: "email",
+        header: "Zipcode",
+        accessorKey: "zipcode",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "Mobile",
-        accessorKey: "mobile",
+        header: "Manager",
+        accessorKey: "managerFirstName",
         enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
+        cell: (cellProps: any) => {
+          const client = cellProps.row.original;
+          return `${client.managerFirstName} ${client.managerLastName}` || "-";
+        },
       },
       {
-        header: "Work Phone",
-        accessorKey: "workPhone",
-        enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
-        header: "Client",
-        accessorKey: "clientName",
-        enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
-        header: "Portal Access",
-        accessorKey: "isAllowPortalAccess",
+        header: "Priority",
+        accessorKey: "isPriority",
         enableColumnFilter: false,
         cell: (cell: any) => {
-          const hasAccess = cell.getValue();
-          return hasAccess ? (
-            <Badge color="success" className="badge-label">
-              <i className="mdi mdi-circle-medium"></i> Yes
+          const isPriority = cell.getValue();
+          return isPriority ? (
+            <Badge color="warning" className="badge-label">
+              <i className="mdi mdi-circle-medium"></i> Priority
             </Badge>
           ) : (
             <Badge color="secondary" className="badge-label">
-              <i className="mdi mdi-circle-medium"></i> No
+              <i className="mdi mdi-circle-medium"></i> Standard
             </Badge>
           );
         },
@@ -126,15 +116,15 @@ const ContactsList: React.FC = () => {
       {
         header: "Action",
         cell: (cellProps: any) => {
-          const contact = cellProps.row.original;
+          const client = cellProps.row.original;
           return (
             <div className="d-inline-flex gap-1">
               <Button
                 size="sm"
                 color="soft-primary"
                 onClick={() => {
-                  dispatch(selectClientContact(contact.id));
-                  navigate(`/clients/contacts/view/${contact.id}`);
+                  dispatch(selectClient(client.id));
+                  navigate(`/clients/view/${client.id}`);
                 }}
               >
                 <i className="ri-eye-line"></i>
@@ -143,8 +133,8 @@ const ContactsList: React.FC = () => {
                 size="sm"
                 color="soft-secondary"
                 onClick={() => {
-                  dispatch(selectClientContact(contact.id));
-                  navigate(`/clients/contacts/edit/${contact.id}`);
+                  dispatch(selectClient(client.id));
+                  navigate(`/clients/edit/${client.id}`);
                 }}
               >
                 <i className="ri-pencil-line"></i>
@@ -152,7 +142,7 @@ const ContactsList: React.FC = () => {
               <Button
                 size="sm"
                 color="soft-danger"
-                onClick={() => onDelete(contact.id)}
+                onClick={() => onDelete(client.id)}
               >
                 <i className="ri-delete-bin-line"></i>
               </Button>
@@ -167,29 +157,30 @@ const ContactsList: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Client Contacts" pageTitle="Client Management" />
+        <BreadCrumb title="Clients" pageTitle="Client Management" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader>
                 <Row className="g-3 align-items-center">
                   <Col sm={6}>
-                    <h5 className="card-title mb-0">Client Contact List</h5>
+                    <h5 className="card-title mb-0">Client List</h5>
                   </Col>
                   <Col sm={6}>
                     <div className="d-flex gap-2 flex-wrap justify-content-end">
                       <Button
                         color="success"
-                        onClick={() => navigate("/clients/contacts/create")}
+                        onClick={() => navigate("/clients/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Contact
+                        Create Client
                       </Button>
                     </div>
                   </Col>
                 </Row>
               </CardHeader>
               <CardBody>
+
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -199,7 +190,7 @@ const ContactsList: React.FC = () => {
                 {loading ? (
                   <div className="text-center py-5">
                     <Spinner color="primary" />
-                    <p className="mt-2">Loading client contacts...</p>
+                    <p className="mt-2">Loading clients...</p>
                   </div>
                 ) : (
                   <div>
@@ -210,7 +201,7 @@ const ContactsList: React.FC = () => {
                       customPageSize={10}
                       divClass="table-responsive table-card mb-3"
                       tableClass="align-middle table-nowrap mb-0"
-                      SearchPlaceholder="Search contacts..."
+                      SearchPlaceholder="Search clients..."
                     />
                   </div>
                 )}
@@ -228,4 +219,4 @@ const ContactsList: React.FC = () => {
   );
 };
 
-export default ContactsList;
+export default ClientList;

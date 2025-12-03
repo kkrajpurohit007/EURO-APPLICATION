@@ -1,379 +1,311 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  Container,
+  Row,
+  Col,
   Card,
   CardBody,
   CardHeader,
-  Col,
-  Container,
-  Row,
+  Button,
   Form,
   Label,
   Input,
-  Button,
   FormFeedback,
+  Alert,
   Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Select from "react-select";
+import {
+  updateClientContact,
+  fetchClientContacts,
+  selectClientContactById,
+  selectClientContactLoading,
+  selectClientContactError,
+} from "../../../slices/clientContacts/clientContact.slice";
+import { selectClientList } from "../../../slices/clients/client.slice";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Select from "react-select";
 
-const ContactEdit = () => {
+import { PAGE_TITLES } from "../../../common/branding";
+
+const ContactEdit: React.FC = () => {
+  document.title = PAGE_TITLES.CLIENT_CONTACT_EDIT;
+  const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [loading, setLoading] = useState(true);
+  const contact = useSelector((state: any) => selectClientContactById(state, id || ""));
+  const loading = useSelector(selectClientContactLoading);
+  const error = useSelector(selectClientContactError);
+  const clients = useSelector(selectClientList);
 
-  // Mock data
-  const mockContacts = [
-    {
-      id: 1,
-      clientId: "1",
-      firstName: "John",
-      lastName: "Smith",
-      email: "john.smith@abc.com",
-      phone: "+1234567890",
-      role: "Site Manager",
-      notes: "Primary contact for all site matters",
-    },
-    {
-      id: 2,
-      clientId: "1",
-      firstName: "Jane",
-      lastName: "Doe",
-      email: "jane.doe@abc.com",
-      phone: "+1234567891",
-      role: "Safety Officer",
-      notes: "Contact for safety compliance",
-    },
-  ];
+  const clientOptions = clients
+    .filter((c: any) => !c.isDeleted)
+    .map((client: any) => ({
+      value: client.id,
+      label: client.name,
+    }));
 
-  const contact = mockContacts.find((c) => c.id === Number(id));
-
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, [id]);
-
-  const clientOptions = [
-    {
-      options: [
-        { label: "ABC Corporation", value: "1" },
-        { label: "XYZ Industries", value: "2" },
-        { label: "Tech Solutions", value: "3" },
-      ],
-    },
-  ];
-
-  const validation: any = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      id: (contact && contact.id) || "",
-      clientId: (contact && contact.clientId) || "",
-      firstName: (contact && contact.firstName) || "",
-      lastName: (contact && contact.lastName) || "",
-      email: (contact && contact.email) || "",
-      phone: (contact && contact.phone) || "",
-      role: (contact && contact.role) || "",
-      notes: (contact && contact.notes) || "",
-    },
-    validationSchema: Yup.object({
-      clientId: Yup.string().required("Please select client"),
-      firstName: Yup.string().required("Please enter first name"),
-      lastName: Yup.string().required("Please enter last name"),
-      email: Yup.string()
-        .email("Please enter valid email")
-        .required("Please enter email"),
-      phone: Yup.string(),
-      role: Yup.string(),
-      notes: Yup.string(),
+  const initialValues = useMemo(
+    () => ({
+      title: contact?.title || "Mr.",
+      contactFirstName: contact?.contactFirstName || "",
+      contactLastName: contact?.contactLastName || "",
+      email: contact?.email || "",
+      workPhone: contact?.workPhone || "",
+      mobile: contact?.mobile || "",
+      notes: contact?.notes || "",
+      isAllowPortalAccess: contact?.isAllowPortalAccess || false,
     }),
-    onSubmit: (values) => {
-      console.log("Contact Updated:", values);
-      toast.success("Contact updated successfully", { autoClose: 3000 });
-      setTimeout(() => {
+    [contact]
+  );
+
+  const validation = useFormik({
+    enableReinitialize: true,
+    initialValues,
+    validationSchema: Yup.object({
+      contactFirstName: Yup.string().required("First name is required"),
+      contactLastName: Yup.string().required("Last name is required"),
+      email: Yup.string()
+        .email("Enter a valid email")
+        .required("Email is required"),
+      workPhone: Yup.string().required("Work phone is required"),
+    }),
+    onSubmit: async (values) => {
+      const payload = {
+        id: id as string,
+        data: values,
+      };
+      const result = await dispatch(updateClientContact(payload));
+      if (result.meta.requestStatus === "fulfilled") {
+        // Refresh client contacts list after successful update
+        dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
         navigate("/clients/contacts");
-      }, 1000);
+      }
     },
   });
 
-  const handleCancel = () => {
-    navigate("/clients/contacts");
-  };
-
-  document.title = "Edit Contact | Velzon - React Admin & Dashboard Template";
-
-  if (loading) {
+  if (!contact) {
     return (
       <div className="page-content">
         <Container fluid>
-          <div className="py-4 text-center">
-            <Spinner color="primary" />
-            <div className="mt-2">Loading contact...</div>
-          </div>
+          <Alert color="danger">Client Contact not found</Alert>
         </Container>
       </div>
     );
   }
 
   return (
-    <React.Fragment>
-      <div className="page-content">
-        <Container fluid>
-          <BreadCrumb title="Edit Contact" pageTitle="Contacts" />
-          <Row>
-            <Col lg={12}>
-              <Form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  validation.handleSubmit();
-                  return false;
-                }}
-              >
-                <Card>
-                  <CardHeader>
-                    <h5 className="card-title mb-0">Edit Contact</h5>
-                  </CardHeader>
-                  <CardBody>
-                    <Row>
-                      <Col md={12}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="clientId">
-                            Client <span className="text-danger">*</span>
-                          </Label>
-                          <Select
-                            value={
-                              clientOptions[0]?.options.find(
-                                (option: any) =>
-                                  option.value === validation.values.clientId
-                              ) || null
-                            }
-                            onChange={(selectedOption: any) => {
-                              validation.setFieldValue(
-                                "clientId",
-                                selectedOption?.value || ""
-                              );
-                            }}
-                            options={clientOptions}
-                            name="clientId"
-                            placeholder="Select client"
-                            classNamePrefix="select2-selection form-select"
-                          />
-                          {validation.errors.clientId &&
-                          validation.touched.clientId ? (
-                            <div className="invalid-feedback d-block">
-                              {validation.errors.clientId}
-                            </div>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
+    <div className="page-content">
+      <Container fluid>
+        <BreadCrumb title="Edit Contact" pageTitle="Client Contacts" />
+        <Row>
+          <Col lg={12}>
+            <Card>
+              <CardHeader className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">Edit Client Contact</h5>
+                <div className="d-flex gap-2">
+                  <Button color="light" onClick={() => navigate("/clients/contacts")}>
+                    Close
+                  </Button>
+                  <Button
+                    color="secondary"
+                    onClick={() => navigate("/clients/contacts")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => validation.handleSubmit()}
+                    disabled={loading}
+                  >
+                    {loading ? <Spinner size="sm" /> : "Update"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardBody>
+                {error && (
+                  <Alert color="danger" className="mb-3">
+                    {error}
+                  </Alert>
+                )}
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    validation.handleSubmit();
+                  }}
+                >
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <Label className="form-label">Client</Label>
+                      <Select
+                        value={clientOptions.find(
+                          (option: any) => option.value === contact.clientId
+                        )}
+                        isDisabled={true}
+                        options={clientOptions}
+                        placeholder="Select client"
+                        classNamePrefix="select2-selection"
+                      />
+                    </Col>
 
-                    <Row>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="firstName">
-                            First Name <span className="text-danger">*</span>
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="firstName"
-                            placeholder="Enter first name"
-                            name="firstName"
-                            value={validation.values.firstName || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.firstName &&
-                              validation.touched.firstName
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.firstName &&
-                          validation.touched.firstName ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.firstName}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="lastName">
-                            Last Name <span className="text-danger">*</span>
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="lastName"
-                            placeholder="Enter last name"
-                            name="lastName"
-                            value={validation.values.lastName || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.lastName &&
-                              validation.touched.lastName
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.lastName &&
-                          validation.touched.lastName ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.lastName}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="email">
-                            Email <span className="text-danger">*</span>
-                          </Label>
-                          <Input
-                            type="email"
-                            className="form-control"
-                            id="email"
-                            placeholder="Enter email"
-                            name="email"
-                            value={validation.values.email || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.email && validation.touched.email
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.email && validation.touched.email ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.email}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="phone">
-                            Phone
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="phone"
-                            placeholder="Enter phone number"
-                            name="phone"
-                            value={validation.values.phone || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.phone && validation.touched.phone
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.phone && validation.touched.phone ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.phone}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col md={12}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="role">
-                            Role
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="role"
-                            placeholder="Enter role"
-                            name="role"
-                            value={validation.values.role || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.role && validation.touched.role
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.role && validation.touched.role ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.role}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col md={12}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="notes">
-                            Notes
-                          </Label>
-                          <Input
-                            type="textarea"
-                            className="form-control"
-                            id="notes"
-                            placeholder="Enter notes"
-                            name="notes"
-                            rows={3}
-                            value={validation.values.notes || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.notes && validation.touched.notes
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.notes && validation.touched.notes ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.notes}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="text-end">
-                      <Button type="submit" color="success" className="me-2">
-                        <i className="ri-save-line align-middle me-1"></i>
-                        Update Contact
-                      </Button>
-                      <Button
-                        type="button"
-                        color="danger"
-                        onClick={handleCancel}
+                    <Col md={6}>
+                      <Label className="form-label">Title</Label>
+                      <Input
+                        type="select"
+                        name="title"
+                        value={validation.values.title}
+                        onChange={validation.handleChange}
                       >
-                        <i className="ri-close-line align-middle me-1"></i>
-                        Cancel
-                      </Button>
-                    </div>
-                  </CardBody>
-                </Card>
-              </Form>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-      <ToastContainer closeButton={false} limit={1} />
-    </React.Fragment>
+                        <option value="Mr.">Mr.</option>
+                        <option value="Ms.">Ms.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Dr.">Dr.</option>
+                      </Input>
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">First Name *</Label>
+                      <Input
+                        name="contactFirstName"
+                        value={validation.values.contactFirstName}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={
+                          !!(
+                            validation.touched.contactFirstName &&
+                            validation.errors.contactFirstName
+                          )
+                        }
+                      />
+                      {validation.touched.contactFirstName &&
+                        validation.errors.contactFirstName && (
+                          <FormFeedback type="invalid">
+                            {String(validation.errors.contactFirstName)}
+                          </FormFeedback>
+                        )}
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Last Name *</Label>
+                      <Input
+                        name="contactLastName"
+                        value={validation.values.contactLastName}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={
+                          !!(
+                            validation.touched.contactLastName &&
+                            validation.errors.contactLastName
+                          )
+                        }
+                      />
+                      {validation.touched.contactLastName &&
+                        validation.errors.contactLastName && (
+                          <FormFeedback type="invalid">
+                            {String(validation.errors.contactLastName)}
+                          </FormFeedback>
+                        )}
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Email *</Label>
+                      <Input
+                        type="email"
+                        name="email"
+                        value={validation.values.email}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={
+                          !!(
+                            validation.touched.email && validation.errors.email
+                          )
+                        }
+                      />
+                      {validation.touched.email && validation.errors.email && (
+                        <FormFeedback type="invalid">
+                          {String(validation.errors.email)}
+                        </FormFeedback>
+                      )}
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Work Phone *</Label>
+                      <Input
+                        name="workPhone"
+                        value={validation.values.workPhone}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={
+                          !!(
+                            validation.touched.workPhone &&
+                            validation.errors.workPhone
+                          )
+                        }
+                      />
+                      {validation.touched.workPhone &&
+                        validation.errors.workPhone && (
+                          <FormFeedback type="invalid">
+                            {String(validation.errors.workPhone)}
+                          </FormFeedback>
+                        )}
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Mobile</Label>
+                      <Input
+                        name="mobile"
+                        value={validation.values.mobile}
+                        onChange={validation.handleChange}
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Portal Access</Label>
+                      <div className="form-check form-switch form-switch-lg mt-2">
+                        <Input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="portalAccessSwitch"
+                          checked={validation.values.isAllowPortalAccess}
+                          onChange={(e) =>
+                            validation.setFieldValue(
+                              "isAllowPortalAccess",
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <Label
+                          className="form-check-label"
+                          htmlFor="portalAccessSwitch"
+                        >
+                          {validation.values.isAllowPortalAccess
+                            ? "Allowed"
+                            : "Not Allowed"}
+                        </Label>
+                      </div>
+                    </Col>
+
+                    <Col md={12}>
+                      <Label className="form-label">Notes</Label>
+                      <Input
+                        type="textarea"
+                        rows={3}
+                        name="notes"
+                        value={validation.values.notes}
+                        onChange={validation.handleChange}
+                      />
+                    </Col>
+                  </Row>
+                </Form>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

@@ -21,8 +21,10 @@ import Select from "react-select";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { addNewMeeting } from "../../../slices/thunks";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const MeetingCreate: React.FC = () => {
-  document.title = "Schedule Meeting | ESRM Application";
+  document.title = PAGE_TITLES.MEETING_CREATE;
 
   const dispatch: any = useDispatch();
   const navigate = useNavigate();
@@ -350,29 +352,29 @@ const MeetingCreate: React.FC = () => {
 
                       {(values.locationType === "Virtual" ||
                         values.locationType === "Hybrid") && (
-                        <FormGroup>
-                          <Label for="meetingLink">
-                            Meeting Link <span className="text-danger">*</span>
-                          </Label>
-                          <Input
-                            type="url"
-                            id="meetingLink"
-                            name="meetingLink"
-                            placeholder="https://zoom.us/j/123456789"
-                            value={values.meetingLink}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            invalid={
-                              !!(touched.meetingLink && errors.meetingLink)
-                            }
-                          />
-                          {touched.meetingLink && errors.meetingLink && (
-                            <FormFeedback>
-                              {String(errors.meetingLink)}
-                            </FormFeedback>
-                          )}
-                        </FormGroup>
-                      )}
+                          <FormGroup>
+                            <Label for="meetingLink">
+                              Meeting Link <span className="text-danger">*</span>
+                            </Label>
+                            <Input
+                              type="url"
+                              id="meetingLink"
+                              name="meetingLink"
+                              placeholder="https://zoom.us/j/123456789"
+                              value={values.meetingLink}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              invalid={
+                                !!(touched.meetingLink && errors.meetingLink)
+                              }
+                            />
+                            {touched.meetingLink && errors.meetingLink && (
+                              <FormFeedback>
+                                {String(errors.meetingLink)}
+                              </FormFeedback>
+                            )}
+                          </FormGroup>
+                        )}
 
                       <Row>
                         <Col md={6}>

@@ -14,8 +14,10 @@ import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { getMeetings } from "../../../slices/thunks";
 import MeetingCard from "./MeetingCard";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const Meetings: React.FC = () => {
-  document.title = "Meetings & Schedule | ESRM Application";
+  document.title = PAGE_TITLES.MEETINGS_SCHEDULE;
 
   const dispatch: any = useDispatch();
   const navigate = useNavigate();

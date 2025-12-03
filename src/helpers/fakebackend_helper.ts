@@ -9,6 +9,9 @@ import { meetingsData } from "../common/data/meetings";
 import { initialLeads, LeadItem } from "../slices/leads/lead.fakeData";
 import { initialDepartments, DepartmentItem } from "../slices/departments/department.fakeData";
 import { initialCountries, CountryItem } from "../slices/countries/country.fakeData";
+import { initialClients, ClientItem } from "../slices/clients/client.fakeData";
+import { initialClientContacts, ClientContactItem } from "../slices/clientContacts/clientContact.fakeData";
+import { initialClientSites, ClientSiteItem } from "../slices/clientSites/clientSite.fakeData";
 
 const api = new APIClient();
 
@@ -530,6 +533,186 @@ export const getCountries = (pageNumber: number = 1, pageSize: number = 50) => {
         hasPreviousPage: pageNumber > 1,
         hasNextPage: end < countriesData.length,
       });
+    }, 300);
+  });
+};
+
+// ========================
+// CLIENTS API
+// ========================
+
+let clientsData = [...initialClients];
+
+export const getClients = (pageNumber: number = 1, pageSize: number = 50) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = clientsData.slice(start, end);
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: clientsData.length,
+        totalPages: Math.ceil(clientsData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < clientsData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewClient = (client: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newClient: ClientItem = {
+        ...client,
+        id: (clientsData.length + 1).toString(),
+        isDeleted: false,
+      };
+      clientsData.unshift(newClient);
+      resolve(newClient);
+    }, 300);
+  });
+};
+
+export const updateClient = (id: string, client: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientsData.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        clientsData[index] = { ...clientsData[index], ...client };
+        resolve(clientsData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteClient = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      clientsData = clientsData.filter((c) => c.id !== id);
+      resolve({ success: true });
+    }, 300);
+  });
+};
+
+// ========================
+// CLIENT CONTACTS API
+// ========================
+
+let clientContactsData = [...initialClientContacts];
+
+export const getClientContacts = (pageNumber: number = 1, pageSize: number = 50) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = clientContactsData.slice(start, end);
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: clientContactsData.length,
+        totalPages: Math.ceil(clientContactsData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < clientContactsData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewClientContact = (contact: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newContact: ClientContactItem = {
+        ...contact,
+        id: (clientContactsData.length + 1).toString(),
+        isDeleted: false,
+      };
+      clientContactsData.unshift(newContact);
+      resolve(newContact);
+    }, 300);
+  });
+};
+
+export const updateClientContact = (id: string, contact: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientContactsData.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        clientContactsData[index] = { ...clientContactsData[index], ...contact };
+        resolve(clientContactsData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteClientContact = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      clientContactsData = clientContactsData.filter((c) => c.id !== id);
+      resolve({ success: true });
+    }, 300);
+  });
+};
+
+// ========================
+// CLIENT SITES API
+// ========================
+
+let clientSitesData = [...initialClientSites];
+
+export const getClientSites = (pageNumber: number = 1, pageSize: number = 50) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = clientSitesData.slice(start, end);
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: clientSitesData.length,
+        totalPages: Math.ceil(clientSitesData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < clientSitesData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewClientSite = (site: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newSite: ClientSiteItem = {
+        ...site,
+        id: (clientSitesData.length + 1).toString(),
+        isDeleted: false,
+      };
+      clientSitesData.unshift(newSite);
+      resolve(newSite);
+    }, 300);
+  });
+};
+
+export const updateClientSite = (id: string, site: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientSitesData.findIndex((s) => s.id === id);
+      if (index !== -1) {
+        clientSitesData[index] = { ...clientSitesData[index], ...site };
+        resolve(clientSitesData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteClientSite = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      clientSitesData = clientSitesData.filter((s) => s.id !== id);
+      resolve({ success: true });
     }, 300);
   });
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { PAGE_TITLES } from "../../common/branding";
 import {
   Card,
   CardBody,
@@ -125,7 +126,7 @@ const OtpVerification = () => {
 
   const isOtpComplete = otpDigits.every((digit) => digit !== "");
 
-  document.title = "OTP Verification | ESRM Application";
+  document.title = PAGE_TITLES.OTP_VERIFICATION;
 
   return (
     <React.Fragment>
@@ -195,9 +196,8 @@ const OtpVerification = () => {
                                   handleOtpChange(index, e.target.value)
                                 }
                                 onKeyDown={(e) => handleKeyDown(index, e)}
-                                className={`otp-input-box ${
-                                  digit ? "filled" : ""
-                                }`}
+                                className={`otp-input-box ${digit ? "filled" : ""
+                                  }`}
                                 placeholder="0"
                               />
                             ))}

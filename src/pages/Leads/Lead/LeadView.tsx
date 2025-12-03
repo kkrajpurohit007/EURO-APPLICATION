@@ -18,8 +18,10 @@ import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { selectLeadById } from "../../../slices/leads/lead.slice";
 import { LeadStatusLabels, LeadStatus } from "../../../slices/leads/lead.fakeData";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const LeadView: React.FC = () => {
-  document.title = "View Lead | ESRM Application";
+  document.title = PAGE_TITLES.LEAD_VIEW;
   const { id } = useParams();
   const navigate = useNavigate();
   const lead = useSelector((state: any) => selectLeadById(state, id || ""));

@@ -30,11 +30,12 @@ import {
   LeadStatusLabels,
 } from "../../../slices/leads/lead.fakeData";
 import { useNavigate } from "react-router-dom";
+import { PAGE_TITLES } from "../../../common/branding";
 
 const statusOptions: LeadStatus[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
 const LeadList: React.FC = () => {
-  document.title = "Leads | ESRM Application";
+  document.title = PAGE_TITLES.LEADS_LIST;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const leads: LeadItem[] = useSelector(selectLeadList);

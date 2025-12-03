@@ -34,6 +34,7 @@ import {
   deleteMeeting as onDeleteMeeting,
 } from "../../../slices/thunks";
 import { Meeting } from "../../../slices/meetings/reducer";
+import { PAGE_TITLES } from "../../../common/branding";
 
 // Categories for meeting types
 const categories = [
@@ -44,7 +45,7 @@ const categories = [
 ];
 
 const MeetingCalendar: React.FC = () => {
-  document.title = "Meeting Calendar | ESRM Application";
+  document.title = PAGE_TITLES.MEETING_CALENDAR;
 
   const dispatch: any = useDispatch();
 
@@ -321,9 +322,8 @@ const MeetingCalendar: React.FC = () => {
     const minutes = diff % 60;
 
     if (hours > 0 && minutes > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} min${
-        minutes > 1 ? "s" : ""
-      }`;
+      return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} min${minutes > 1 ? "s" : ""
+        }`;
     } else if (hours > 0) {
       return `${hours} hour${hours > 1 ? "s" : ""}`;
     } else {
@@ -590,13 +590,13 @@ const MeetingCalendar: React.FC = () => {
                           value={validation.values.clientName || ""}
                           invalid={
                             validation.touched.clientName &&
-                            validation.errors.clientName
+                              validation.errors.clientName
                               ? true
                               : false
                           }
                         />
                         {validation.touched.clientName &&
-                        validation.errors.clientName ? (
+                          validation.errors.clientName ? (
                           <FormFeedback type="invalid">
                             {String(validation.errors.clientName)}
                           </FormFeedback>
@@ -666,13 +666,13 @@ const MeetingCalendar: React.FC = () => {
                           value={validation.values.location || ""}
                           invalid={
                             validation.touched.location &&
-                            validation.errors.location
+                              validation.errors.location
                               ? true
                               : false
                           }
                         />
                         {validation.touched.location &&
-                        validation.errors.location ? (
+                          validation.errors.location ? (
                           <FormFeedback type="invalid">
                             {String(validation.errors.location)}
                           </FormFeedback>
@@ -681,18 +681,18 @@ const MeetingCalendar: React.FC = () => {
 
                       {(validation.values.locationType === "Virtual" ||
                         validation.values.locationType === "Hybrid") && (
-                        <Col xs={12}>
-                          <Label className="form-label">Meeting Link</Label>
-                          <Input
-                            name="meetingLink"
-                            type="url"
-                            placeholder="Enter meeting link"
-                            onChange={validation.handleChange}
-                            onBlur={validation.handleBlur}
-                            value={validation.values.meetingLink || ""}
-                          />
-                        </Col>
-                      )}
+                          <Col xs={12}>
+                            <Label className="form-label">Meeting Link</Label>
+                            <Input
+                              name="meetingLink"
+                              type="url"
+                              placeholder="Enter meeting link"
+                              onChange={validation.handleChange}
+                              onBlur={validation.handleBlur}
+                              value={validation.values.meetingLink || ""}
+                            />
+                          </Col>
+                        )}
 
                       <Col xs={12}>
                         <Label className="form-label">Organizer</Label>
@@ -705,13 +705,13 @@ const MeetingCalendar: React.FC = () => {
                           value={validation.values.organizer || ""}
                           invalid={
                             validation.touched.organizer &&
-                            validation.errors.organizer
+                              validation.errors.organizer
                               ? true
                               : false
                           }
                         />
                         {validation.touched.organizer &&
-                        validation.errors.organizer ? (
+                          validation.errors.organizer ? (
                           <FormFeedback type="invalid">
                             {String(validation.errors.organizer)}
                           </FormFeedback>

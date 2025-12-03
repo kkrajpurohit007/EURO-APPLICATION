@@ -21,8 +21,10 @@ import { LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const LeadEdit: React.FC = () => {
-  document.title = "Edit Lead | ESRM Application";
+  document.title = PAGE_TITLES.LEAD_EDIT;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();

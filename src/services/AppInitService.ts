@@ -1,6 +1,9 @@
 import { fetchLeads } from "../slices/leads/lead.slice";
 import { fetchDepartments } from "../slices/departments/department.slice";
 import { fetchCountries } from "../slices/countries/country.slice";
+import { fetchClients } from "../slices/clients/client.slice";
+import { fetchClientContacts } from "../slices/clientContacts/clientContact.slice";
+import { fetchClientSites } from "../slices/clientSites/clientSite.slice";
 
 /**
  * Centralized App Initialization Service
@@ -32,6 +35,15 @@ class AppInitService {
 
             // Load Countries
             await dispatch(fetchCountries({ pageNumber: 1, pageSize: 50 }));
+
+            // Load Clients
+            await dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
+
+            // Load Client Contacts
+            await dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+
+            // Load Client Sites
+            await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
 
             // Future: Load other master data here
             // await dispatch(fetchMeetings());
@@ -68,6 +80,30 @@ class AppInitService {
      */
     async forceRefreshCountries(dispatch: any) {
         await dispatch(fetchCountries({ pageNumber: 1, pageSize: 50 }));
+    }
+
+    /**
+     * Force refresh clients data
+     * Used after CRUD operations
+     */
+    async forceRefreshClients(dispatch: any) {
+        await dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
+    }
+
+    /**
+     * Force refresh client contacts data
+     * Used after CRUD operations
+     */
+    async forceRefreshClientContacts(dispatch: any) {
+        await dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+    }
+
+    /**
+     * Force refresh client sites data
+     * Used after CRUD operations
+     */
+    async forceRefreshClientSites(dispatch: any) {
+        await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
     }
 
     /**

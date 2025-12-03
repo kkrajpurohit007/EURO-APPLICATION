@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -12,331 +13,264 @@ import {
   Input,
   Button,
   FormFeedback,
+  Alert,
+  Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Select from "react-select";
+import {
+  createClientSite,
+  fetchClientSites,
+  selectClientSiteLoading,
+  selectClientSiteError,
+} from "../../../slices/clientSites/clientSite.slice";
+import { selectClientList } from "../../../slices/clients/client.slice";
+import { selectCountryList } from "../../../slices/countries/country.slice";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Select from "react-select";
+import { getLoggedinUser } from "../../../helpers/api_helper";
 
-const SiteCreate = () => {
+import { PAGE_TITLES } from "../../../common/branding";
+
+const SiteCreate: React.FC = () => {
+  document.title = PAGE_TITLES.CLIENT_SITE_CREATE;
+  const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const loading = useSelector(selectClientSiteLoading);
+  const error = useSelector(selectClientSiteError);
+  const clients = useSelector(selectClientList);
+  const countries = useSelector(selectCountryList);
 
-  const clientOptions = [
-    {
-      options: [
-        { label: "ABC Corporation", value: "1" },
-        { label: "XYZ Industries", value: "2" },
-        { label: "Tech Solutions", value: "3" },
-      ],
-    },
-  ];
+  const authUser = getLoggedinUser();
 
-  const statusOptions = [
-    {
-      options: [
-        { label: "Active", value: "Active" },
-        { label: "Inactive", value: "Inactive" },
-      ],
-    },
-  ];
+  const clientOptions = useMemo(() => {
+    return clients.map((c: any) => ({ label: c.name, value: c.id }));
+  }, [clients]);
 
-  const validation: any = useFormik({
+  const countryOptions = useMemo(() => {
+    return countries.map((c: any) => ({ label: c.name, value: c.id }));
+  }, [countries]);
+
+  const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
       clientId: "",
-      name: "",
-      address: "",
-      contactName: "",
-      contactPhone: "",
-      notes: "",
-      status: "Active",
+      siteName: "",
+      address1: "",
+      address2: "",
+      countryId: "",
+      zipcode: "",
+      latitude: 0,
+      longitude: 0,
+      siteRadiusMeters: 200,
+      requireGeofencing: false,
     },
     validationSchema: Yup.object({
       clientId: Yup.string().required("Please select client"),
-      name: Yup.string().required("Please enter site name"),
-      address: Yup.string(),
-      contactName: Yup.string(),
-      contactPhone: Yup.string(),
-      notes: Yup.string(),
-      status: Yup.string().required("Please select status"),
+      siteName: Yup.string().required("Please enter site name"),
+      address1: Yup.string().required("Please enter address"),
+      countryId: Yup.string().required("Please select country"),
+      zipcode: Yup.string().required("Please enter zipcode"),
+      latitude: Yup.number().required("Please enter latitude"),
+      longitude: Yup.number().required("Please enter longitude"),
+      siteRadiusMeters: Yup.number().required("Please enter site radius"),
     }),
-    onSubmit: (values) => {
-      console.log("Site Created:", values);
-      toast.success("Site created successfully", { autoClose: 3000 });
-      setTimeout(() => {
+    onSubmit: async (values) => {
+      const payload = {
+        tenantId: authUser?.tenantId || "",
+        ...values,
+      };
+      const result = await dispatch(createClientSite(payload));
+      if (result.meta.requestStatus === "fulfilled") {
+        // Refresh sites list
+        dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
         navigate("/clients/sites");
-      }, 1000);
+      }
     },
   });
 
-  const handleCancel = () => {
-    navigate("/clients/sites");
-  };
-
-  document.title = "Create Site | Velzon - React Admin & Dashboard Template";
-
   return (
-    <React.Fragment>
-      <div className="page-content">
-        <Container fluid>
-          <BreadCrumb title="Create Site" pageTitle="Sites" />
-          <Row>
-            <Col lg={12}>
-              <Form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  validation.handleSubmit();
-                  return false;
-                }}
-              >
-                <Card>
-                  <CardHeader>
-                    <h5 className="card-title mb-0">Add New Site</h5>
-                  </CardHeader>
-                  <CardBody>
-                    <Row>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="clientId">
-                            Client <span className="text-danger">*</span>
-                          </Label>
-                          <Select
-                            value={
-                              clientOptions[0]?.options.find(
-                                (option: any) =>
-                                  option.value === validation.values.clientId
-                              ) || null
-                            }
-                            onChange={(selectedOption: any) => {
-                              validation.setFieldValue(
-                                "clientId",
-                                selectedOption?.value || ""
-                              );
-                            }}
-                            options={clientOptions}
-                            name="clientId"
-                            placeholder="Select client"
-                            classNamePrefix="select2-selection form-select"
-                          />
-                          {validation.errors.clientId &&
-                          validation.touched.clientId ? (
-                            <div className="invalid-feedback d-block">
-                              {validation.errors.clientId}
-                            </div>
-                          ) : null}
-                        </div>
-                      </Col>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="name">
-                            Site Name <span className="text-danger">*</span>
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="name"
-                            placeholder="Enter site name"
-                            name="name"
-                            value={validation.values.name || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.name && validation.touched.name
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.name && validation.touched.name ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.name}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
+    <div className="page-content">
+      <Container fluid>
+        <BreadCrumb title="Create Site" pageTitle="Sites" />
+        <Row>
+          <Col lg={12}>
+            <Card>
+              <CardHeader className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">Add New Site</h5>
+                <div className="d-flex gap-2">
+                  <Button color="light" onClick={() => navigate("/clients/sites")}>
+                    Close
+                  </Button>
+                  <Button color="secondary" onClick={() => navigate("/clients/sites")}>
+                    Cancel
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => validation.handleSubmit()}
+                    disabled={loading}
+                  >
+                    {loading ? <Spinner size="sm" /> : "Save"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardBody>
+                {error && (
+                  <Alert color="danger" className="mb-3">
+                    {error}
+                  </Alert>
+                )}
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    validation.handleSubmit();
+                  }}
+                >
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <Label className="form-label">Client *</Label>
+                      <Select
+                        value={clientOptions.find((o: any) => o.value === validation.values.clientId)}
+                        onChange={(option: any) => validation.setFieldValue("clientId", option?.value || "")}
+                        options={clientOptions}
+                        placeholder="Select client"
+                        classNamePrefix="select2-selection"
+                      />
+                      {validation.touched.clientId && validation.errors.clientId && (
+                        <div className="invalid-feedback d-block">{String(validation.errors.clientId)}</div>
+                      )}
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Site Name *</Label>
+                      <Input
+                        name="siteName"
+                        value={validation.values.siteName}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={!!(validation.touched.siteName && validation.errors.siteName)}
+                        placeholder="e.g., Main Office"
+                      />
+                      {validation.touched.siteName && validation.errors.siteName && (
+                        <FormFeedback type="invalid">{String(validation.errors.siteName)}</FormFeedback>
+                      )}
+                    </Col>
 
-                    <Row>
-                      <Col md={12}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="address">
-                            Address
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="address"
-                            placeholder="Enter address"
-                            name="address"
-                            value={validation.values.address || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.address &&
-                              validation.touched.address
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.address &&
-                          validation.touched.address ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.address}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
+                    <Col md={6}>
+                      <Label className="form-label">Address Line 1 *</Label>
+                      <Input
+                        name="address1"
+                        value={validation.values.address1}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={!!(validation.touched.address1 && validation.errors.address1)}
+                      />
+                      {validation.touched.address1 && validation.errors.address1 && (
+                        <FormFeedback type="invalid">{String(validation.errors.address1)}</FormFeedback>
+                      )}
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Address Line 2</Label>
+                      <Input
+                        name="address2"
+                        value={validation.values.address2}
+                        onChange={validation.handleChange}
+                      />
+                    </Col>
 
-                    <Row>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="contactName">
-                            Contact Name
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="contactName"
-                            placeholder="Enter contact name"
-                            name="contactName"
-                            value={validation.values.contactName || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.contactName &&
-                              validation.touched.contactName
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.contactName &&
-                          validation.touched.contactName ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.contactName}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="contactPhone">
-                            Contact Phone
-                          </Label>
-                          <Input
-                            type="text"
-                            className="form-control"
-                            id="contactPhone"
-                            placeholder="Enter contact phone"
-                            name="contactPhone"
-                            value={validation.values.contactPhone || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.contactPhone &&
-                              validation.touched.contactPhone
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.contactPhone &&
-                          validation.touched.contactPhone ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.contactPhone}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
+                    <Col md={4}>
+                      <Label className="form-label">Country *</Label>
+                      <Select
+                        value={countryOptions.find((o: any) => o.value === validation.values.countryId)}
+                        onChange={(option: any) => validation.setFieldValue("countryId", option?.value || "")}
+                        options={countryOptions}
+                        placeholder="Select country"
+                        classNamePrefix="select2-selection"
+                      />
+                      {validation.touched.countryId && validation.errors.countryId && (
+                        <div className="invalid-feedback d-block">{String(validation.errors.countryId)}</div>
+                      )}
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Zipcode *</Label>
+                      <Input
+                        name="zipcode"
+                        value={validation.values.zipcode}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={!!(validation.touched.zipcode && validation.errors.zipcode)}
+                      />
+                      {validation.touched.zipcode && validation.errors.zipcode && (
+                        <FormFeedback type="invalid">{String(validation.errors.zipcode)}</FormFeedback>
+                      )}
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Site Radius (meters) *</Label>
+                      <Input
+                        type="number"
+                        name="siteRadiusMeters"
+                        value={validation.values.siteRadiusMeters}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={!!(validation.touched.siteRadiusMeters && validation.errors.siteRadiusMeters)}
+                      />
+                      {validation.touched.siteRadiusMeters && validation.errors.siteRadiusMeters && (
+                        <FormFeedback type="invalid">{String(validation.errors.siteRadiusMeters)}</FormFeedback>
+                      )}
+                    </Col>
 
-                    <Row>
-                      <Col md={12}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="notes">
-                            Notes
-                          </Label>
-                          <Input
-                            type="textarea"
-                            className="form-control"
-                            id="notes"
-                            placeholder="Enter notes"
-                            name="notes"
-                            rows={3}
-                            value={validation.values.notes || ""}
-                            onBlur={validation.handleBlur}
-                            onChange={validation.handleChange}
-                            invalid={
-                              validation.errors.notes &&
-                              validation.touched.notes
-                                ? true
-                                : false
-                            }
-                          />
-                          {validation.errors.notes &&
-                          validation.touched.notes ? (
-                            <FormFeedback type="invalid">
-                              {validation.errors.notes}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <Label className="form-label" htmlFor="status">
-                            Status <span className="text-danger">*</span>
-                          </Label>
-                          <Select
-                            value={statusOptions[0].options.find(
-                              (option: any) =>
-                                option.value === validation.values.status
-                            )}
-                            onChange={(selectedOption: any) => {
-                              validation.setFieldValue(
-                                "status",
-                                selectedOption.value
-                              );
-                            }}
-                            options={statusOptions}
-                            name="status"
-                            classNamePrefix="select2-selection form-select"
-                          />
-                          {validation.errors.status &&
-                          validation.touched.status ? (
-                            <div className="invalid-feedback d-block">
-                              {validation.errors.status}
-                            </div>
-                          ) : null}
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="text-end">
-                      <Button type="submit" color="success" className="me-2">
-                        <i className="ri-save-line align-middle me-1"></i>
-                        Save Site
-                      </Button>
-                      <Button
-                        type="button"
-                        color="danger"
-                        onClick={handleCancel}
-                      >
-                        <i className="ri-close-line align-middle me-1"></i>
-                        Cancel
-                      </Button>
-                    </div>
-                  </CardBody>
-                </Card>
-              </Form>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-      <ToastContainer closeButton={false} limit={1} />
-    </React.Fragment>
+                    <Col md={4}>
+                      <Label className="form-label">Latitude *</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        name="latitude"
+                        value={validation.values.latitude}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={!!(validation.touched.latitude && validation.errors.latitude)}
+                      />
+                      {validation.touched.latitude && validation.errors.latitude && (
+                        <FormFeedback type="invalid">{String(validation.errors.latitude)}</FormFeedback>
+                      )}
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Longitude *</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        name="longitude"
+                        value={validation.values.longitude}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={!!(validation.touched.longitude && validation.errors.longitude)}
+                      />
+                      {validation.touched.longitude && validation.errors.longitude && (
+                        <FormFeedback type="invalid">{String(validation.errors.longitude)}</FormFeedback>
+                      )}
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Geofencing</Label>
+                      <div className="form-check form-switch form-switch-lg mt-2">
+                        <Input
+                          type="checkbox"
+                          className="form-check-input"
+                          name="requireGeofencing"
+                          checked={validation.values.requireGeofencing}
+                          onChange={validation.handleChange}
+                        />
+                        <Label className="form-check-label">
+                          {validation.values.requireGeofencing ? "Enabled" : "Disabled"}
+                        </Label>
+                      </div>
+                    </Col>
+                  </Row>
+                </Form>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

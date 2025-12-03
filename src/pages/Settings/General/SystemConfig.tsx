@@ -14,6 +14,7 @@ import {
   Alert,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
+import { PAGE_TITLES } from "../../../common/branding";
 
 interface SystemConfigData {
   appName: string;
@@ -31,7 +32,7 @@ interface SystemConfigData {
 }
 
 const SystemConfig: React.FC = () => {
-  document.title = "System Configuration | ESRM Application";
+  document.title = PAGE_TITLES.SETTINGS_SYSTEM_CONFIG;
 
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -78,8 +79,8 @@ const SystemConfig: React.FC = () => {
         type === "checkbox"
           ? checked
           : type === "number"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     });
   };
 

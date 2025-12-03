@@ -21,8 +21,10 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import { getMeetings, deleteMeeting } from "../../../slices/thunks";
 import MeetingCard from "./MeetingCard";
 
+import { PAGE_TITLES } from "../../../common/branding";
+
 const MeetingsList: React.FC = () => {
-  document.title = "Meetings List | ESRM Application";
+  document.title = PAGE_TITLES.MEETINGS_LIST;
 
   const dispatch: any = useDispatch();
   const navigate = useNavigate();

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Card,
@@ -7,324 +8,198 @@ import {
   Col,
   Container,
   Row,
-  Nav,
-  NavItem,
-  NavLink,
-  TabContent,
-  TabPane,
   Button,
-  Spinner,
-  Badge,
+  Alert,
+  Form,
+  Label,
+  Input,
 } from "reactstrap";
-import classnames from "classnames";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import {
+  selectClientSiteById,
+  deleteClientSite,
+  fetchClientSites,
+} from "../../../slices/clientSites/clientSite.slice";
 
-interface Site {
-  id: number;
-  clientId: number;
-  clientName: string;
-  name: string;
-  address: string;
-  contactName: string;
-  contactPhone: string;
-  notes?: string;
-  status: string;
-}
+import { PAGE_TITLES } from "../../../common/branding";
 
-const SiteView = () => {
+const SiteView: React.FC = () => {
+  document.title = PAGE_TITLES.CLIENT_SITE_VIEW;
+  const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("1");
-  const [deleteModal, setDeleteModal] = useState(false);
 
-  // Mock data
-  const mockSites: Site[] = [
-    {
-      id: 1,
-      clientId: 1,
-      clientName: "ABC Corporation",
-      name: "ABC Main Office",
-      address: "123 Business St, New York, NY 10001",
-      contactName: "John Smith",
-      contactPhone: "+1234567890",
-      notes: "Main headquarters office",
-      status: "Active",
-    },
-    {
-      id: 2,
-      clientId: 1,
-      clientName: "ABC Corporation",
-      name: "ABC Warehouse",
-      address: "456 Industrial Ave, Brooklyn, NY 11201",
-      contactName: "Jane Doe",
-      contactPhone: "+1234567891",
-      notes: "Storage facility",
-      status: "Active",
-    },
-  ];
+  const site = useSelector((state: any) => selectClientSiteById(state, id || ""));
+  const [deleteModal, setDeleteModal] = React.useState(false);
 
-  const site = mockSites.find((s) => s.id === Number(id));
-
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, [id]);
-
-  const toggleTab = (tab: string) => {
-    if (activeTab !== tab) {
-      setActiveTab(tab);
+  const handleDeleteSite = async () => {
+    if (id) {
+      const result = await dispatch(deleteClientSite(id));
+      if (result.meta.requestStatus === "fulfilled") {
+        // Refresh and navigate back
+        dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
+        navigate("/clients/sites");
+      }
     }
+    setDeleteModal(false);
   };
-
-  const handleDeleteSite = () => {
-    toast.success("Site deleted successfully", { autoClose: 3000 });
-    setTimeout(() => {
-      navigate("/clients/sites");
-    }, 1000);
-  };
-
-  document.title = "View Site | Velzon - React Admin & Dashboard Template";
-
-  if (loading) {
-    return (
-      <div className="page-content">
-        <Container fluid>
-          <div className="py-4 text-center">
-            <Spinner color="primary" />
-            <div className="mt-2">Loading site details...</div>
-          </div>
-        </Container>
-      </div>
-    );
-  }
 
   if (!site) {
     return (
       <div className="page-content">
         <Container fluid>
-          <div className="py-4 text-center">
-            <h4>Site not found</h4>
-            <Button color="primary" onClick={() => navigate("/clients/sites")}>
-              Back to Sites
-            </Button>
-          </div>
+          <Alert color="danger">Site not found</Alert>
+          <Button color="primary" onClick={() => navigate("/clients/sites")}>
+            Back to Sites
+          </Button>
         </Container>
       </div>
     );
   }
 
   return (
-    <React.Fragment>
-      <div className="page-content">
-        <Container fluid>
-          <BreadCrumb title="Site Details" pageTitle="Sites" />
-
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader className="border-bottom">
-                  <Row className="align-items-center">
-                    <Col sm={6}>
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0 me-3">
-                          <div className="avatar-sm">
-                            <div className="avatar-title bg-light text-primary rounded-circle fs-20">
-                              <i className="ri-building-2-line"></i>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="card-title mb-1">{site.name}</h5>
-                          <p className="text-muted mb-0">{site.clientName}</p>
-                        </div>
-                      </div>
+    <div className="page-content">
+      <Container fluid>
+        <BreadCrumb title="View Site" pageTitle="Sites" />
+        <Row>
+          <Col lg={12}>
+            <Card>
+              <CardHeader className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">View Client Site</h5>
+                <div className="d-flex gap-2">
+                  <Button color="light" onClick={() => navigate("/clients/sites")}>
+                    Close
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => navigate(`/clients/sites/edit/${site.id}`)}
+                  >
+                    <i className="ri-pencil-line align-bottom me-1"></i>
+                    Edit
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardBody>
+                <Form>
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <Label className="form-label">Client</Label>
+                      <Input
+                        name="clientName"
+                        value={site.clientName || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
                     </Col>
-                    <Col sm={6}>
-                      <div className="text-end">
-                        <Button
-                          color="success"
-                          className="me-2"
-                          onClick={() =>
-                            navigate(`/clients/sites/edit/${site.id}`)
-                          }
-                        >
-                          <i className="ri-pencil-line align-middle me-1"></i>
-                          Edit Site
-                        </Button>
-                        <Button
-                          color="danger"
-                          onClick={() => setDeleteModal(true)}
-                        >
-                          <i className="ri-delete-bin-line align-middle me-1"></i>
-                          Delete Site
-                        </Button>
-                      </div>
+                    <Col md={6}>
+                      <Label className="form-label">Site Name</Label>
+                      <Input
+                        name="siteName"
+                        value={site.siteName}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Address Line 1</Label>
+                      <Input
+                        name="address1"
+                        value={site.address1 || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Address Line 2</Label>
+                      <Input
+                        name="address2"
+                        value={site.address2 || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+
+                    <Col md={4}>
+                      <Label className="form-label">Country</Label>
+                      <Input
+                        name="countryName"
+                        value={site.countryName || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Zipcode</Label>
+                      <Input
+                        name="zipcode"
+                        value={site.zipcode || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Site Radius (meters)</Label>
+                      <Input
+                        name="siteRadiusMeters"
+                        value={site.siteRadiusMeters?.toString() || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+
+                    <Col md={4}>
+                      <Label className="form-label">Latitude</Label>
+                      <Input
+                        name="latitude"
+                        value={site.latitude?.toString() || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Longitude</Label>
+                      <Input
+                        name="longitude"
+                        value={site.longitude?.toString() || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={4}>
+                      <Label className="form-label">Geofencing</Label>
+                      <Input
+                        name="requireGeofencing"
+                        value={site.requireGeofencing ? "Enabled" : "Disabled"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
                     </Col>
                   </Row>
-                </CardHeader>
-
-                <CardBody>
-                  <Nav tabs className="nav-tabs-custom nav-success mb-3">
-                    <NavItem>
-                      <NavLink
-                        className={classnames({ active: activeTab === "1" })}
-                        onClick={() => toggleTab("1")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i className="ri-information-line me-1 align-middle"></i>
-                        Details
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({ active: activeTab === "2" })}
-                        onClick={() => toggleTab("2")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i className="ri-file-list-3-line me-1 align-middle"></i>
-                        Work Orders
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({ active: activeTab === "3" })}
-                        onClick={() => toggleTab("3")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i className="ri-stack-line me-1 align-middle"></i>
-                        Scaffolds
-                      </NavLink>
-                    </NavItem>
-                  </Nav>
-
-                  <TabContent activeTab={activeTab}>
-                    {/* Details Tab */}
-                    <TabPane tabId="1">
-                      <Row>
-                        <Col md={6}>
-                          <div className="mb-3">
-                            <label className="form-label fw-semibold">
-                              Site Name
-                            </label>
-                            <p className="text-muted">{site.name}</p>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="mb-3">
-                            <label className="form-label fw-semibold">
-                              Client
-                            </label>
-                            <p className="text-muted">{site.clientName}</p>
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col md={12}>
-                          <div className="mb-3">
-                            <label className="form-label fw-semibold">
-                              Address
-                            </label>
-                            <p className="text-muted">
-                              {site.address || "N/A"}
-                            </p>
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col md={6}>
-                          <div className="mb-3">
-                            <label className="form-label fw-semibold">
-                              Contact Name
-                            </label>
-                            <p className="text-muted">
-                              {site.contactName || "N/A"}
-                            </p>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="mb-3">
-                            <label className="form-label fw-semibold">
-                              Contact Phone
-                            </label>
-                            <p className="text-muted">
-                              {site.contactPhone || "N/A"}
-                            </p>
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col md={6}>
-                          <div className="mb-3">
-                            <label className="form-label fw-semibold">
-                              Status
-                            </label>
-                            <div>
-                              <Badge
-                                color={
-                                  site.status === "Active"
-                                    ? "success"
-                                    : "danger"
-                                }
-                              >
-                                {site.status}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-                      {site.notes && (
-                        <Row>
-                          <Col md={12}>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">
-                                Notes
-                              </label>
-                              <p className="text-muted">{site.notes}</p>
-                            </div>
-                          </Col>
-                        </Row>
-                      )}
-                    </TabPane>
-
-                    {/* Work Orders Tab */}
-                    <TabPane tabId="2">
-                      <div className="text-center py-5">
-                        <i className="ri-file-list-3-line fs-1 text-muted"></i>
-                        <p className="text-muted mt-3">
-                          No work orders found for this site
-                        </p>
-                      </div>
-                    </TabPane>
-
-                    {/* Scaffolds Tab */}
-                    <TabPane tabId="3">
-                      <div className="text-center py-5">
-                        <i className="ri-stack-line fs-1 text-muted"></i>
-                        <p className="text-muted mt-3">
-                          No scaffolds found for this site
-                        </p>
-                      </div>
-                    </TabPane>
-                  </TabContent>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
-      </div>
+                </Form>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
 
       <DeleteModal
         show={deleteModal}
         onDeleteClick={handleDeleteSite}
         onCloseClick={() => setDeleteModal(false)}
       />
-      <ToastContainer closeButton={false} limit={1} />
-    </React.Fragment>
+    </div>
   );
 };
 

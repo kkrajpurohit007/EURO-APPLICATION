@@ -28,5 +28,23 @@ export const ADD_NEW_LEAD = "/Lead";
 export const UPDATE_LEAD = "/Lead";
 export const DELETE_LEAD = "/Lead";
 
+// CLIENTS
+export const GET_CLIENTS = "/Client";
+export const ADD_NEW_CLIENT = "/Client";
+export const UPDATE_CLIENT = "/Client";
+export const DELETE_CLIENT = "/Client";
+
+// CLIENT CONTACTS
+export const GET_CLIENT_CONTACTS = "/ClientContact";
+export const ADD_NEW_CLIENT_CONTACT = "/ClientContact";
+export const UPDATE_CLIENT_CONTACT = "/ClientContact";
+export const DELETE_CLIENT_CONTACT = "/ClientContact";
+
 // COUNTRIES
 export const GET_COUNTRIES = "/Country";
+
+// CLIENT SITES
+export const GET_CLIENT_SITES = "/ClientSite";
+export const ADD_NEW_CLIENT_SITE = "/ClientSite";
+export const UPDATE_CLIENT_SITE = "/ClientSite";
+export const DELETE_CLIENT_SITE = "/ClientSite";
