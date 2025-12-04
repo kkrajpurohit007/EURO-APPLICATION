@@ -118,7 +118,7 @@ const LeadView: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tentative Hours</Label>
+                      <Label className="form-label">Tentative Week</Label>
                       <Input
                         type="text"
                         name="tentativeHours"

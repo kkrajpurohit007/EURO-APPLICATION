@@ -39,19 +39,19 @@ const BasicInfo: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [basicInfo, setBasicInfo] = useState<BasicInfoData>({
-    companyName: "ESRM Solutions Inc.",
-    companyEmail: "info@esrm.com",
-    companyPhone: "+1 (555) 123-4567",
-    companyAddress: "123 Business Avenue",
-    companyCity: "New York",
-    companyState: "NY",
-    companyCountry: "United States",
-    companyZipCode: "10001",
-    companyWebsite: "www.esrm.com",
-    companyRegistration: "REG123456789",
-    taxId: "TAX987654321",
-    industry: "Technology",
-    foundedYear: "2020",
+    companyName: "Euro Scaffolds",
+    companyEmail: "info@euroscaffolds.com",
+    companyPhone: "+44 20 1234 5678",
+    companyAddress: "123 Construction Lane",
+    companyCity: "London",
+    companyState: "Greater London",
+    companyCountry: "United Kingdom",
+    companyZipCode: "SW1A 1AA",
+    companyWebsite: "https://euroscaffolds.com",
+    companyRegistration: "12345678",
+    taxId: "GB123456789",
+    industry: "Construction",
+    foundedYear: "2010",
     employeeCount: "50-100",
   });
 

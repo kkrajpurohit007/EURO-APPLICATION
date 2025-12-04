@@ -23,12 +23,14 @@ import {
   selectLeadLoading,
   selectLeadError,
 } from "../../../slices/leads/lead.slice";
-import { LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
+import { LeadStatus, LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 
 import { PAGE_TITLES } from "../../../common/branding";
+
+const titleOptions = ["Mr.", "Mrs.", "Ms.", "Dr.", "Er."];
 
 const LeadCreate: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_CREATE;
@@ -46,7 +48,7 @@ const LeadCreate: React.FC = () => {
       contactPerson: "",
       contactEmail: "",
       description: "",
-      leadStatus: 0,
+      leadStatus: LeadStatus.New,
       tentativeHours: 0,
       notes: "",
     },
@@ -64,7 +66,7 @@ const LeadCreate: React.FC = () => {
         clientId: null,
         userId: authUser?.userId || "",
         ...values,
-        leadStatus: values.leadStatus as any,
+        leadStatus: values.leadStatus,
       };
       const result = await dispatch(createLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
@@ -85,12 +87,10 @@ const LeadCreate: React.FC = () => {
               <CardHeader className="d-flex justify-content-between align-items-center">
                 <h5 className="card-title mb-0">New Scaffolding Lead</h5>
                 <div className="d-flex gap-2">
-                  <Button color="light" onClick={() => navigate("/leads/list")}>
-                    Close
-                  </Button>
                   <Button
-                    color="secondary"
+                    color="light"
                     onClick={() => navigate("/leads/list")}
+                    disabled={loading}
                   >
                     Cancel
                   </Button>
@@ -99,7 +99,15 @@ const LeadCreate: React.FC = () => {
                     onClick={() => validation.handleSubmit()}
                     disabled={loading}
                   >
-                    {loading ? <Spinner size="sm" /> : "Save"}
+                    {loading ? (
+                      <>
+                        <Spinner size="sm" /> Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="ri-save-line align-bottom me-1"></i> Save
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardHeader>
@@ -109,27 +117,27 @@ const LeadCreate: React.FC = () => {
                     {error}
                   </Alert>
                 )}
-                <Form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    validation.handleSubmit();
-                  }}
-                >
+                <Form onSubmit={(e) => e.preventDefault()}>
                   <Row className="g-3">
                     <Col md={6}>
                       <Label className="form-label">Title *</Label>
                       <Input
+                        type="select"
                         name="title"
                         value={validation.values.title}
                         onChange={validation.handleChange}
                         onBlur={validation.handleBlur}
                         invalid={
-                          !!(
-                            validation.touched.title && validation.errors.title
-                          )
+                          !!(validation.touched.title && validation.errors.title)
                         }
-                        placeholder="e.g., MR., MRS., etc."
-                      />
+                      >
+                        <option value="">Select Title</option>
+                        {titleOptions.map((title) => (
+                          <option key={title} value={title}>
+                            {title}
+                          </option>
+                        ))}
+                      </Input>
                       {validation.touched.title && validation.errors.title && (
                         <FormFeedback type="invalid">
                           {String(validation.errors.title)}
@@ -223,7 +231,7 @@ const LeadCreate: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tentative Hours</Label>
+                      <Label className="form-label">Tentative Week</Label>
                       <Input
                         type="number"
                         name="tentativeHours"

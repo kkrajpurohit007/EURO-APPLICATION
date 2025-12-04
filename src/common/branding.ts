@@ -3,10 +3,10 @@
  * Centralized configuration for all branding values used throughout the application
  */
 
-export const APP_NAME = "EURO";
-export const COMPANY_NAME = "K.K Rajpurohit";
+export const APP_NAME = "Euro Scaffolds";
+export const COMPANY_NAME = "Euro Scaffolds";
 export const APP_TAGLINE =
-  "EURO Scaffold & Equipment Rental Services Management System";
+  "Euro Scaffolds - Professional Scaffold & Equipment Rental Services";
 
 /**
  * Helper function to generate consistent page titles
@@ -109,19 +109,19 @@ export const PAGE_TITLES = {
 };
 
 // Email domains
-export const ADMIN_EMAIL = "kamal.naxdc@hotmail.com";
+export const ADMIN_EMAIL = "info@euroscaffolds.com";
 
 // External URLs
-export const COMPANY_WEBSITE = "https://naxdc.com/";
-export const EXTERNAL_ASSETS_URL = "https://img.naxdc.com/euro";
+export const COMPANY_WEBSITE = "https://euroscaffolds.com/";
+export const EXTERNAL_ASSETS_URL = "https://img.euroscaffolds.com";
 
 // Footer text
 export const FOOTER_TEXT = `${new Date().getFullYear()} © ${APP_NAME}`;
-export const FOOTER_CREDIT = `Design & Develop by ${COMPANY_NAME}`;
+export const FOOTER_CREDIT = `Powered by ${COMPANY_NAME}`;
 
 // Authentication messages
 export const AUTH_MESSAGES = {
   loginWelcome: `Sign in to continue to ${APP_NAME}.`,
   resetPassword: `Reset password with ${APP_NAME.toLowerCase()}`,
-  copyright: `© ${new Date().getFullYear()} ${APP_NAME}. Crafted with`,
+  copyright: `© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.`,
 };

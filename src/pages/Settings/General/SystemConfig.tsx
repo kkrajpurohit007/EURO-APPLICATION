@@ -37,7 +37,7 @@ const SystemConfig: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [config, setConfig] = useState<SystemConfigData>({
-    appName: "ESRM Application",
+    appName: "Euro Scaffolds",
     appVersion: "1.0.0",
     maintenanceMode: false,
     emailNotifications: true,

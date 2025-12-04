@@ -1,16 +1,19 @@
-export type LeadStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-// 0: New, 1: Contacted, 2: Quoted, 3: In Progress, 4: Pending Approval, 5: Won, 6: Lost, 7: On Hold, 8: Archived
+export enum LeadStatus {
+  New = 0,
+  Open = 1,
+  Approved = 2,
+  Converted = 3,
+  Cancelled = 4,
+  Churned = 5
+}
 
 export const LeadStatusLabels: Record<LeadStatus, string> = {
   0: "New",
-  1: "Contacted",
-  2: "Quoted",
-  3: "In Progress",
-  4: "Pending Approval",
-  5: "Won",
-  6: "Lost",
-  7: "On Hold",
-  8: "Archived",
+  1: "Open",
+  2: "Approved",
+  3: "Converted",
+  4: "Cancelled",
+  5: "Churned"
 };
 
 export interface LeadNote {
@@ -60,7 +63,7 @@ export const initialLeads: LeadItem[] = [
     contactPerson: "Jane Smith",
     contactEmail: "jane.smith@example.com",
     description: "Interested in premium plan",
-    leadStatus: 0,
+    leadStatus: LeadStatus.New,
     tentativeHours: 20,
     notes: "Initial contact made",
     isDeleted: false,
@@ -77,7 +80,7 @@ export const initialLeads: LeadItem[] = [
     contactPerson: "Alice Johnson",
     contactEmail: "alice.j@example.com",
     description: "Looking for consultation",
-    leadStatus: 1,
+    leadStatus: LeadStatus.Open,
     tentativeHours: 10,
     notes: "Scheduled a meeting",
     isDeleted: false,

@@ -32,7 +32,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { PAGE_TITLES } from "../../../common/branding";
 
-const statusOptions: LeadStatus[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+const statusOptions: LeadStatus[] = [0, 1, 2, 3, 4, 5];
 
 const LeadList: React.FC = () => {
   document.title = PAGE_TITLES.LEADS_LIST;
@@ -46,31 +46,24 @@ const LeadList: React.FC = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (!leads) return [];
-    return leads.filter((l) => {
-      const statusMatch =
-        statusFilter !== "" ? l.leadStatus === statusFilter : true;
-      return statusMatch && !l.isDeleted;
-    });
-  }, [leads, statusFilter]);
-
   const onDelete = (id: string) => {
     setLeadToDelete(id);
     setDeleteModal(true);
   };
 
-  const confirmDelete = async () => {
-    if (leadToDelete !== null) {
-      const result = await dispatch(deleteLead(leadToDelete));
-      if (result.meta.requestStatus === "fulfilled") {
-        // Refresh leads list after successful deletion
-        dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-      }
+  const handleDeleteLead = async () => {
+    if (leadToDelete) {
+      await dispatch(deleteLead(leadToDelete));
+      setDeleteModal(false);
+      setLeadToDelete(null);
     }
-    setDeleteModal(false);
-    setLeadToDelete(null);
   };
+
+  // Filter leads based on status filter
+  const filtered = useMemo(() => {
+    if (statusFilter === "") return leads;
+    return leads.filter((lead) => lead.leadStatus === statusFilter);
+  }, [leads, statusFilter]);
 
   const columns = useMemo(
     () => [
@@ -78,19 +71,16 @@ const LeadList: React.FC = () => {
         header: "Title",
         accessorKey: "title",
         enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Contact Person",
         accessorKey: "contactPerson",
         enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Contact Email",
         accessorKey: "contactEmail",
         enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Description",
@@ -115,9 +105,6 @@ const LeadList: React.FC = () => {
             3: "primary",
             4: "warning",
             5: "success",
-            6: "danger",
-            7: "warning",
-            8: "secondary",
           };
           return (
             <Badge
@@ -130,7 +117,7 @@ const LeadList: React.FC = () => {
         },
       },
       {
-        header: "Tentative Hours",
+        header: "Tentative Week",
         accessorKey: "tentativeHours",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "0",
@@ -240,9 +227,9 @@ const LeadList: React.FC = () => {
                       data={filtered || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive table-card mb-3"
-                      tableClass="align-middle table-nowrap mb-0"
-                      SearchPlaceholder="Search leads..."
+                      divClass="table-responsive mb-1"
+                      tableClass="align-middle table-nowrap"
+                      theadClass="table-light text-muted"
                     />
                   </div>
                 )}
@@ -250,12 +237,13 @@ const LeadList: React.FC = () => {
             </Card>
           </Col>
         </Row>
+
+        <DeleteModal
+          show={deleteModal}
+          onDeleteClick={handleDeleteLead}
+          onCloseClick={() => setDeleteModal(false)}
+        />
       </Container>
-      <DeleteModal
-        show={deleteModal}
-        onDeleteClick={confirmDelete}
-        onCloseClick={() => setDeleteModal(false)}
-      />
     </div>
   );
 };

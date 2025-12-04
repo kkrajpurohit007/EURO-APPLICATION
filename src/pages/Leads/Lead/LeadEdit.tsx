@@ -14,14 +14,17 @@ import {
   Input,
   FormFeedback,
   Alert,
+  Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { updateLead, fetchLeads, selectLeadById, selectLeadError } from "../../../slices/leads/lead.slice";
-import { LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
+import { LeadStatus, LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { PAGE_TITLES } from "../../../common/branding";
+
+const titleOptions = ["Mr.", "Mrs.", "Ms.", "Dr.", "Er."];
 
 const LeadEdit: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_EDIT;
@@ -37,7 +40,7 @@ const LeadEdit: React.FC = () => {
       contactPerson: lead?.contactPerson || "",
       contactEmail: lead?.contactEmail || "",
       description: lead?.description || "",
-      leadStatus: lead?.leadStatus || 0,
+      leadStatus: lead?.leadStatus ?? LeadStatus.New,
       tentativeHours: lead?.tentativeHours || 0,
       notes: lead?.notes || "",
     }),
@@ -86,20 +89,27 @@ const LeadEdit: React.FC = () => {
               <CardHeader className="d-flex justify-content-between align-items-center">
                 <h5 className="card-title mb-0">Edit Scaffolding Lead</h5>
                 <div className="d-flex gap-2">
-                  <Button color="light" onClick={() => navigate("/leads/list")}>
-                    Close
-                  </Button>
                   <Button
-                    color="secondary"
+                    color="light"
                     onClick={() => navigate("/leads/list")}
+                    disabled={validation.isSubmitting}
                   >
                     Cancel
                   </Button>
                   <Button
                     color="primary"
                     onClick={() => validation.handleSubmit()}
+                    disabled={validation.isSubmitting}
                   >
-                    Update
+                    {validation.isSubmitting ? (
+                      <>
+                        <Spinner size="sm" /> Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="ri-save-line align-bottom me-1"></i> Save
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardHeader>
@@ -109,27 +119,27 @@ const LeadEdit: React.FC = () => {
                     {error}
                   </Alert>
                 )}
-                <Form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    validation.handleSubmit();
-                  }}
-                >
+                <Form onSubmit={(e) => e.preventDefault()}>
                   <Row className="g-3">
                     <Col md={6}>
                       <Label className="form-label">Title *</Label>
                       <Input
+                        type="select"
                         name="title"
                         value={validation.values.title}
                         onChange={validation.handleChange}
                         onBlur={validation.handleBlur}
                         invalid={
-                          !!(
-                            validation.touched.title && validation.errors.title
-                          )
+                          !!(validation.touched.title && validation.errors.title)
                         }
-                        placeholder="e.g., MR., MRS., etc."
-                      />
+                      >
+                        <option value="">Select Title</option>
+                        {titleOptions.map((title) => (
+                          <option key={title} value={title}>
+                            {title}
+                          </option>
+                        ))}
+                      </Input>
                       {validation.touched.title && validation.errors.title && (
                         <FormFeedback type="invalid">
                           {String(validation.errors.title)}
@@ -223,7 +233,7 @@ const LeadEdit: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tentative Hours</Label>
+                      <Label className="form-label">Tentative Week</Label>
                       <Input
                         type="number"
                         name="tentativeHours"
