@@ -28,11 +28,13 @@ import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const DepartmentCreate: React.FC = () => {
   document.title = PAGE_TITLES.DEPARTMENT_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectDepartmentLoading);
   const error = useSelector(selectDepartmentError);
 
@@ -56,9 +58,15 @@ const DepartmentCreate: React.FC = () => {
       };
       const result = await dispatch(createDepartment(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Department created successfully");
         // Refresh departments list
         dispatch(fetchDepartments({ pageNumber: 1, pageSize: 500 }));
-        navigate("/account/departments");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/account/departments");
+        }, 500);
+      } else {
+        showError("Failed to create department");
       }
     },
   });

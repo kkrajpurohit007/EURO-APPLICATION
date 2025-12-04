@@ -14,14 +14,14 @@ import {
   FormFeedback,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useFlash } from "../../../hooks/useFlash";
 import Select from "react-select";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
 const StaffUsersCreate = () => {
   const navigate = useNavigate();
+  const { showSuccess } = useFlash();
 
   const statusOptions = [
     {
@@ -71,7 +71,7 @@ const StaffUsersCreate = () => {
     }),
     onSubmit: (values) => {
       console.log("Staff User Created:", values);
-      toast.success("Staff user created successfully", { autoClose: 3000 });
+      showSuccess("Staff user created successfully");
       setTimeout(() => {
         navigate("/staff/users");
       }, 1000);
@@ -121,13 +121,13 @@ const StaffUsersCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.employeeId &&
-                              validation.touched.employeeId
+                                validation.touched.employeeId
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.employeeId &&
-                          validation.touched.employeeId ? (
+                            validation.touched.employeeId ? (
                             <FormFeedback type="invalid">
                               {validation.errors.employeeId}
                             </FormFeedback>
@@ -150,13 +150,13 @@ const StaffUsersCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.email &&
-                              validation.touched.email
+                                validation.touched.email
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.email &&
-                          validation.touched.email ? (
+                            validation.touched.email ? (
                             <FormFeedback type="invalid">
                               {validation.errors.email}
                             </FormFeedback>
@@ -182,13 +182,13 @@ const StaffUsersCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.firstName &&
-                              validation.touched.firstName
+                                validation.touched.firstName
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.firstName &&
-                          validation.touched.firstName ? (
+                            validation.touched.firstName ? (
                             <FormFeedback type="invalid">
                               {validation.errors.firstName}
                             </FormFeedback>
@@ -211,13 +211,13 @@ const StaffUsersCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.lastName &&
-                              validation.touched.lastName
+                                validation.touched.lastName
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.lastName &&
-                          validation.touched.lastName ? (
+                            validation.touched.lastName ? (
                             <FormFeedback type="invalid">
                               {validation.errors.lastName}
                             </FormFeedback>
@@ -243,13 +243,13 @@ const StaffUsersCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.phone &&
-                              validation.touched.phone
+                                validation.touched.phone
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.phone &&
-                          validation.touched.phone ? (
+                            validation.touched.phone ? (
                             <FormFeedback type="invalid">
                               {validation.errors.phone}
                             </FormFeedback>
@@ -272,13 +272,13 @@ const StaffUsersCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.position &&
-                              validation.touched.position
+                                validation.touched.position
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.position &&
-                          validation.touched.position ? (
+                            validation.touched.position ? (
                             <FormFeedback type="invalid">
                               {validation.errors.position}
                             </FormFeedback>
@@ -312,7 +312,7 @@ const StaffUsersCreate = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.department &&
-                          validation.touched.department ? (
+                            validation.touched.department ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.department}
                             </div>
@@ -340,7 +340,7 @@ const StaffUsersCreate = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.status &&
-                          validation.touched.status ? (
+                            validation.touched.status ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.status}
                             </div>
@@ -370,7 +370,6 @@ const StaffUsersCreate = () => {
           </Row>
         </Container>
       </div>
-      <ToastContainer closeButton={false} limit={1} />
     </React.Fragment>
   );
 };

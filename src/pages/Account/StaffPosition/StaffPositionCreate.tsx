@@ -17,8 +17,7 @@ import {
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { addNewStaffPosition } from "../../../slices/staffPositions/thunk";
 import { fetchDepartments } from "../../../slices/departments/department.slice";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useFlash } from "../../../hooks/useFlash";
 import { createSelector } from "reselect";
 import Select from "react-select";
 
@@ -29,12 +28,14 @@ import * as Yup from "yup";
 const StaffPositionCreate = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<any>();
+  const { showSuccess, showError } = useFlash();
 
   const selectLayoutState = (state: any) => state.StaffPositions;
   const selectStaffPositionProperties = createSelector(
     selectLayoutState,
     (state) => ({
       isStaffPositionCreated: state.isStaffPositionCreated,
+      error: state.error,
     })
   );
 
@@ -46,7 +47,7 @@ const StaffPositionCreate = () => {
     })
   );
 
-  const { isStaffPositionCreated } = useSelector(selectStaffPositionProperties);
+  const { isStaffPositionCreated, error } = useSelector(selectStaffPositionProperties);
   const { departments } = useSelector(selectDepartmentProperties);
 
   const statusOptions = [
@@ -78,9 +79,16 @@ const StaffPositionCreate = () => {
 
   useEffect(() => {
     if (isStaffPositionCreated) {
+      showSuccess("Staff position created successfully");
       navigate("/account/staff-positions");
     }
-  }, [isStaffPositionCreated, navigate]);
+  }, [isStaffPositionCreated, navigate, showSuccess]);
+
+  useEffect(() => {
+    if (error) {
+      showError("Failed to create staff position");
+    }
+  }, [error, showError]);
 
   const departmentOptions = [
     {
@@ -166,13 +174,13 @@ const StaffPositionCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.positionName &&
-                              validation.touched.positionName
+                                validation.touched.positionName
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.positionName &&
-                          validation.touched.positionName ? (
+                            validation.touched.positionName ? (
                             <FormFeedback type="invalid">
                               {validation.errors.positionName}
                             </FormFeedback>
@@ -226,13 +234,13 @@ const StaffPositionCreate = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.description &&
-                              validation.touched.description
+                                validation.touched.description
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.description &&
-                          validation.touched.description ? (
+                            validation.touched.description ? (
                             <FormFeedback type="invalid">
                               {validation.errors.description}
                             </FormFeedback>
@@ -263,7 +271,7 @@ const StaffPositionCreate = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.level &&
-                          validation.touched.level ? (
+                            validation.touched.level ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.level}
                             </div>
@@ -294,7 +302,7 @@ const StaffPositionCreate = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.department &&
-                          validation.touched.department ? (
+                            validation.touched.department ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.department}
                             </div>
@@ -322,7 +330,7 @@ const StaffPositionCreate = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.status &&
-                          validation.touched.status ? (
+                            validation.touched.status ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.status}
                             </div>
@@ -352,7 +360,6 @@ const StaffPositionCreate = () => {
           </Row>
         </Container>
       </div>
-      <ToastContainer closeButton={false} limit={1} />
     </React.Fragment>
   );
 };

@@ -30,11 +30,13 @@ import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const ClientCreate: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectClientLoading);
   const error = useSelector(selectClientError);
   const countries = useSelector(selectCountryList);
@@ -85,9 +87,15 @@ const ClientCreate: React.FC = () => {
       };
       const result = await dispatch(createClient(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Client created successfully");
         // Refresh clients list
         dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
-        navigate("/clients/list");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/clients/list");
+        }, 500);
+      } else {
+        showError("Failed to create client");
       }
     },
   });

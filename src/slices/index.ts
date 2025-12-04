@@ -40,6 +40,9 @@ import ClientContactsReducer from "./clientContacts/clientContact.slice";
 // Client Sites
 import ClientSitesReducer from "./clientSites/clientSite.slice";
 
+// Notifications
+import NotificationReducer from "./notifications/notificationSlice";
+
 const rootReducer = combineReducers({
   Layout: LayoutReducer,
   Login: LoginReducer,
@@ -57,6 +60,7 @@ const rootReducer = combineReducers({
   Clients: ClientsReducer,
   ClientContacts: ClientContactsReducer,
   ClientSites: ClientSitesReducer,
+  Notifications: NotificationReducer,
 });
 
 export default rootReducer;

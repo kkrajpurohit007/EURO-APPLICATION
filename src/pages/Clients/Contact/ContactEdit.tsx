@@ -30,12 +30,14 @@ import * as Yup from "yup";
 import Select from "react-select";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const ContactEdit: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_CONTACT_EDIT;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
+  const { showSuccess, showError } = useFlash();
   const contact = useSelector((state: any) => selectClientContactById(state, id || ""));
   const loading = useSelector(selectClientContactLoading);
   const error = useSelector(selectClientContactError);
@@ -80,9 +82,15 @@ const ContactEdit: React.FC = () => {
       };
       const result = await dispatch(updateClientContact(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Contact updated successfully");
         // Refresh client contacts list after successful update
         dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
-        navigate("/clients/contacts");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/clients/contacts");
+        }, 500);
+      } else {
+        showError("Failed to update contact");
       }
     },
   });

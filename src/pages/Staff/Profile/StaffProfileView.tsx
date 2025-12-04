@@ -12,8 +12,7 @@ import {
   Table,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import { createSelector } from "reselect";
 
 const StaffProfileView = () => {
@@ -154,11 +153,10 @@ const StaffProfileView = () => {
                                 <td className="fw-medium">Status:</td>
                                 <td>
                                   <span
-                                    className={`badge ${
-                                      staffProfile.status === "Active"
+                                    className={`badge ${staffProfile.status === "Active"
                                         ? "bg-success-subtle text-success"
                                         : "bg-danger-subtle text-danger"
-                                    }`}
+                                      }`}
                                   >
                                     {staffProfile.status}
                                   </span>
@@ -205,7 +203,6 @@ const StaffProfileView = () => {
           </Row>
         </Container>
       </div>
-      <ToastContainer closeButton={false} limit={1} />
     </React.Fragment>
   );
 };

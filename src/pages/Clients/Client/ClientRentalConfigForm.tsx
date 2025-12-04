@@ -19,8 +19,7 @@ import {
   getClientRentalConfigByClientId,
   updateClientRentalConfig,
 } from "../../../slices/clientRentalConfig/thunk";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import { createSelector } from "reselect";
 import Loader from "../../../Components/Common/Loader";
 
@@ -207,13 +206,13 @@ const ClientRentalConfigForm = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.gracePeriodDays &&
-                              validation.touched.gracePeriodDays
+                                validation.touched.gracePeriodDays
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.gracePeriodDays &&
-                          validation.touched.gracePeriodDays ? (
+                            validation.touched.gracePeriodDays ? (
                             <FormFeedback type="invalid">
                               {validation.errors.gracePeriodDays}
                             </FormFeedback>
@@ -273,13 +272,13 @@ const ClientRentalConfigForm = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.minimumHireWeeks &&
-                              validation.touched.minimumHireWeeks
+                                validation.touched.minimumHireWeeks
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.minimumHireWeeks &&
-                          validation.touched.minimumHireWeeks ? (
+                            validation.touched.minimumHireWeeks ? (
                             <FormFeedback type="invalid">
                               {validation.errors.minimumHireWeeks}
                             </FormFeedback>
@@ -417,7 +416,6 @@ const ClientRentalConfigForm = () => {
           </Row>
         </Container>
       </div>
-      <ToastContainer closeButton={false} limit={1} />
     </React.Fragment>
   );
 };

@@ -20,8 +20,7 @@ import {
   updateStaffPosition,
 } from "../../../slices/staffPositions/thunk";
 import { fetchDepartments } from "../../../slices/departments/department.slice";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useFlash } from "../../../hooks/useFlash";
 import { createSelector } from "reselect";
 import Loader from "../../../Components/Common/Loader";
 import Select from "react-select";
@@ -34,6 +33,7 @@ const StaffPositionEdit = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<any>();
   const { id } = useParams();
+  const { showSuccess, showError } = useFlash();
 
   const selectLayoutState = (state: any) => state.StaffPositions;
   const selectStaffPositionProperties = createSelector(
@@ -133,11 +133,18 @@ const StaffPositionEdit = () => {
 
   useEffect(() => {
     if (isUpdated) {
+      showSuccess("Staff position updated successfully");
       setTimeout(() => {
         navigate("/account/staff-positions");
       }, 1000);
     }
-  }, [isUpdated, navigate]);
+  }, [isUpdated, navigate, showSuccess]);
+
+  useEffect(() => {
+    if (error) {
+      showError("Failed to update staff position");
+    }
+  }, [error, showError]);
 
   const handleCancel = () => {
     navigate("/account/staff-positions");
@@ -186,13 +193,13 @@ const StaffPositionEdit = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.positionName &&
-                              validation.touched.positionName
+                                validation.touched.positionName
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.positionName &&
-                          validation.touched.positionName ? (
+                            validation.touched.positionName ? (
                             <FormFeedback type="invalid">
                               {validation.errors.positionName}
                             </FormFeedback>
@@ -246,13 +253,13 @@ const StaffPositionEdit = () => {
                             onChange={validation.handleChange}
                             invalid={
                               validation.errors.description &&
-                              validation.touched.description
+                                validation.touched.description
                                 ? true
                                 : false
                             }
                           />
                           {validation.errors.description &&
-                          validation.touched.description ? (
+                            validation.touched.description ? (
                             <FormFeedback type="invalid">
                               {validation.errors.description}
                             </FormFeedback>
@@ -283,7 +290,7 @@ const StaffPositionEdit = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.level &&
-                          validation.touched.level ? (
+                            validation.touched.level ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.level}
                             </div>
@@ -314,7 +321,7 @@ const StaffPositionEdit = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.department &&
-                          validation.touched.department ? (
+                            validation.touched.department ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.department}
                             </div>
@@ -342,7 +349,7 @@ const StaffPositionEdit = () => {
                             classNamePrefix="select2-selection form-select"
                           />
                           {validation.errors.status &&
-                          validation.touched.status ? (
+                            validation.touched.status ? (
                             <div className="invalid-feedback d-block">
                               {validation.errors.status}
                             </div>
@@ -372,7 +379,6 @@ const StaffPositionEdit = () => {
           </Row>
         </Container>
       </div>
-      <ToastContainer closeButton={false} limit={1} />
     </React.Fragment>
   );
 };

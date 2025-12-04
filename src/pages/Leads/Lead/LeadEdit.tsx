@@ -23,6 +23,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const titleOptions = ["Mr.", "Mrs.", "Ms.", "Dr.", "Er."];
 
@@ -31,6 +32,7 @@ const LeadEdit: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
+  const { showSuccess, showError } = useFlash();
   const lead = useSelector((state: any) => selectLeadById(state, id || ""));
   const error = useSelector(selectLeadError);
 
@@ -62,9 +64,15 @@ const LeadEdit: React.FC = () => {
       const payload = { id: id as string, data: values };
       const result = await dispatch(updateLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Lead updated successfully");
         // Refresh leads list after successful update
         dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-        navigate("/leads/list");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/leads/list");
+        }, 500);
+      } else {
+        showError("Failed to update lead");
       }
     },
   });

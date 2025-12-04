@@ -21,12 +21,14 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const DepartmentEdit: React.FC = () => {
   document.title = PAGE_TITLES.DEPARTMENT_EDIT;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
+  const { showSuccess, showError } = useFlash();
   const department = useSelector((state: any) => selectDepartmentById(state, id || ""));
   const error = useSelector(selectDepartmentError);
 
@@ -50,9 +52,15 @@ const DepartmentEdit: React.FC = () => {
       const payload = { id: id as string, data: values };
       const result = await dispatch(updateDepartment(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Department updated successfully");
         // Refresh departments list after successful update
         dispatch(fetchDepartments({ pageNumber: 1, pageSize: 500 }));
-        navigate("/account/departments");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/account/departments");
+        }, 500);
+      } else {
+        showError("Failed to update department");
       }
     },
   });

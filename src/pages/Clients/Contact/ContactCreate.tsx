@@ -29,11 +29,13 @@ import { getLoggedinUser } from "../../../helpers/api_helper";
 import { selectClientList } from "../../../slices/clients/client.slice";
 import Select from "react-select";
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const ClientContactCreate: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_CONTACT_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectClientContactLoading);
   const error = useSelector(selectClientContactError);
   const clients = useSelector(selectClientList);
@@ -76,9 +78,15 @@ const ClientContactCreate: React.FC = () => {
       };
       const result = await dispatch(createClientContact(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Contact created successfully");
         // Refresh client contacts list
         dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
-        navigate("/clients/contacts");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/clients/contacts");
+        }, 500);
+      } else {
+        showError("Failed to create contact");
       }
     },
   });

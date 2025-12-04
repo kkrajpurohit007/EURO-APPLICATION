@@ -29,6 +29,7 @@ import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const titleOptions = ["Mr.", "Mrs.", "Ms.", "Dr.", "Er."];
 
@@ -36,6 +37,7 @@ const LeadCreate: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectLeadLoading);
   const error = useSelector(selectLeadError);
 
@@ -70,9 +72,15 @@ const LeadCreate: React.FC = () => {
       };
       const result = await dispatch(createLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Lead created successfully");
         // Refresh leads list
         dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-        navigate("/leads/list");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/leads/list");
+        }, 500);
+      } else {
+        showError("Failed to create lead");
       }
     },
   });

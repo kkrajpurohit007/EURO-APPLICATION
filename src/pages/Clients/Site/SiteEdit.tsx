@@ -29,13 +29,14 @@ import * as Yup from "yup";
 import Select from "react-select";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const SiteEdit: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_SITE_EDIT;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const { showSuccess, showError } = useFlash();
   const site = useSelector((state: any) => selectClientSiteById(state, id || ""));
   const error = useSelector(selectClientSiteError);
   const clients = useSelector(selectClientList);
@@ -82,9 +83,15 @@ const SiteEdit: React.FC = () => {
       const payload = { id: id as string, data: values };
       const result = await dispatch(updateClientSite(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Site updated successfully");
         // Refresh sites list after successful update
         dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
-        navigate("/clients/sites");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/clients/sites");
+        }, 500);
+      } else {
+        showError("Failed to update site");
       }
     },
   });

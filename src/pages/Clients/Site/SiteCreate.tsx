@@ -31,11 +31,13 @@ import Select from "react-select";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const SiteCreate: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_SITE_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectClientSiteLoading);
   const error = useSelector(selectClientSiteError);
   const clients = useSelector(selectClientList);
@@ -82,9 +84,15 @@ const SiteCreate: React.FC = () => {
       };
       const result = await dispatch(createClientSite(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Site created successfully");
         // Refresh sites list
         dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
-        navigate("/clients/sites");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/clients/sites");
+        }, 500);
+      } else {
+        showError("Failed to create site");
       }
     },
   });

@@ -31,6 +31,7 @@ import {
 } from "../../../slices/leads/lead.fakeData";
 import { useNavigate } from "react-router-dom";
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const statusOptions: LeadStatus[] = [0, 1, 2, 3, 4, 5];
 
@@ -38,6 +39,7 @@ const LeadList: React.FC = () => {
   document.title = PAGE_TITLES.LEADS_LIST;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const leads: LeadItem[] = useSelector(selectLeadList);
   const loading = useSelector(selectLeadLoading);
   const error = useSelector(selectLeadError);
@@ -58,9 +60,14 @@ const LeadList: React.FC = () => {
 
   const handleDeleteLead = async () => {
     if (leadToDelete) {
-      await dispatch(deleteLead(leadToDelete));
-      setDeleteModal(false);
-      setLeadToDelete(null);
+      try {
+        await dispatch(deleteLead(leadToDelete));
+        showSuccess("Lead deleted successfully");
+        setDeleteModal(false);
+        setLeadToDelete(null);
+      } catch (error) {
+        showError("Failed to delete lead");
+      }
     }
   };
 

@@ -24,6 +24,7 @@ import {
 } from "../../../slices/tenantRentalConfig/tenantRentalConfig.slice";
 import { useProfile } from "../../../Components/Hooks/UserHooks";
 import Loader from "../../../Components/Common/Loader";
+import { useFlash } from "../../../hooks/useFlash";
 
 const TenantRentalConfig: React.FC = () => {
   document.title = "Tenant Rental Configuration | ESRM";
@@ -33,9 +34,9 @@ const TenantRentalConfig: React.FC = () => {
   const config = useSelector(selectRentalConfig);
   const loading = useSelector(selectRentalConfigLoading);
   const error = useSelector(selectRentalConfigError);
+  const { showSuccess } = useFlash();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     gracePeriodEnabled: false,
     gracePeriodDays: 0,
@@ -100,8 +101,7 @@ const TenantRentalConfig: React.FC = () => {
     const result = await dispatch(updateRentalConfig(payload));
     if (result.meta.requestStatus === "fulfilled") {
       setIsEditing(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      showSuccess("Rental configuration updated successfully!");
     }
   };
 
@@ -113,8 +113,8 @@ const TenantRentalConfig: React.FC = () => {
         type === "checkbox"
           ? checked
           : type === "number"
-          ? parseInt(value) || 0
-          : value,
+            ? parseInt(value) || 0
+            : value,
     });
   };
 
@@ -178,13 +178,6 @@ const TenantRentalConfig: React.FC = () => {
     <div className="page-content">
       <Container fluid>
         <BreadCrumb title="Tenant Rental Configuration" pageTitle="Settings" />
-
-        {showSuccess && (
-          <Alert color="success" className="alert-dismissible fade show">
-            <i className="ri-check-line me-2"></i>
-            Rental configuration updated successfully!
-          </Alert>
-        )}
 
         <Form onSubmit={handleSubmit}>
           <Row>

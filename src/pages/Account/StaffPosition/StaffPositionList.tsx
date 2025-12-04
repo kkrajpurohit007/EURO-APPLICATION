@@ -13,8 +13,6 @@ import {
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import TableContainer from "../../../Components/Common/TableContainer";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import {
   getStaffPositions as onGetStaffPositions,
   deleteStaffPosition as onDeleteStaffPosition,
@@ -25,6 +23,7 @@ import Loader from "../../../Components/Common/Loader";
 const StaffPositionList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<any>();
+  // const { showSuccess, showError } = useFlash(); // Ready for future use
 
   const selectLayoutState = (state: any) => state.StaffPositions;
   const selectStaffPositionProperties = createSelector(
@@ -111,10 +110,10 @@ const StaffPositionList = () => {
             status === "Published"
               ? "bg-success-subtle text-success"
               : status === "Draft"
-              ? "bg-warning-subtle text-warning"
-              : status === "Scheduled"
-              ? "bg-info-subtle text-info"
-              : "bg-secondary-subtle text-secondary";
+                ? "bg-warning-subtle text-warning"
+                : status === "Scheduled"
+                  ? "bg-info-subtle text-info"
+                  : "bg-secondary-subtle text-secondary";
 
           return <span className={`badge ${badgeClass}`}>{status}</span>;
         },
@@ -200,7 +199,6 @@ const StaffPositionList = () => {
                       <Loader error={error} />
                     )}
                   </div>
-                  <ToastContainer closeButton={false} limit={1} />
                 </CardBody>
               </Card>
             </Col>

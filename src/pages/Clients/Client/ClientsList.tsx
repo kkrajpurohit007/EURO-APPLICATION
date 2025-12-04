@@ -14,8 +14,7 @@ import {
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import TableContainer from "../../../Components/Common/TableContainer";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useFlash } from "../../../hooks/useFlash";
 import Select from "react-select";
 
 interface Client {
@@ -37,6 +36,7 @@ interface Client {
 
 const ClientsList = () => {
   const navigate = useNavigate();
+  const { showSuccess } = useFlash();
   document.title = "Clients | Velzon - React Admin & Dashboard Template";
 
   const [clients, setClients] = useState<Client[]>([
@@ -124,7 +124,7 @@ const ClientsList = () => {
     if (client) {
       setClients(clients.filter((c) => c.id !== client.id));
       setDeleteModal(false);
-      toast.success("Client deleted successfully", { autoClose: 3000 });
+      showSuccess("Client deleted successfully");
     }
   };
 
@@ -168,8 +168,8 @@ const ClientsList = () => {
             status === "Active"
               ? "bg-success-subtle text-success"
               : status === "Inactive"
-              ? "bg-danger-subtle text-danger"
-              : "bg-warning-subtle text-warning";
+                ? "bg-danger-subtle text-danger"
+                : "bg-warning-subtle text-warning";
 
           return <span className={`badge ${badgeClass}`}>{status}</span>;
         },
@@ -291,7 +291,6 @@ const ClientsList = () => {
                       SearchPlaceholder="Search for clients..."
                     />
                   </div>
-                  <ToastContainer closeButton={false} limit={1} />
                 </CardBody>
               </Card>
             </Col>

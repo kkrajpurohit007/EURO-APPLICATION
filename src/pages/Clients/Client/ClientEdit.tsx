@@ -30,12 +30,14 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const ClientEdit: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_EDIT;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
+  const { showSuccess, showError } = useFlash();
   const client = useSelector((state: any) => selectClientById(state, id || ""));
   const error = useSelector(selectClientError);
   const loading = useSelector(selectClientLoading);
@@ -86,9 +88,15 @@ const ClientEdit: React.FC = () => {
       const payload = { id: id as string, data: values };
       const result = await dispatch(updateClient(payload));
       if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Client updated successfully");
         // Refresh clients list after successful update
         dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
-        navigate("/clients/list");
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/clients/list");
+        }, 500);
+      } else {
+        showError("Failed to update client");
       }
     },
   });
