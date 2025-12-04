@@ -10,26 +10,25 @@ import {
   Button,
   Form,
   FormFeedback,
-  Alert,
   Spinner,
 } from "reactstrap";
-import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
+import ParticlesAuth from "../../AuthenticationInner/ParticlesAuth";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
 
 import { Link, useNavigate } from "react-router-dom";
-import withRouter from "../../Components/Common/withRouter";
+import withRouter from "../../../Components/Common/withRouter";
 // Formik validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // actions
-import { initiateLoginWithOtp } from "../../slices/thunks";
+import { initiateLoginWithOtp } from "../../../slices/thunks";
 
-import logoLight from "../../assets/images/logo-light.png";
+import logoLight from "../../../assets/images/logo-light.png";
 import { createSelector } from "reselect";
-import { PAGE_TITLES, APP_TAGLINE } from "../../common/branding";
+import { PAGE_TITLES, APP_TAGLINE } from "../../../common/branding";
 
 const Login = (props: any) => {
   const dispatch: any = useDispatch();
@@ -40,9 +39,10 @@ const Login = (props: any) => {
     otpSent: state.Otp.otpSent,
     otpError: state.Otp.otpError,
     otpLoading: state.Otp.otpLoading,
+    otpExpiry: state.Otp.otpExpiry, // Added to track OTP sending status
   }));
   // Inside your component
-  const { otpSent, otpError, otpLoading } = useSelector(loginpageData);
+  const { otpSent, otpError, otpLoading, otpExpiry } = useSelector(loginpageData);
 
   const validation: any = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -68,6 +68,61 @@ const Login = (props: any) => {
       navigate("/otp-verification");
     }
   }, [otpSent, navigate]);
+
+  // Check if user is already authenticated and redirect to dashboard
+  useEffect(() => {
+    // Check if there's already a valid session
+    const storedUser = localStorage.getItem("authUser") || sessionStorage.getItem("authUser");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user && user.token) {
+          // Check if token is still valid
+          const expiryTime = user.expiresAt ? new Date(user.expiresAt).getTime() : 0;
+          const currentTime = new Date().getTime();
+          
+          // If token is still valid, redirect to dashboard
+          if (expiryTime > currentTime) {
+            navigate("/dashboard");
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored user data:", error);
+      }
+    }
+  }, [navigate]);
+
+  // Show loading state when OTP is being sent
+  if (otpLoading && !otpSent) {
+    return (
+      <React.Fragment>
+        <ParticlesAuth>
+          <div className="auth-page-content">
+            <Container>
+              <Row className="justify-content-center">
+                <Col md={8} lg={6} xl={5}>
+                  <Card className="mt-4">
+                    <CardBody className="p-4">
+                      <div className="text-center">
+                        <div className="mb-4">
+                          <Spinner color="primary" style={{ width: '3rem', height: '3rem' }} />
+                        </div>
+                        <h5 className="text-primary mb-2">Sending OTP</h5>
+                        <p className="text-muted">
+                          Please wait while we send the verification code to your email...
+                        </p>
+                      </div>
+                    </CardBody>
+                  </Card>
+                </Col>
+              </Row>
+            </Container>
+          </div>
+        </ParticlesAuth>
+      </React.Fragment>
+    );
+  }
 
   document.title = PAGE_TITLES.login;
   return (
@@ -97,8 +152,14 @@ const Login = (props: any) => {
                         Enter your email to receive an OTP
                       </p>
                     </div>
-                    {otpError && <Alert color="danger"> {otpError} </Alert>}
                     <div className="p-2 mt-4">
+                      {/* Show error message if exists */}
+                      {otpError && (
+                        <div className="alert alert-danger mb-3">
+                          {otpError}
+                        </div>
+                      )}
+                      
                       <Form
                         onSubmit={(e) => {
                           e.preventDefault();

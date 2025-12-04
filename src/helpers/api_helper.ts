@@ -44,6 +44,17 @@ axios.interceptors.request.use(
 // intercepting to capture errors
 axios.interceptors.response.use(
   function (response) {
+    // Handle 204 No Content responses
+    if (response.status === 204) {
+      // Return a default structure for 204 responses to prevent breaking the app
+      return {
+        items: [],
+        pageNumber: 1,
+        pageSize: 50,
+        totalCount: 0,
+        totalPages: 0
+      };
+    }
     return response.data ? response.data : response;
   },
   function (error) {
@@ -83,10 +94,8 @@ class APIClient {
   /**
    * Fetches data from given url
    */
-
-  //  get = (url, params) => {
-  //   return axios.get(url, params);
-  // };
+   
+  // Add timeout to all GET requests
   get = (url: any, params: any) => {
     let response;
 
@@ -100,29 +109,43 @@ class APIClient {
 
       const queryString =
         paramKeys && paramKeys.length ? paramKeys.join("&") : "";
-      response = axios.get(`${url}?${queryString}`, params);
+      response = axios.get(`${url}?${queryString}`, { 
+        ...params,
+        timeout: 10000 // 10 second timeout
+      });
     } else {
-      response = axios.get(`${url}`, params);
+      response = axios.get(`${url}`, { 
+        timeout: 10000 // 10 second timeout
+      });
     }
 
     return response;
   };
+  
   /**
    * post given data to url
    */
   create = (url: any, data: any) => {
-    return axios.post(url, data);
+    return axios.post(url, data, {
+      timeout: 10000 // 10 second timeout
+    });
   };
+  
   /**
    * Updates data
    */
   update = (url: any, data: any) => {
-    return axios.patch(url, data);
+    return axios.patch(url, data, {
+      timeout: 10000 // 10 second timeout
+    });
   };
 
   put = (url: any, data: any) => {
-    return axios.put(url, data);
+    return axios.put(url, data, {
+      timeout: 10000 // 10 second timeout
+    });
   };
+  
   /**
    * Delete
    */
@@ -130,9 +153,13 @@ class APIClient {
     url: string,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse> => {
-    return axios.delete(url, { ...config });
+    return axios.delete(url, { 
+      ...config,
+      timeout: 10000 // 10 second timeout
+    });
   };
 }
+
 const getLoggedinUser = () => {
   const user =
     localStorage.getItem("authUser") || sessionStorage.getItem("authUser");
@@ -140,6 +167,42 @@ const getLoggedinUser = () => {
     return null;
   } else {
     return JSON.parse(user);
+  }
+};
+
+/**
+ * Validates if the current auth token is still valid
+ * @returns boolean indicating if the token is valid
+ */
+export const isAuthTokenValid = (): boolean => {
+  try {
+    const user = getLoggedinUser();
+    
+    // If no user data, token is not valid
+    if (!user) {
+      return false;
+    }
+    
+    // If no token, not valid
+    if (!user.token) {
+      return false;
+    }
+    
+    // Check if token has expired
+    if (user.expiresAt) {
+      const expiryTime = new Date(user.expiresAt).getTime();
+      const currentTime = new Date().getTime();
+      
+      // If token has expired, return false
+      if (currentTime >= expiryTime) {
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error validating auth token:", error);
+    return false;
   }
 };
 

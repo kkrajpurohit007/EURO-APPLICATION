@@ -104,12 +104,6 @@ const Navdata = () => {
       link: "/settings/system-config",
       icon: "ri-settings-3-line",
     },
-    // {
-    //   id: "basicInfo",
-    //   label: "Basic Info",
-    //   link: "/settings/basic-config",
-    //   icon: "ri-information-line",
-    // },
     {
       id: "tenantRentalConfig",
       label: "Rental Configuration",

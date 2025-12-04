@@ -62,10 +62,10 @@ import Error500 from "../pages/AuthenticationInner/Errors/Error500";
 import Offlinepage from "../pages/AuthenticationInner/Errors/Offlinepage";
 
 //login
-import Login from "../pages/Authentication/Login";
-import OtpVerification from "../pages/Authentication/OtpVerification";
-import ForgetPasswordPage from "../pages/Authentication/ForgetPassword";
-import Logout from "../pages/Authentication/Logout";
+import Login from "../pages/Authentication/components/Login";
+import OtpVerification from "../pages/Authentication/components/OtpVerification";
+import ForgetPasswordPage from "../pages/Authentication/components/ForgetPassword";
+import Logout from "../pages/Authentication/components/Logout";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <DashboardEcommerce /> },

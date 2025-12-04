@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { PAGE_TITLES, APP_TAGLINE } from "../../common/branding";
+import { PAGE_TITLES, APP_TAGLINE } from "../../../common/branding";
 import {
   Card,
   CardBody,
@@ -15,11 +15,11 @@ import {
   FormGroup,
   Progress,
 } from "reactstrap";
-import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
-import logoLight from "../../assets/images/logo-light.png";
+import ParticlesAuth from "../../AuthenticationInner/ParticlesAuth";
+import logoLight from "../../../assets/images/logo-light.png";
 import { createSelector } from "reselect";
-import { verifyOtp, resendOtp } from "../../slices/thunks";
-import { clearOtpData } from "../../slices/auth/otp/reducer";
+import { verifyOtp, resendOtp } from "../../../slices/thunks";
+import { clearOtpData } from "../../../slices/auth/otp/reducer";
 
 import "./OtpVerification.scss";
 
@@ -36,9 +36,10 @@ const OtpVerification = () => {
     otpError: state.Otp.otpError,
     otpExpiry: state.Otp.otpExpiry,
     otpSent: state.Otp.otpSent,
+    otpVerified: state.Otp.otpVerified, // Added to track verification status
   }));
 
-  const { userId, userEmail, otpLoading, otpError, otpExpiry, otpSent } =
+  const { userId, userEmail, otpLoading, otpError, otpExpiry, otpSent, otpVerified } =
     useSelector(otpPageData);
 
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
@@ -71,6 +72,17 @@ const OtpVerification = () => {
       navigate("/login");
     }
   }, [userId, otpSent, navigate]);
+
+  // Redirect to dashboard if already verified
+  useEffect(() => {
+    if (otpVerified && !otpLoading) {
+      // Small delay to ensure state is properly set
+      const timer = setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [otpVerified, otpLoading, navigate]);
 
   const handleVerifyOtp = () => {
     const otp = otpDigits.join("");
@@ -136,6 +148,37 @@ const OtpVerification = () => {
 
   document.title = PAGE_TITLES.OTP_VERIFICATION;
 
+  // Show loading state when OTP is being verified
+  if (otpVerified && otpLoading) {
+    return (
+      <React.Fragment>
+        <ParticlesAuth>
+          <div className="auth-page-content">
+            <Container>
+              <Row className="justify-content-center">
+                <Col md={8} lg={6} xl={5}>
+                  <Card className="mt-4">
+                    <CardBody className="p-4">
+                      <div className="text-center">
+                        <div className="mb-4">
+                          <Spinner color="primary" style={{ width: '3rem', height: '3rem' }} />
+                        </div>
+                        <h5 className="text-primary mb-2">Verifying OTP</h5>
+                        <p className="text-muted">
+                          Please wait while we authenticate your account...
+                        </p>
+                      </div>
+                    </CardBody>
+                  </Card>
+                </Col>
+              </Row>
+            </Container>
+          </div>
+        </ParticlesAuth>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
       <ParticlesAuth>
@@ -174,13 +217,14 @@ const OtpVerification = () => {
                       </p>
                     </div>
 
-                    {otpError && (
-                      <Alert color="danger" className="mb-3">
-                        {otpError}
-                      </Alert>
-                    )}
-
                     <div className="p-2 mt-4">
+                      {/* Show error message if exists */}
+                      {otpError && (
+                        <Alert color="danger" className="mb-3">
+                          {otpError}
+                        </Alert>
+                      )}
+
                       <FormGroup>
                         <Label className="form-label mb-3">
                           OTP Code <span className="text-danger">*</span>

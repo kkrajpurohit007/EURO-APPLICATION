@@ -17,20 +17,20 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 
 import { Link } from "react-router-dom";
-import withRouter from "../../Components/Common/withRouter";
+import withRouter from "../../../Components/Common/withRouter";
 
 // Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // action
-import { userForgetPassword } from "../../slices/thunks";
+import { userForgetPassword } from "../../../slices/thunks";
 
 
-import logoLight from "../../assets/images/logo-light.png";
-import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
+import logoLight from "../../../assets/images/logo-light.png";
+import ParticlesAuth from "../../AuthenticationInner/ParticlesAuth";
 import { createSelector } from "reselect";
-import { PAGE_TITLES, AUTH_MESSAGES } from "../../common/branding";
+import { PAGE_TITLES, AUTH_MESSAGES } from "../../../common/branding";
 
 const ForgetPasswordPage = (props: any) => {
   const dispatch: any = useDispatch();

@@ -9,12 +9,12 @@ import logoLight from "../assets/images/logo-light.png";
 //Import Components
 import VerticalLayout from "./VerticalLayouts";
 import { Container } from "reactstrap";
-import HorizontalLayout from "./HorizontalLayout";
 
 const Sidebar = ({ layoutType }: any) => {
   useEffect(() => {
     var verticalOverlay = document.getElementsByClassName("vertical-overlay");
-    if (verticalOverlay) {
+    // Fix: Check if verticalOverlay exists and has elements before adding event listener
+    if (verticalOverlay && verticalOverlay.length > 0) {
       verticalOverlay[0].addEventListener("click", function () {
         document.body.classList.remove("vertical-sidebar-enable");
       });
@@ -39,16 +39,17 @@ const Sidebar = ({ layoutType }: any) => {
       document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
     }
   };
+
   return (
     <React.Fragment>
       <div className="app-menu navbar-menu">
-        <div className="navbar-brand-box">
+        <div className="navbar-brand-box bg-light">
           <Link to="/" className="logo logo-dark">
             <span className="logo-sm">
               <img src={logoSm} alt="" height="22" />
             </span>
             <span className="logo-lg">
-              <img src={logoDark} alt="" height="17" />
+              <img src={logoDark} alt="" height="40" />
             </span>
           </Link>
 
@@ -57,7 +58,7 @@ const Sidebar = ({ layoutType }: any) => {
               <img src={logoSm} alt="" height="22" />
             </span>
             <span className="logo-lg">
-              <img src={logoLight} alt="" height="17" />
+              <img src={logoLight} alt="" height="40" />
             </span>
           </Link>
           <button
@@ -69,28 +70,18 @@ const Sidebar = ({ layoutType }: any) => {
             <i className="ri-record-circle-line"></i>
           </button>
         </div>
-        {layoutType === "horizontal" ? (
-          <div id="scrollbar">
+        {/* Only vertical layout - removed horizontal layout */}
+        <React.Fragment>
+          <SimpleBar id="scrollbar" className="h-100">
             <Container fluid>
               <div id="two-column-menu"></div>
               <ul className="navbar-nav" id="navbar-nav">
-                <HorizontalLayout />
+                <VerticalLayout layoutType={layoutType} />
               </ul>
             </Container>
-          </div>
-        ) : (
-          <React.Fragment>
-            <SimpleBar id="scrollbar" className="h-100">
-              <Container fluid>
-                <div id="two-column-menu"></div>
-                <ul className="navbar-nav" id="navbar-nav">
-                  <VerticalLayout layoutType={layoutType} />
-                </ul>
-              </Container>
-            </SimpleBar>
-            <div className="sidebar-background"></div>
-          </React.Fragment>
-        )}
+          </SimpleBar>
+          <div className="sidebar-background"></div>
+        </React.Fragment>
       </div>
       <div className="vertical-overlay"></div>
     </React.Fragment>
