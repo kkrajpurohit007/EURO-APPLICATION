@@ -38,14 +38,19 @@ const TenantRentalConfig: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    gracePeriodEnabled: false,
-    gracePeriodDays: 0,
-    minimumHireEnabled: false,
-    minimumHireWeeks: 0,
+    isGracePeriodEnabled: false,
+    defaultGracePeriodDays: 0,
+    isMinimumHireEnabled: false,
+    defaultMinimumHireWeeks: 0,
+    defaultInvoiceFrequency: 1,
+    defaultInvoiceDay: 1,
     includeWeekends: false,
     excludePublicHolidays: false,
-    notifyOnOverdue: false,
+    notifyOnOverdueRentals: false,
     offHireReminderDays: 0,
+    notifyOnDraftInvoiceGeneration: false,
+    defaultInvoiceNotes: "",
+    configurationNotes: "",
   });
 
   useEffect(() => {
@@ -57,14 +62,19 @@ const TenantRentalConfig: React.FC = () => {
   useEffect(() => {
     if (config) {
       setFormData({
-        gracePeriodEnabled: config.gracePeriodEnabled,
-        gracePeriodDays: config.gracePeriodDays,
-        minimumHireEnabled: config.minimumHireEnabled,
-        minimumHireWeeks: config.minimumHireWeeks,
+        isGracePeriodEnabled: config.isGracePeriodEnabled,
+        defaultGracePeriodDays: config.defaultGracePeriodDays,
+        isMinimumHireEnabled: config.isMinimumHireEnabled,
+        defaultMinimumHireWeeks: config.defaultMinimumHireWeeks,
+        defaultInvoiceFrequency: config.defaultInvoiceFrequency,
+        defaultInvoiceDay: config.defaultInvoiceDay,
         includeWeekends: config.includeWeekends,
         excludePublicHolidays: config.excludePublicHolidays,
-        notifyOnOverdue: config.notifyOnOverdue,
+        notifyOnOverdueRentals: config.notifyOnOverdueRentals,
         offHireReminderDays: config.offHireReminderDays,
+        notifyOnDraftInvoiceGeneration: config.notifyOnDraftInvoiceGeneration,
+        defaultInvoiceNotes: config.defaultInvoiceNotes || "",
+        configurationNotes: config.configurationNotes || "",
       });
     }
   }, [config]);
@@ -77,14 +87,19 @@ const TenantRentalConfig: React.FC = () => {
     setIsEditing(false);
     if (config) {
       setFormData({
-        gracePeriodEnabled: config.gracePeriodEnabled,
-        gracePeriodDays: config.gracePeriodDays,
-        minimumHireEnabled: config.minimumHireEnabled,
-        minimumHireWeeks: config.minimumHireWeeks,
+        isGracePeriodEnabled: config.isGracePeriodEnabled,
+        defaultGracePeriodDays: config.defaultGracePeriodDays,
+        isMinimumHireEnabled: config.isMinimumHireEnabled,
+        defaultMinimumHireWeeks: config.defaultMinimumHireWeeks,
+        defaultInvoiceFrequency: config.defaultInvoiceFrequency,
+        defaultInvoiceDay: config.defaultInvoiceDay,
         includeWeekends: config.includeWeekends,
         excludePublicHolidays: config.excludePublicHolidays,
-        notifyOnOverdue: config.notifyOnOverdue,
+        notifyOnOverdueRentals: config.notifyOnOverdueRentals,
         offHireReminderDays: config.offHireReminderDays,
+        notifyOnDraftInvoiceGeneration: config.notifyOnDraftInvoiceGeneration,
+        defaultInvoiceNotes: config.defaultInvoiceNotes || "",
+        configurationNotes: config.configurationNotes || "",
       });
     }
   };
@@ -212,13 +227,13 @@ const TenantRentalConfig: React.FC = () => {
                       <FormGroup check className="mb-3">
                         <Input
                           type="checkbox"
-                          name="gracePeriodEnabled"
-                          id="gracePeriodEnabled"
-                          checked={formData.gracePeriodEnabled}
+                          name="isGracePeriodEnabled"
+                          id="isGracePeriodEnabled"
+                          checked={formData.isGracePeriodEnabled}
                           onChange={handleInputChange}
                           disabled={!isEditing}
                         />
-                        <Label for="gracePeriodEnabled" check>
+                        <Label for="isGracePeriodEnabled" check>
                           Enable Grace Period
                         </Label>
                         <p className="text-muted small mb-0">
@@ -228,15 +243,15 @@ const TenantRentalConfig: React.FC = () => {
                     </Col>
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="gracePeriodDays">Grace Period Days</Label>
+                        <Label for="defaultGracePeriodDays">Grace Period Days</Label>
                         <Input
                           type="number"
-                          name="gracePeriodDays"
-                          id="gracePeriodDays"
-                          value={formData.gracePeriodDays}
+                          name="defaultGracePeriodDays"
+                          id="defaultGracePeriodDays"
+                          value={formData.defaultGracePeriodDays}
                           onChange={handleInputChange}
                           disabled={
-                            !isEditing ? true : !formData.gracePeriodEnabled
+                            !isEditing ? true : !formData.isGracePeriodEnabled
                           }
                           min="0"
                           max="30"
@@ -264,13 +279,13 @@ const TenantRentalConfig: React.FC = () => {
                       <FormGroup check className="mb-3">
                         <Input
                           type="checkbox"
-                          name="minimumHireEnabled"
-                          id="minimumHireEnabled"
-                          checked={formData.minimumHireEnabled}
+                          name="isMinimumHireEnabled"
+                          id="isMinimumHireEnabled"
+                          checked={formData.isMinimumHireEnabled}
                           onChange={handleInputChange}
                           disabled={!isEditing}
                         />
-                        <Label for="minimumHireEnabled" check>
+                        <Label for="isMinimumHireEnabled" check>
                           Enable Minimum Hire Period
                         </Label>
                         <p className="text-muted small mb-0">
@@ -280,15 +295,15 @@ const TenantRentalConfig: React.FC = () => {
                     </Col>
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="minimumHireWeeks">Minimum Hire Weeks</Label>
+                        <Label for="defaultMinimumHireWeeks">Minimum Hire Weeks</Label>
                         <Input
                           type="number"
-                          name="minimumHireWeeks"
-                          id="minimumHireWeeks"
-                          value={formData.minimumHireWeeks}
+                          name="defaultMinimumHireWeeks"
+                          id="defaultMinimumHireWeeks"
+                          value={formData.defaultMinimumHireWeeks}
                           onChange={handleInputChange}
                           disabled={
-                            !isEditing ? true : !formData.minimumHireEnabled
+                            !isEditing ? true : !formData.isMinimumHireEnabled
                           }
                           min="0"
                           max="52"
@@ -358,6 +373,82 @@ const TenantRentalConfig: React.FC = () => {
             <Col lg={12}>
               <Card>
                 <CardHeader>
+                  <h5 className="card-title mb-0">Invoice Settings</h5>
+                </CardHeader>
+                <CardBody>
+                  <Row>
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label for="defaultInvoiceFrequency">Invoice Frequency</Label>
+                        <Input
+                          type="select"
+                          name="defaultInvoiceFrequency"
+                          id="defaultInvoiceFrequency"
+                          value={formData.defaultInvoiceFrequency}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                        >
+                          <option value={1}>Weekly</option>
+                          <option value={2}>Fortnightly</option>
+                          <option value={3}>Monthly</option>
+                        </Input>
+                        <p className="text-muted small mb-0">
+                          How often invoices are generated
+                        </p>
+                      </FormGroup>
+                    </Col>
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label for="defaultInvoiceDay">Invoice Day</Label>
+                        <Input
+                          type="select"
+                          name="defaultInvoiceDay"
+                          id="defaultInvoiceDay"
+                          value={formData.defaultInvoiceDay}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                        >
+                          <option value={1}>Monday</option>
+                          <option value={2}>Tuesday</option>
+                          <option value={3}>Wednesday</option>
+                          <option value={4}>Thursday</option>
+                          <option value={5}>Friday</option>
+                          <option value={6}>Saturday</option>
+                          <option value={7}>Sunday</option>
+                        </Input>
+                        <p className="text-muted small mb-0">
+                          Day of the week for invoice generation
+                        </p>
+                      </FormGroup>
+                    </Col>
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="defaultInvoiceNotes">Default Invoice Notes</Label>
+                        <Input
+                          type="textarea"
+                          name="defaultInvoiceNotes"
+                          id="defaultInvoiceNotes"
+                          value={formData.defaultInvoiceNotes}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                          rows={3}
+                          placeholder="Enter default notes to appear on invoices..."
+                        />
+                        <p className="text-muted small mb-0">
+                          These notes will appear on all generated invoices
+                        </p>
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col lg={12}>
+              <Card>
+                <CardHeader>
                   <h5 className="card-title mb-0">Notification Settings</h5>
                 </CardHeader>
                 <CardBody>
@@ -366,13 +457,13 @@ const TenantRentalConfig: React.FC = () => {
                       <FormGroup check className="mb-3">
                         <Input
                           type="checkbox"
-                          name="notifyOnOverdue"
-                          id="notifyOnOverdue"
-                          checked={formData.notifyOnOverdue}
+                          name="notifyOnOverdueRentals"
+                          id="notifyOnOverdueRentals"
+                          checked={formData.notifyOnOverdueRentals}
                           onChange={handleInputChange}
                           disabled={!isEditing}
                         />
-                        <Label for="notifyOnOverdue" check>
+                        <Label for="notifyOnOverdueRentals" check>
                           Send Notifications for Overdue Rentals
                         </Label>
                         <p className="text-muted small mb-0">
@@ -381,6 +472,24 @@ const TenantRentalConfig: React.FC = () => {
                       </FormGroup>
                     </Col>
                     <Col md={6}>
+                      <FormGroup check className="mb-3">
+                        <Input
+                          type="checkbox"
+                          name="notifyOnDraftInvoiceGeneration"
+                          id="notifyOnDraftInvoiceGeneration"
+                          checked={formData.notifyOnDraftInvoiceGeneration}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                        />
+                        <Label for="notifyOnDraftInvoiceGeneration" check>
+                          Notify on Draft Invoice Generation
+                        </Label>
+                        <p className="text-muted small mb-0">
+                          Send notifications when draft invoices are created
+                        </p>
+                      </FormGroup>
+                    </Col>
+                    <Col md={12}>
                       <FormGroup>
                         <Label for="offHireReminderDays">
                           Off-Hire Reminder Days
@@ -401,6 +510,34 @@ const TenantRentalConfig: React.FC = () => {
                       </FormGroup>
                     </Col>
                   </Row>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col lg={12}>
+              <Card>
+                <CardHeader>
+                  <h5 className="card-title mb-0">Configuration Notes</h5>
+                </CardHeader>
+                <CardBody>
+                  <FormGroup>
+                    <Label for="configurationNotes">Notes</Label>
+                    <Input
+                      type="textarea"
+                      name="configurationNotes"
+                      id="configurationNotes"
+                      value={formData.configurationNotes}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      rows={4}
+                      placeholder="Enter any additional configuration notes or instructions..."
+                    />
+                    <p className="text-muted small mb-0">
+                      Internal notes about this rental configuration
+                    </p>
+                  </FormGroup>
                 </CardBody>
               </Card>
             </Col>
