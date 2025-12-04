@@ -66,7 +66,6 @@ import Login from "../pages/Authentication/Login";
 import OtpVerification from "../pages/Authentication/OtpVerification";
 import ForgetPasswordPage from "../pages/Authentication/ForgetPassword";
 import Logout from "../pages/Authentication/Logout";
-import Register from "../pages/Authentication/Register";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -156,7 +155,6 @@ const publicRoutes = [
   { path: "/login", component: <Login /> },
   { path: "/otp-verification", component: <OtpVerification /> },
   { path: "/forgot-password", component: <ForgetPasswordPage /> },
-  { path: "/register", component: <Register /> },
 
   { path: "/auth-404-basic", component: <Basic404 /> },
   { path: "/auth-404-cover", component: <Cover404 /> },

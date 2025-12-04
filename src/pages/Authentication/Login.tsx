@@ -29,7 +29,7 @@ import { initiateLoginWithOtp } from "../../slices/thunks";
 
 import logoLight from "../../assets/images/logo-light.png";
 import { createSelector } from "reselect";
-import { ADMIN_EMAIL, PAGE_TITLES, APP_TAGLINE } from "../../common/branding";
+import { PAGE_TITLES, APP_TAGLINE } from "../../common/branding";
 
 const Login = (props: any) => {
   const dispatch: any = useDispatch();
@@ -49,7 +49,7 @@ const Login = (props: any) => {
     enableReinitialize: true,
 
     initialValues: {
-      email: ADMIN_EMAIL || "",
+      email: "",
     },
     validationSchema: Yup.object({
       email: Yup.string()
@@ -77,17 +77,16 @@ const Login = (props: any) => {
           <Container>
             <Row>
               <Col lg={12}>
-                <div className="text-center mt-sm-5 mb-4 text-white-50">
+                <div className="text-center mt-sm-5 mb-4 text-50">
                   <div>
                     <Link to="/" className="d-inline-block auth-logo">
-                      <img src={logoLight} alt="" height="20" />
+                      <img src={logoLight} alt="" height="75" />
                     </Link>
                   </div>
                   <p className="mt-3 fs-15 fw-medium">{APP_TAGLINE}</p>
                 </div>
               </Col>
             </Row>
-
             <Row className="justify-content-center">
               <Col md={8} lg={6} xl={5}>
                 <Card className="mt-4">

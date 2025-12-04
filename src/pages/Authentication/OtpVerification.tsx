@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { PAGE_TITLES } from "../../common/branding";
+import { PAGE_TITLES, APP_TAGLINE } from "../../common/branding";
 import {
   Card,
   CardBody,
@@ -19,6 +19,8 @@ import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 import logoLight from "../../assets/images/logo-light.png";
 import { createSelector } from "reselect";
 import { verifyOtp, resendOtp } from "../../slices/thunks";
+import { clearOtpData } from "../../slices/auth/otp/reducer";
+
 import "./OtpVerification.scss";
 
 const OtpVerification = () => {
@@ -124,6 +126,12 @@ const OtpVerification = () => {
     inputRefs.current[0]?.focus();
   };
 
+  const handleBackToLogin = () => {
+    // Clear OTP state and navigate to login
+    dispatch(clearOtpData());
+    navigate("/login");
+  };
+
   const isOtpComplete = otpDigits.every((digit) => digit !== "");
 
   document.title = PAGE_TITLES.OTP_VERIFICATION;
@@ -135,11 +143,11 @@ const OtpVerification = () => {
           <Container>
             <Row>
               <Col lg={12}>
-                <div className="text-center mt-sm-5 mb-4 text-white-50">
+                <div className="text-center mt-sm-5 mb-4 text-50">
                   <div>
-                    <img src={logoLight} alt="" height="20" />
+                    <img src={logoLight} alt="" height="75" />
                   </div>
-                  <p className="mt-3 fs-15 fw-medium">Two-Step Verification</p>
+                  <p className="mt-3 fs-15 fw-medium">{APP_TAGLINE}</p>
                 </div>
               </Col>
             </Row>
@@ -162,8 +170,7 @@ const OtpVerification = () => {
                     <div className="text-center mt-4 mb-4">
                       <h5 className="text-primary mb-2">Enter OTP</h5>
                       <p className="text-muted">
-                        We've sent a 6-digit code to{" "}
-                        <strong>{userEmail}</strong>
+                        We've sent a 6-digit code to <strong>{userEmail}</strong>
                       </p>
                     </div>
 
@@ -261,7 +268,7 @@ const OtpVerification = () => {
                           color="secondary"
                           outline
                           className="w-100"
-                          onClick={() => navigate("/login")}
+                          onClick={handleBackToLogin}
                           disabled={otpLoading}
                         >
                           Back to Login

@@ -26,8 +26,7 @@ import { useFormik } from "formik";
 // action
 import { userForgetPassword } from "../../slices/thunks";
 
-// import images
-// import profile from "../../assets/images/bg.png";
+
 import logoLight from "../../assets/images/logo-light.png";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 import { createSelector } from "reselect";

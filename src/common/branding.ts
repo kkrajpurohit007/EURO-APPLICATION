@@ -6,7 +6,7 @@
 export const APP_NAME = "Euro Scaffolds";
 export const COMPANY_NAME = "Euro Scaffolds";
 export const APP_TAGLINE =
-  "Euro Scaffolds - Professional Scaffold & Equipment Rental Services";
+  "Professional Scaffold & Equipment Rental Services";
 
 /**
  * Helper function to generate consistent page titles
