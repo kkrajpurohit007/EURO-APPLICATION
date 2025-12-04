@@ -138,6 +138,36 @@ const TenantRentalConfig: React.FC = () => {
     );
   }
 
+  // Handle case when no rental config data is found
+  if (!config) {
+    return (
+      <div className="page-content">
+        <Container fluid>
+          <BreadCrumb
+            title="Tenant Rental Configuration"
+            pageTitle="Settings"
+          />
+          <Row className="justify-content-center">
+            <Col xl={6} lg={8} md={10}>
+              <Card>
+                <CardBody className="text-center">
+                  <div className="py-5">
+                    <i className="ri-file-search-line ri-2x text-muted mb-3"></i>
+                    <h5>No Rental Configuration Found</h5>
+                    <p className="text-muted">
+                      No rental configuration data is available for your tenant. 
+                      Please contact your system administrator to set up the rental configuration.
+                    </p>
+                  </div>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    );
+  }
+
   return (
     <div className="page-content">
       <Container fluid>

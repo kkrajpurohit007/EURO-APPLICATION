@@ -20,9 +20,13 @@ const initialState: TenantRentalConfigState = {
 // Async thunk to fetch tenant rental configuration
 export const fetchRentalConfig = createAsyncThunk(
   "tenantRentalConfig/fetchRentalConfig",
-  async (tenantId: string) => {
-    const response = await tenantRentalConfigService.getRentalConfig(tenantId);
-    return response;
+  async (tenantId: string, { rejectWithValue }) => {
+    try {
+      const response = await tenantRentalConfigService.getRentalConfig(tenantId);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch rental configuration");
+    }
   }
 );
 
@@ -55,12 +59,13 @@ const tenantRentalConfigSlice = createSlice({
       })
       .addCase(fetchRentalConfig.fulfilled, (state, action) => {
         state.loading = false;
+        // If response is null, it means no data was found, so keep existing config or set to null
         state.config = action.payload;
       })
       .addCase(fetchRentalConfig.rejected, (state, action) => {
         state.loading = false;
         state.error =
-          action.error.message || "Failed to fetch rental configuration";
+          (action.payload as string) || "Failed to fetch rental configuration";
       })
       // Update rental config
       .addCase(updateRentalConfig.pending, (state) => {
@@ -69,7 +74,9 @@ const tenantRentalConfigSlice = createSlice({
       })
       .addCase(updateRentalConfig.fulfilled, (state, action) => {
         state.loading = false;
-        state.config = action.payload;
+        if (action.payload) {
+          state.config = action.payload;
+        }
       })
       .addCase(updateRentalConfig.rejected, (state, action) => {
         state.loading = false;
