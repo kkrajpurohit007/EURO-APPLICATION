@@ -42,7 +42,7 @@ const Login = (props: any) => {
     otpExpiry: state.Otp.otpExpiry, // Added to track OTP sending status
   }));
   // Inside your component
-  const { otpSent, otpError, otpLoading, otpExpiry } = useSelector(loginpageData);
+  const { otpSent, otpError, otpLoading } = useSelector(loginpageData);
 
   const validation: any = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed

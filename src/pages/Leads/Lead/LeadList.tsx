@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Container,
@@ -19,10 +19,10 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
   selectLeadList,
   selectLead,
-  fetchLeads,
   deleteLead,
   selectLeadLoading,
   selectLeadError,
+  fetchLeads,
 } from "../../../slices/leads/lead.slice";
 import {
   LeadItem,
@@ -41,6 +41,11 @@ const LeadList: React.FC = () => {
   const leads: LeadItem[] = useSelector(selectLeadList);
   const loading = useSelector(selectLeadLoading);
   const error = useSelector(selectLeadError);
+
+  // Fetch leads on component mount
+  useEffect(() => {
+    dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+  }, [dispatch]);
 
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "">("");
   const [deleteModal, setDeleteModal] = useState(false);
