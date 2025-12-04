@@ -152,11 +152,17 @@ const TenantRentalConfig: React.FC = () => {
               <Card>
                 <CardBody className="text-center">
                   <div className="py-5">
-                    <i className="ri-file-search-line ri-2x text-muted mb-3"></i>
-                    <h5>No Rental Configuration Found</h5>
+                    <i className="ri-settings-3-line ri-2x text-muted mb-3"></i>
+                    <h5>Tenant Rental Configuration Not Found</h5>
                     <p className="text-muted">
-                      No rental configuration data is available for your tenant. 
-                      Please contact your system administrator to set up the rental configuration.
+                      No rental configuration has been set up for your tenant yet.
+                    </p>
+                    <div className="bg-soft-warning text-warning p-3 rounded mt-4">
+                      <i className="ri-error-warning-line ri-lg me-2"></i>
+                      Please contact your system administrator to set up the tenant rental configuration.
+                    </div>
+                    <p className="text-muted mt-4 mb-0">
+                      Once configured, you'll be able to manage all rental settings here.
                     </p>
                   </div>
                 </CardBody>

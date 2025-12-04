@@ -271,22 +271,37 @@ const TableContainer = ({
           </thead>
 
           <tbody>
-            {getRowModel().rows.map((row: any) => {
-              return (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map((cell: any) => {
-                    return (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+            {getRowModel().rows.length > 0 ? (
+              getRowModel().rows.map((row: any) => {
+                return (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map((cell: any) => {
+                      return (
+                        <td key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="text-center py-4"
+                  style={{ textAlign: "center" }}
+                >
+                  <div className="py-4">
+                    <i className="ri-file-list-3-line ri-2x text-muted"></i>
+                    <div className="mt-2">No records found</div>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </Table>
       </div>
