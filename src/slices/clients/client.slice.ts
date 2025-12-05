@@ -49,7 +49,7 @@ export const fetchClients = createAsyncThunk(
 // Async thunk to create a new client
 export const createClient = createAsyncThunk(
     "clients/createClient",
-    async (data: Partial<ClientItem>) => {
+    async (data: Partial<ClientItem> & { registeredNumber?: string }) => {
         const response = await clientService.createClient(data);
         return response;
     }
@@ -58,7 +58,7 @@ export const createClient = createAsyncThunk(
 // Async thunk to update an existing client
 export const updateClient = createAsyncThunk(
     "clients/updateClient",
-    async ({ id, data }: { id: string; data: Partial<ClientItem> }) => {
+    async ({ id, data }: { id: string; data: Partial<ClientItem> & { registeredNumber?: string } }) => {
         const response = await clientService.updateClient(id, data);
         return response;
     }

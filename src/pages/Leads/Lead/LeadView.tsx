@@ -27,6 +27,21 @@ const LeadView: React.FC = () => {
   const navigate = useNavigate();
   const lead = useSelector((state: any) => selectLeadById(state, id || ""));
 
+  // Format date to DD-MMM-YYYY
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }).replace(/ /g, '-');
+    } catch (error) {
+      return "-";
+    }
+  };
+
   if (!lead) {
     return (
       <div className="page-content">
@@ -61,137 +76,152 @@ const LeadView: React.FC = () => {
               </CardHeader>
               <CardBody>
                 <Form>
-                  <Row className="g-3">
-                    <Col md={6}>
-                      <Label className="form-label">Lead Name</Label>
-                      <Input
-                        name="title"
-                        value={lead.title || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Contact Person</Label>
-                      <Input
-                        name="contactPerson"
-                        value={lead.contactPerson || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
+                  {/* Section A: Lead Basic Info */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Lead Basic Info</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Lead Title</Label>
+                        <Input
+                          name="title"
+                          value={lead.title || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Lead Status</Label>
+                        <Input
+                          name="leadStatus"
+                          value={LeadStatusLabels[lead.leadStatus as LeadStatus] || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={12}>
+                        <Label className="form-label">Description</Label>
+                        <Input
+                          type="textarea"
+                          rows={3}
+                          name="description"
+                          value={lead.description || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                    </Row>
+                  </div>
 
-                    <Col md={6}>
-                      <Label className="form-label">Contact Email</Label>
-                      <Input
-                        type="email"
-                        name="contactEmail"
-                        value={lead.contactEmail || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Phone Number</Label>
-                      <Input
-                        type="tel"
-                        name="phoneNumber"
-                        value={lead.phoneNumber || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
+                  {/* Section B: Contact Details */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Contact Details</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Contact Person</Label>
+                        <Input
+                          name="contactPerson"
+                          value={lead.contactPerson || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Contact Email</Label>
+                        <Input
+                          type="email"
+                          name="contactEmail"
+                          value={lead.contactEmail || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Phone Number</Label>
+                        <Input
+                          type="tel"
+                          name="phoneNumber"
+                          value={lead.phoneNumber || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                    </Row>
+                  </div>
 
-                    <Col md={6}>
-                      <Label className="form-label">Lead Status</Label>
-                      <Input
-                        name="leadStatus"
-                        value={LeadStatusLabels[lead.leadStatus as LeadStatus] || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Tenant Location</Label>
-                      <Input
-                        name="tenantLocationName"
-                        value={lead.tenantLocationName || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
+                  {/* Section C: Work Related Info */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Work Related Info</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Tentative Work Days</Label>
+                        <Input
+                          type="text"
+                          name="tentativeWorkDays"
+                          value={lead.tentativeWorkDays || "0"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Tentative Project Start Date</Label>
+                        <Input
+                          name="tentativeProjectStartDate"
+                          value={formatDate(lead.tentativeProjectStartDate)}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={12}>
+                        <Label className="form-label">Site Address</Label>
+                        <Input
+                          type="textarea"
+                          rows={2}
+                          name="siteAddress"
+                          value={lead.siteAddress || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                    </Row>
+                  </div>
 
-                    <Col md={12}>
-                      <Label className="form-label">Description</Label>
-                      <Input
-                        type="textarea"
-                        rows={3}
-                        name="description"
-                        value={lead.description || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-
-                    <Col md={6}>
-                      <Label className="form-label">Site Address</Label>
-                      <Input
-                        type="textarea"
-                        rows={2}
-                        name="siteAddress"
-                        value={lead.siteAddress || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Tentative Project Start Date</Label>
-                      <Input
-                        name="tentativeProjectStartDate"
-                        value={
-                          lead.tentativeProjectStartDate
-                            ? new Date(lead.tentativeProjectStartDate).toLocaleString()
-                            : "-"
-                        }
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-
-                    <Col md={6}>
-                      <Label className="form-label">Tentative Work Days</Label>
-                      <Input
-                        type="text"
-                        name="tentativeWorkDays"
-                        value={lead.tentativeWorkDays || "0"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-
-                    <Col md={12}>
-                      <Label className="form-label">Notes</Label>
-                      <Input
-                        type="textarea"
-                        rows={3}
-                        name="notes"
-                        value={lead.notes || "No notes available"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-                  </Row>
+                  {/* Section D: Additional Details */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Additional Details</h5>
+                    <Row className="g-3">
+                      <Col md={12}>
+                        <Label className="form-label">Notes</Label>
+                        <Input
+                          type="textarea"
+                          rows={3}
+                          name="notes"
+                          value={lead.notes || "No notes available"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Location</Label>
+                        <Input
+                          name="tenantLocationName"
+                          value={lead.tenantLocationName || "-"}
+                          readOnly
+                          plaintext
+                          className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        />
+                      </Col>
+                    </Row>
+                  </div>
                 </Form>
               </CardBody>
             </Card>

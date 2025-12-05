@@ -88,7 +88,7 @@ const ClientCreate: React.FC = () => {
       const payload = {
         tenantId: authUser?.tenantId || "",
         name: values.name,
-        ein: values.registeredNumber,
+        registeredNumber: values.registeredNumber,
         gstNumber: values.gstNumber,
         address1: values.address1,
         address2: values.address2,
@@ -204,7 +204,7 @@ const ClientCreate: React.FC = () => {
                         <Label className="form-label">Priority Customer</Label>
                         <div className="form-check form-switch form-switch-lg">
                           <Input
-                            type="checkbox"
+                            type="switch"
                             className="form-check-input"
                             id="isPriority"
                             name="isPriority"
@@ -217,7 +217,7 @@ const ClientCreate: React.FC = () => {
                               }
                             }}
                           />
-                          <Label className="form-check-label" for="isPriority">
+                          <Label className="form-check-label" htmlFor="isPriority">
                             {validation.values.isPriority ? "Enabled" : "Disabled"}
                           </Label>
                         </div>

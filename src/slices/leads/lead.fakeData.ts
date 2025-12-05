@@ -26,8 +26,6 @@ export interface LeadItem {
   id: string;
   tenantId: string;
   tenantName: string;
-  clientId: string | null;
-  clientName: string;
   userId: string;
   userName: string;
   title: string; // Lead name, not person title
@@ -60,8 +58,6 @@ export const initialLeads: LeadItem[] = [
     id: "1",
     tenantId: "tenant-1",
     tenantName: "Tenant One",
-    clientId: "client-1",
-    clientName: "Client One",
     userId: "user-1",
     userName: "John Doe",
     title: "Premium Plan Lead",
@@ -82,8 +78,6 @@ export const initialLeads: LeadItem[] = [
     id: "2",
     tenantId: "tenant-1",
     tenantName: "Tenant One",
-    clientId: "client-2",
-    clientName: "Client Two",
     userId: "user-1",
     userName: "John Doe",
     title: "Consultation Lead",

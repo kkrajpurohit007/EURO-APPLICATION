@@ -58,7 +58,7 @@ import TenantLocationEdit from "../pages/TenantLocations/TenantLocationEdit";
 import TenantLocationView from "../pages/TenantLocations/TenantLocationView";
 
 // Client Rental Config
-import ClientRentalConfigForm from "../pages/Clients/Client/ClientRentalConfigForm";
+import ClientRentalConfig from "../pages/Clients/ClientRentalConfig";
 
 import Basic404 from "../pages/AuthenticationInner/Errors/Basic404";
 import Cover404 from "../pages/AuthenticationInner/Errors/Cover404";
@@ -148,7 +148,11 @@ const authProtectedRoutes = [
   // Client Rental Config
   {
     path: "/clients/:clientId/rental-config",
-    component: <ClientRentalConfigForm />,
+    component: <ClientRentalConfig />,
+  },
+  {
+    path: "/clients/rental-config",
+    component: <ClientRentalConfig />,
   },
 
   // this route should be at the end of all other routes

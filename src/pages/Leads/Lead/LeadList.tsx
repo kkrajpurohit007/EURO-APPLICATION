@@ -35,6 +35,21 @@ import { useFlash } from "../../../hooks/useFlash";
 
 const statusOptions: LeadStatus[] = [0, 1, 2, 3, 4, 5];
 
+// Format date to DD-MMM-YYYY
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).replace(/ /g, '-');
+  } catch (error) {
+    return "-";
+  }
+};
+
 const LeadList: React.FC = () => {
   document.title = PAGE_TITLES.LEADS_LIST;
   const dispatch = useDispatch<any>();
@@ -101,15 +116,6 @@ const LeadList: React.FC = () => {
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "Description",
-        accessorKey: "description",
-        enableColumnFilter: false,
-        cell: (cell: any) => {
-          const desc = cell.getValue() || "-";
-          return desc.length > 50 ? desc.substring(0, 50) + "..." : desc;
-        },
-      },
-      {
         header: "Status",
         accessorKey: "leadStatus",
         enableColumnFilter: false,
@@ -117,12 +123,12 @@ const LeadList: React.FC = () => {
           const status: LeadStatus = cell.getValue();
           const statusLabel = LeadStatusLabels[status];
           const colorMap: Record<LeadStatus, string> = {
-            0: "info",
-            1: "secondary",
-            2: "secondary",
-            3: "primary",
-            4: "warning",
-            5: "success",
+            0: "info", // New
+            1: "secondary", // Open
+            2: "secondary", // Approved
+            3: "primary", // Converted
+            4: "warning", // Cancelled
+            5: "success", // Churned
           };
           return (
             <Badge
@@ -135,10 +141,10 @@ const LeadList: React.FC = () => {
         },
       },
       {
-        header: "Tentative Work Days",
-        accessorKey: "tentativeWorkDays",
+        header: "Location",
+        accessorKey: "tenantLocationName",
         enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "0",
+        cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Action",

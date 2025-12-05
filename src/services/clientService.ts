@@ -27,7 +27,7 @@ export const getAllClients = (
     }) as unknown as Promise<ClientsResponse>;
 };
 
-export const createClient = (data: Partial<ClientItem>): Promise<ClientItem> => {
+export const createClient = (data: Partial<ClientItem> & { registeredNumber?: string }): Promise<ClientItem> => {
     if (isFakeBackend) {
         return addNewClient(data) as unknown as Promise<ClientItem>;
     }
@@ -35,7 +35,7 @@ export const createClient = (data: Partial<ClientItem>): Promise<ClientItem> => 
     const payload = {
         tenantId: data.tenantId,
         name: data.name,
-        registeredNumber: data.ein || "",
+        registeredNumber: data.registeredNumber || "",
         gstNumber: data.gstNumber || "",
         address1: data.address1,
         address2: data.address2,
@@ -53,7 +53,7 @@ export const createClient = (data: Partial<ClientItem>): Promise<ClientItem> => 
 
 export const updateClient = (
     id: string,
-    data: Partial<ClientItem>
+    data: Partial<ClientItem> & { registeredNumber?: string }
 ): Promise<ClientItem> => {
     if (isFakeBackend) {
         return updateClientFake(id, data) as unknown as Promise<ClientItem>;
@@ -61,7 +61,7 @@ export const updateClient = (
     // PUT payload must include these fields
     const payload = {
         name: data.name,
-        registeredNumber: data.ein || "",
+        registeredNumber: data.registeredNumber || "",
         gstNumber: data.gstNumber || "",
         address1: data.address1,
         address2: data.address2,

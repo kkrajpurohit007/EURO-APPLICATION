@@ -151,10 +151,12 @@ export const { selectLead, clearError } = leadSlice.actions;
 export default leadSlice.reducer;
 
 // selectors
-export const selectLeadList = (state: any) => state.Leads.items;
-export const selectSelectedLead = (state: any) => state.Leads.selectedLead;
+export const selectLeadList = (state: any) => state.Leads?.items || [];
+export const selectSelectedLead = (state: any) =>
+  state.Leads?.selectedLead || null;
 export const selectLeadById = (state: any, id: string) =>
-  state.Leads.items.find((l: LeadItem) => l.id === id);
-export const selectLeadLoading = (state: any) => state.Leads.loading;
-export const selectLeadError = (state: any) => state.Leads.error;
-export const selectLeadTotalCount = (state: any) => state.Leads.totalCount;
+  state.Leads?.items?.find((l: LeadItem) => l.id === id) || null;
+export const selectLeadLoading = (state: any) => state.Leads?.loading || false;
+export const selectLeadError = (state: any) => state.Leads?.error || null;
+export const selectLeadTotalCount = (state: any) =>
+  state.Leads?.totalCount || 0;

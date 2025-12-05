@@ -12,22 +12,26 @@ const store = configureStore({ reducer: rootReducer, devTools: true });
 
 // Subscribe to store changes and persist auth data to localStorage
 store.subscribe(() => {
-  const state = store.getState();
+  try {
+    const state = store.getState();
 
-  // Persist login state
-  if (state.Login?.user && Object.keys(state.Login.user).length > 0) {
-    try {
-      localStorage.setItem("authUser", JSON.stringify(state.Login.user));
-      sessionStorage.setItem("authUser", JSON.stringify(state.Login.user));
-    } catch (error) {
-      console.error("Failed to persist auth state:", error);
+    // Persist login state
+    if (state.Login?.user && Object.keys(state.Login.user).length > 0) {
+      try {
+        localStorage.setItem("authUser", JSON.stringify(state.Login.user));
+        sessionStorage.setItem("authUser", JSON.stringify(state.Login.user));
+      } catch (error) {
+        console.error("Failed to persist auth state:", error);
+      }
     }
-  }
 
-  // Clear storage on logout
-  if (state.Login?.isUserLogout) {
-    localStorage.removeItem("authUser");
-    sessionStorage.removeItem("authUser");
+    // Clear storage on logout
+    if (state.Login?.isUserLogout) {
+      localStorage.removeItem("authUser");
+      sessionStorage.removeItem("authUser");
+    }
+  } catch (error) {
+    console.error("Error in store subscription:", error);
   }
 });
 

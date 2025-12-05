@@ -20,7 +20,7 @@ import TenantRolesReducer from "./tenantRoles/tenantRole.slice";
 import TenantRentalConfigReducer from "./tenantRentalConfig/tenantRentalConfig.slice";
 
 // Client Rental Config
-import ClientRentalConfigReducer from "./clientRentalConfig/reducer";
+import ClientRentalConfigReducer from "./clientRentalConfig/clientRentalConfig.slice";
 
 // Meetings
 import MeetingsReducer from "./meetings/reducer";

@@ -393,7 +393,15 @@ export const updateTenantRentalConfig = (id: string, data: any) => {
 export const getClientRentalConfigs = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(clientRentalConfigData);
+      // Map client names from actual client data
+      const mappedConfigs = clientRentalConfigData.map(config => {
+        const client = initialClients.find(c => parseInt(c.id) === config.clientId);
+        return {
+          ...config,
+          clientName: client ? client.name : config.clientName
+        };
+      });
+      resolve(mappedConfigs);
     }, 300);
   });
 };
@@ -404,7 +412,17 @@ export const getClientRentalConfigByClientId = (clientId: number) => {
       const config = clientRentalConfigData.find(
         (c) => c.clientId === clientId
       );
-      resolve(config);
+      
+      if (config) {
+        // Map client name from actual client data
+        const client = initialClients.find(c => parseInt(c.id) === clientId);
+        resolve({
+          ...config,
+          clientName: client ? client.name : config.clientName
+        });
+      } else {
+        resolve(null);
+      }
     }, 300);
   });
 };
@@ -416,12 +434,35 @@ export const updateClientRentalConfig = (clientId: number, data: any) => {
         (c) => c.clientId === clientId
       );
       if (index !== -1) {
+        // Update existing config
         clientRentalConfigData[index] = {
           ...clientRentalConfigData[index],
           ...data,
           updatedAt: new Date().toISOString().split("T")[0],
         };
         resolve(clientRentalConfigData[index]);
+      } else {
+        // Create new config
+        const newConfig: any = {
+          id: clientRentalConfigData.length + 1,
+          clientId: clientId,
+          clientName: data.clientName || "Unknown Client",
+          overrideGracePeriodDays: data.overrideGracePeriodDays ?? null,
+          overrideMinimumHireWeeks: data.overrideMinimumHireWeeks ?? null,
+          overrideInvoiceFrequency: data.overrideInvoiceFrequency ?? null,
+          overrideInvoiceDay: data.overrideInvoiceDay ?? null,
+          overrideIncludeWeekends: data.overrideIncludeWeekends ?? false,
+          overrideExcludePublicHolidays: data.overrideExcludePublicHolidays ?? false,
+          reason: data.reason || "",
+          effectiveFrom: data.effectiveFrom || "",
+          effectiveTo: data.effectiveTo || "",
+          approvedByUserId: data.approvedByUserId || "",
+          approvedDate: data.approvedDate || "",
+          tenantId: data.tenantId || 0,
+          updatedAt: new Date().toISOString().split("T")[0],
+        };
+        clientRentalConfigData.push(newConfig);
+        resolve(newConfig);
       }
     }, 300);
   });
@@ -493,7 +534,48 @@ export const deleteMeeting = (id: number) => {
 // LEADS API
 // ========================
 
-let leadsData = [...initialLeads];
+let leadsData: LeadItem[] = [
+  {
+    id: "1",
+    tenantId: "tenant-1",
+    tenantName: "Tenant One",
+    userId: "user-1",
+    userName: "John Doe",
+    title: "Premium Plan Lead",
+    contactPerson: "Jane Smith",
+    contactEmail: "jane.smith@example.com",
+    description: "Interested in premium plan",
+    leadStatus: 0,
+    tentativeWorkDays: 20,
+    notes: "Initial contact made",
+    tentativeProjectStartDate: null,
+    phoneNumber: null,
+    siteAddress: null,
+    tenantLocationId: null,
+    tenantLocationName: null,
+    isDeleted: false,
+  },
+  {
+    id: "2",
+    tenantId: "tenant-1",
+    tenantName: "Tenant One",
+    userId: "user-1",
+    userName: "John Doe",
+    title: "Consultation Lead",
+    contactPerson: "Alice Johnson",
+    contactEmail: "alice.j@example.com",
+    description: "Looking for consultation",
+    leadStatus: 1,
+    tentativeWorkDays: 10,
+    notes: "Scheduled a meeting",
+    tentativeProjectStartDate: null,
+    phoneNumber: null,
+    siteAddress: null,
+    tenantLocationId: null,
+    tenantLocationName: null,
+    isDeleted: false,
+  },
+];
 
 export const getLeads = (pageNumber: number = 1, pageSize: number = 50) => {
   return new Promise((resolve) => {
@@ -528,12 +610,29 @@ export const addNewLead = (lead: any) => {
   });
 };
 
-export const updateLead = (id: string, lead: any) => {
+export const updateLead = (id: string, lead: Partial<LeadItem>) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const index = leadsData.findIndex((l) => l.id === id);
       if (index !== -1) {
-        leadsData[index] = { ...leadsData[index], ...lead };
+        leadsData[index] = { 
+          ...leadsData[index], 
+          ...lead,
+          id: leadsData[index].id, // Preserve the original ID
+          tenantId: lead.tenantId ?? leadsData[index].tenantId,
+          title: lead.title ?? leadsData[index].title,
+          contactPerson: lead.contactPerson ?? leadsData[index].contactPerson,
+          contactEmail: lead.contactEmail ?? leadsData[index].contactEmail,
+          description: lead.description ?? leadsData[index].description,
+          leadStatus: lead.leadStatus ?? leadsData[index].leadStatus,
+          tentativeWorkDays: lead.tentativeWorkDays ?? leadsData[index].tentativeWorkDays,
+          notes: lead.notes ?? leadsData[index].notes,
+          tentativeProjectStartDate: lead.tentativeProjectStartDate ?? leadsData[index].tentativeProjectStartDate,
+          phoneNumber: lead.phoneNumber ?? leadsData[index].phoneNumber,
+          siteAddress: lead.siteAddress ?? leadsData[index].siteAddress,
+          tenantLocationId: lead.tenantLocationId ?? leadsData[index].tenantLocationId,
+          tenantLocationName: lead.tenantLocationName ?? leadsData[index].tenantLocationName,
+        };
         resolve(leadsData[index]);
       }
     }, 300);
@@ -599,14 +698,14 @@ export const getClients = (pageNumber: number = 1, pageSize: number = 50) => {
   });
 };
 
-export const addNewClient = (client: Partial<ClientItem>) => {
+export const addNewClient = (client: Partial<ClientItem> & { registeredNumber?: string }) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const newClient: ClientItem = {
         id: (clientsData.length + 1).toString(),
         tenantId: client.tenantId || "",
         name: client.name || "",
-        ein: client.ein || "",
+        ein: client.registeredNumber || client.ein || "",
         abn: "",
         gstNumber: client.gstNumber || "",
         vatNumber: "",
@@ -628,7 +727,7 @@ export const addNewClient = (client: Partial<ClientItem>) => {
   });
 };
 
-export const updateClient = (id: string, client: Partial<ClientItem>) => {
+export const updateClient = (id: string, client: Partial<ClientItem> & { registeredNumber?: string }) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const index = clientsData.findIndex((c) => c.id === id);
@@ -639,7 +738,7 @@ export const updateClient = (id: string, client: Partial<ClientItem>) => {
           id: clientsData[index].id, // Preserve the original ID
           tenantId: client.tenantId ?? clientsData[index].tenantId,
           name: client.name ?? clientsData[index].name,
-          ein: client.ein ?? clientsData[index].ein,
+          ein: client.registeredNumber ?? client.ein ?? clientsData[index].ein,
           abn: "",
           gstNumber: client.gstNumber ?? clientsData[index].gstNumber,
           vatNumber: "",
@@ -1090,6 +1189,22 @@ export const deleteTenantRole = (id: string) => {
     }, 300);
   });
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

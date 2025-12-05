@@ -165,190 +165,209 @@ const LeadEdit: React.FC = () => {
                   </Alert>
                 )}
                 <Form onSubmit={(e) => e.preventDefault()}>
-                  <Row className="g-3">
-                    <Col md={6}>
-                      <Label className="form-label">Lead Name *</Label>
-                      <Input
-                        name="title"
-                        value={validation.values.title}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        invalid={
-                          !!(validation.touched.title && validation.errors.title)
-                        }
-                        placeholder="Enter lead name"
-                      />
-                      {validation.touched.title && validation.errors.title && (
-                        <FormFeedback type="invalid">
-                          {String(validation.errors.title)}
-                        </FormFeedback>
-                      )}
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Contact Person *</Label>
-                      <Input
-                        name="contactPerson"
-                        value={validation.values.contactPerson}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        invalid={
-                          !!(
-                            validation.touched.contactPerson &&
-                            validation.errors.contactPerson
-                          )
-                        }
-                        placeholder="Enter contact person name"
-                      />
-                      {validation.touched.contactPerson &&
-                        validation.errors.contactPerson && (
+                  {/* Section A: Lead Basic Info */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Lead Basic Info</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Lead Title *</Label>
+                        <Input
+                          name="title"
+                          value={validation.values.title}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(validation.touched.title && validation.errors.title)
+                          }
+                          placeholder="Enter lead title"
+                        />
+                        {validation.touched.title && validation.errors.title && (
                           <FormFeedback type="invalid">
-                            {String(validation.errors.contactPerson)}
+                            {String(validation.errors.title)}
                           </FormFeedback>
                         )}
-                    </Col>
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Lead Status</Label>
+                        <Input
+                          type="select"
+                          name="leadStatus"
+                          value={validation.values.leadStatus}
+                          onChange={validation.handleChange}
+                        >
+                          {Object.entries(LeadStatusLabels).map(
+                            ([key, label]) => (
+                              <option key={key} value={parseInt(key)}>
+                                {label}
+                              </option>
+                            )
+                          )}
+                        </Input>
+                      </Col>
+                      <Col md={12}>
+                        <Label className="form-label">Description *</Label>
+                        <Input
+                          type="textarea"
+                          rows={3}
+                          name="description"
+                          value={validation.values.description}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.description &&
+                              validation.errors.description
+                            )
+                          }
+                          placeholder="Enter description"
+                        />
+                        {validation.touched.description &&
+                          validation.errors.description && (
+                            <FormFeedback type="invalid">
+                              {String(validation.errors.description)}
+                            </FormFeedback>
+                          )}
+                      </Col>
+                    </Row>
+                  </div>
 
-                    <Col md={6}>
-                      <Label className="form-label">Contact Email *</Label>
-                      <Input
-                        type="email"
-                        name="contactEmail"
-                        value={validation.values.contactEmail}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        invalid={
-                          !!(
-                            validation.touched.contactEmail &&
-                            validation.errors.contactEmail
-                          )
-                        }
-                        placeholder="Enter contact email"
-                      />
-                      {validation.touched.contactEmail &&
-                        validation.errors.contactEmail && (
-                          <FormFeedback type="invalid">
-                            {String(validation.errors.contactEmail)}
-                          </FormFeedback>
-                        )}
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Phone Number</Label>
-                      <Input
-                        type="tel"
-                        name="phoneNumber"
-                        value={validation.values.phoneNumber}
-                        onChange={validation.handleChange}
-                        placeholder="Enter phone number"
-                      />
-                    </Col>
+                  {/* Section B: Contact Details */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Contact Details</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Contact Person *</Label>
+                        <Input
+                          name="contactPerson"
+                          value={validation.values.contactPerson}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.contactPerson &&
+                              validation.errors.contactPerson
+                            )
+                          }
+                          placeholder="Enter contact person name"
+                        />
+                        {validation.touched.contactPerson &&
+                          validation.errors.contactPerson && (
+                            <FormFeedback type="invalid">
+                              {String(validation.errors.contactPerson)}
+                            </FormFeedback>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Contact Email *</Label>
+                        <Input
+                          type="email"
+                          name="contactEmail"
+                          value={validation.values.contactEmail}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.contactEmail &&
+                              validation.errors.contactEmail
+                            )
+                          }
+                          placeholder="Enter contact email"
+                        />
+                        {validation.touched.contactEmail &&
+                          validation.errors.contactEmail && (
+                            <FormFeedback type="invalid">
+                              {String(validation.errors.contactEmail)}
+                            </FormFeedback>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Phone Number</Label>
+                        <Input
+                          type="tel"
+                          name="phoneNumber"
+                          value={validation.values.phoneNumber}
+                          onChange={validation.handleChange}
+                          placeholder="Enter phone number"
+                        />
+                      </Col>
+                    </Row>
+                  </div>
 
-                    <Col md={6}>
-                      <Label className="form-label">Lead Status</Label>
-                      <Input
-                        type="select"
-                        name="leadStatus"
-                        value={validation.values.leadStatus}
-                        onChange={validation.handleChange}
-                      >
-                        {Object.entries(LeadStatusLabels).map(
-                          ([key, label]) => (
-                            <option key={key} value={parseInt(key)}>
-                              {label}
-                            </option>
-                          )
-                        )}
-                      </Input>
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Tenant Location</Label>
-                      <Input
-                        type="select"
-                        name="tenantLocationId"
-                        value={validation.values.tenantLocationId}
-                        onChange={validation.handleChange}
-                      >
-                        <option value="">Select Location</option>
-                        {tenantLocations && tenantLocations.length > 0
-                          ? tenantLocations
-                              .filter((loc: TenantLocationItem) => !loc.isDeleted)
-                              .map((location: TenantLocationItem) => (
-                                <option key={location.id} value={location.id}>
-                                  {location.name}
-                                </option>
-                              ))
-                          : null}
-                      </Input>
-                    </Col>
+                  {/* Section C: Work Related Info */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Work Related Info</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Tentative Work Days</Label>
+                        <Input
+                          type="number"
+                          name="tentativeWorkDays"
+                          value={validation.values.tentativeWorkDays}
+                          onChange={validation.handleChange}
+                          min="0"
+                          placeholder="Enter work days"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Tentative Project Start Date</Label>
+                        <Input
+                          type="datetime-local"
+                          name="tentativeProjectStartDate"
+                          value={validation.values.tentativeProjectStartDate}
+                          onChange={validation.handleChange}
+                        />
+                      </Col>
+                      <Col md={12}>
+                        <Label className="form-label">Site Address</Label>
+                        <Input
+                          type="textarea"
+                          rows={2}
+                          name="siteAddress"
+                          value={validation.values.siteAddress}
+                          onChange={validation.handleChange}
+                          placeholder="Enter site address"
+                        />
+                      </Col>
+                    </Row>
+                  </div>
 
-                    <Col md={12}>
-                      <Label className="form-label">Description *</Label>
-                      <Input
-                        type="textarea"
-                        rows={3}
-                        name="description"
-                        value={validation.values.description}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        invalid={
-                          !!(
-                            validation.touched.description &&
-                            validation.errors.description
-                          )
-                        }
-                        placeholder="Enter description"
-                      />
-                      {validation.touched.description &&
-                        validation.errors.description && (
-                          <FormFeedback type="invalid">
-                            {String(validation.errors.description)}
-                          </FormFeedback>
-                        )}
-                    </Col>
-
-                    <Col md={6}>
-                      <Label className="form-label">Site Address</Label>
-                      <Input
-                        type="textarea"
-                        rows={2}
-                        name="siteAddress"
-                        value={validation.values.siteAddress}
-                        onChange={validation.handleChange}
-                        placeholder="Enter site address"
-                      />
-                    </Col>
-                    <Col md={6}>
-                      <Label className="form-label">Tentative Project Start Date</Label>
-                      <Input
-                        type="datetime-local"
-                        name="tentativeProjectStartDate"
-                        value={validation.values.tentativeProjectStartDate}
-                        onChange={validation.handleChange}
-                      />
-                    </Col>
-
-                    <Col md={6}>
-                      <Label className="form-label">Tentative Work Days</Label>
-                      <Input
-                        type="number"
-                        name="tentativeWorkDays"
-                        value={validation.values.tentativeWorkDays}
-                        onChange={validation.handleChange}
-                        min="0"
-                        placeholder="Enter work days"
-                      />
-                    </Col>
-
-                    <Col md={12}>
-                      <Label className="form-label">Notes</Label>
-                      <Input
-                        type="textarea"
-                        rows={3}
-                        name="notes"
-                        value={validation.values.notes}
-                        onChange={validation.handleChange}
-                        placeholder="Enter notes"
-                      />
-                    </Col>
-                  </Row>
+                  {/* Section D: Additional Details */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Additional Details</h5>
+                    <Row className="g-3">
+                      <Col md={12}>
+                        <Label className="form-label">Notes</Label>
+                        <Input
+                          type="textarea"
+                          rows={3}
+                          name="notes"
+                          value={validation.values.notes}
+                          onChange={validation.handleChange}
+                          placeholder="Enter notes"
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Tenant Location</Label>
+                        <Input
+                          type="select"
+                          name="tenantLocationId"
+                          value={validation.values.tenantLocationId}
+                          onChange={validation.handleChange}
+                        >
+                          <option value="">Select Location</option>
+                          {tenantLocations && tenantLocations.length > 0
+                            ? tenantLocations
+                                .filter((loc: TenantLocationItem) => !loc.isDeleted)
+                                .map((location: TenantLocationItem) => (
+                                  <option key={location.id} value={location.id}>
+                                    {location.name}
+                                  </option>
+                                ))
+                            : null}
+                        </Input>
+                      </Col>
+                    </Row>
+                  </div>
                 </Form>
               </CardBody>
             </Card>

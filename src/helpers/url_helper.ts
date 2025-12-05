@@ -13,7 +13,7 @@ export const POST_OTP_VERIFY = "/auth/verify-otp";
 export const POST_OTP_RESEND = "/auth/resend-otp";
 
 // ROLES (using Profile endpoint)
-export const GET_ROLES = "/api/v1/Profile";
+export const GET_ROLES = "/Profile";
 export const POST_ROLE = "/Role";
 export const PUT_ROLE = "/Role";
 export const DELETE_ROLE = "/Role";
@@ -79,3 +79,6 @@ export const GET_TENANT_ROLES = "/Role";
 export const POST_TENANT_ROLE = "/Role";
 export const PUT_TENANT_ROLE = "/Role";
 export const DELETE_TENANT_ROLE = "/Role";
+
+// CLIENT RENTAL CONFIGURATION
+export const CLIENT_RENTAL_CONFIG = "/ClientRentalConfiguration";

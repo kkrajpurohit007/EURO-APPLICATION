@@ -38,11 +38,12 @@ export const fetchLeadAttachments = createAsyncThunk(
     pageNumber?: number;
     pageSize?: number;
   }) => {
-    const response: LeadAttachmentResponse = await leadAttachmentService.getLeadAttachments(
-      leadId,
-      pageNumber,
-      pageSize
-    );
+    const response: LeadAttachmentResponse =
+      await leadAttachmentService.getLeadAttachments(
+        leadId,
+        pageNumber,
+        pageSize
+      );
     return response;
   }
 );
@@ -87,11 +88,19 @@ const leadAttachmentSlice = createSlice({
       .addCase(fetchLeadAttachments.fulfilled, (state, action) => {
         state.loading = false;
         // Make sure we're correctly handling the items
-        state.items = action.payload.items ? action.payload.items.filter((item) => !item.isDeleted) : [];
-        state.pageNumber = action.payload.pageNumber;
-        state.pageSize = action.payload.pageSize;
-        state.totalCount = action.payload.totalCount;
-        state.totalPages = action.payload.totalPages;
+        if (action.payload && action.payload.items) {
+          state.items = action.payload.items.filter((item) => !item.isDeleted);
+          state.pageNumber = action.payload.pageNumber;
+          state.pageSize = action.payload.pageSize;
+          state.totalCount = action.payload.totalCount;
+          state.totalPages = action.payload.totalPages;
+        } else {
+          state.items = [];
+          state.pageNumber = 1;
+          state.pageSize = 100;
+          state.totalCount = 0;
+          state.totalPages = 0;
+        }
       })
       .addCase(fetchLeadAttachments.rejected, (state, action) => {
         state.loading = false;
@@ -132,8 +141,11 @@ export const { clearError, clearAttachments } = leadAttachmentSlice.actions;
 export default leadAttachmentSlice.reducer;
 
 // Selectors
-export const selectLeadAttachmentList = (state: any) => state.LeadAttachments.items;
-export const selectLeadAttachmentLoading = (state: any) => state.LeadAttachments.loading;
-export const selectLeadAttachmentError = (state: any) => state.LeadAttachments.error;
-export const selectLeadAttachmentTotalCount = (state: any) => state.LeadAttachments.totalCount;
-
+export const selectLeadAttachmentList = (state: any) =>
+  state.LeadAttachments?.items || [];
+export const selectLeadAttachmentLoading = (state: any) =>
+  state.LeadAttachments?.loading || false;
+export const selectLeadAttachmentError = (state: any) =>
+  state.LeadAttachments?.error || null;
+export const selectLeadAttachmentTotalCount = (state: any) =>
+  state.LeadAttachments?.totalCount || 0;

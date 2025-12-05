@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Container,
@@ -26,6 +26,7 @@ import {
   selectClientLoading,
 } from "../../../slices/clients/client.slice";
 import { selectCountryList } from "../../../slices/countries/country.slice";
+import { fetchCountries } from "../../../slices/countries/country.slice";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -56,7 +57,7 @@ const ClientEdit: React.FC = () => {
   const initialValues = useMemo(
     () => ({
       name: client?.name || "",
-      registeredNumber: client?.ein || "",
+      registeredNumber: client?.registeredNumber || client?.ein || "",
       gstNumber: client?.gstNumber || "",
       address1: client?.address1 || "",
       address2: client?.address2 || "",
@@ -93,7 +94,7 @@ const ClientEdit: React.FC = () => {
       // Map form values to API payload
       const payload = {
         name: values.name,
-        ein: values.registeredNumber,
+        registeredNumber: values.registeredNumber,
         gstNumber: values.gstNumber,
         address1: values.address1,
         address2: values.address2,
@@ -220,7 +221,7 @@ const ClientEdit: React.FC = () => {
                         <Label className="form-label">Priority Customer</Label>
                         <div className="form-check form-switch form-switch-lg">
                           <Input
-                            type="checkbox"
+                            type="switch"
                             className="form-check-input"
                             id="isPriority"
                             name="isPriority"
@@ -233,7 +234,7 @@ const ClientEdit: React.FC = () => {
                               }
                             }}
                           />
-                          <Label className="form-check-label" for="isPriority">
+                          <Label className="form-check-label" htmlFor="isPriority">
                             {validation.values.isPriority ? "Enabled" : "Disabled"}
                           </Label>
                         </div>
@@ -244,7 +245,7 @@ const ClientEdit: React.FC = () => {
                           <Input
                             name="priorityReason"
                             type="textarea"
-                            rows="3"
+                            rows={3}
                             value={validation.values.priorityReason}
                             onChange={validation.handleChange}
                             onBlur={validation.handleBlur}
@@ -415,8 +416,6 @@ const ClientEdit: React.FC = () => {
                       </Col>
                     </Row>
                   </div>
-
-
                 </Form>
               </CardBody>
             </Card>

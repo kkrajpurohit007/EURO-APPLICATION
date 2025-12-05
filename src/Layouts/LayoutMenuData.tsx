@@ -23,7 +23,8 @@ const Navdata = () => {
       pathname.includes("/clients") ||
       pathname.includes("/meetings") ||
       pathname.includes("/sites") ||
-      pathname.includes("/contacts")
+      pathname.includes("/contacts") ||
+      pathname.includes("/rental-config")
     ) {
       setIsClients(true);
     }
@@ -94,6 +95,11 @@ const Navdata = () => {
           id: "clients-list",
           label: "Client Directory",
           link: "/clients/list",
+        },
+        {
+          id: "client-rental-config",
+          label: "Client Rental Configuration",
+          link: "/clients/rental-config",
         },
         {
           id: "client-sites",
