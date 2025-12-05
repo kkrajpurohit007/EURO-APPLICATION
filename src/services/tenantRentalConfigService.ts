@@ -46,7 +46,7 @@ export const getRentalConfig = async (
 };
 
 export const updateRentalConfig = (
-  id: number,
+  id: string,
   data: Partial<TenantRentalConfig>
 ): Promise<TenantRentalConfig> => {
   if (isFakeBackend) {

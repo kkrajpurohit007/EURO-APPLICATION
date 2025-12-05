@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
-  tenantRentalConfigData,
   TenantRentalConfig,
 } from "./tenantRentalConfig.fakeData";
 import * as tenantRentalConfigService from "../../services/tenantRentalConfigService";
@@ -12,7 +11,7 @@ interface TenantRentalConfigState {
 }
 
 const initialState: TenantRentalConfigState = {
-  config: tenantRentalConfigData,
+  config: null,
   loading: false,
   error: null,
 };
@@ -33,7 +32,7 @@ export const fetchRentalConfig = createAsyncThunk(
 // Async thunk to update tenant rental configuration
 export const updateRentalConfig = createAsyncThunk(
   "tenantRentalConfig/updateRentalConfig",
-  async ({ id, data }: { id: number; data: Partial<TenantRentalConfig> }) => {
+  async ({ id, data }: { id: string; data: Partial<TenantRentalConfig> }) => {
     const response = await tenantRentalConfigService.updateRentalConfig(
       id,
       data

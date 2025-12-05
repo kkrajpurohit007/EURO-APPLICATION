@@ -5,16 +5,17 @@ import withRouter from "../../Components/Common/withRouter";
 import { Collapse } from "reactstrap";
 
 // Import Data
-import navdata from "../LayoutMenuData";
+import Navdata from "../LayoutMenuData";
 import { useSelector } from "react-redux";
 import { createSelector } from "reselect";
 
 const VerticalLayout = (props: any) => {
-  const navData = navdata().props.children;
+  // Get menu items from Navdata function
+  const navData = (Navdata() as any) as any[];
 
   /*
- layout settings
- */
+  layout settings
+  */
   const selectLayoutState = (state: any) => state.Layout;
   const selectLayoutProperties = createSelector(
     selectLayoutState,

@@ -82,12 +82,6 @@ const TenantLocationList: React.FC = () => {
         },
       },
       {
-        header: "Tenant",
-        accessorKey: "tenantName",
-        enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
         header: "Created",
         accessorKey: "created",
         enableColumnFilter: false,

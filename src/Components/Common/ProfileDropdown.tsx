@@ -9,15 +9,10 @@ import {
 
 //import images
 import avatar1 from "../../assets/images/users/avatar-1.jpg";
-import { createSelector } from "reselect";
 
 const ProfileDropdown = () => {
-  const profiledropdownData = createSelector(
-    (state: any) => state.Profile.user,
-    (user) => user
-  );
-  // Inside your component
-  const user = useSelector(profiledropdownData);
+  // Simple selector - no transformation needed
+  const user = useSelector((state: any) => state.Profile.user);
 
   const [userName, setUserName] = useState("Admin");
 

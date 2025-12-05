@@ -1,8 +1,16 @@
 import axios from "axios";
 import config from "../config";
 import * as url from "../helpers/url_helper";
+import {
+  getLeadAttachments as getLeadAttachmentsFake,
+  addNewLeadAttachment as addNewLeadAttachmentFake,
+  deleteLeadAttachment as deleteLeadAttachmentFake,
+} from "../helpers/fakebackend_helper";
 
 const { api } = config;
+
+// Check if we should use the fake backend
+const isFakeBackend = process.env.REACT_APP_DEFAULTAUTH === "jwt";
 
 export interface LeadAttachmentItem {
   id: string;
@@ -61,6 +69,28 @@ export const getLeadAttachments = async (
   pageNumber: number = 1,
   pageSize: number = 100
 ): Promise<LeadAttachmentResponse> => {
+  if (isFakeBackend) {
+    try {
+      const response = await getLeadAttachmentsFake(
+        leadId,
+        pageNumber,
+        pageSize
+      ) as unknown as Promise<LeadAttachmentResponse>;
+      return response;
+    } catch (error) {
+      // Return empty structure on error
+      return {
+        items: [],
+        pageNumber,
+        pageSize,
+        totalCount: 0,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+  }
+
   const token = getAuthToken();
   const response = await axios.get(`${api.API_URL}${url.GET_LEAD_ATTACHMENTS}`, {
     params: {
@@ -73,21 +103,36 @@ export const getLeadAttachments = async (
       Accept: "application/json;odata.metadata=minimal;odata.streaming=true",
     },
   });
-  // Filter items by leadId and non-deleted on client side
-  const data = response.data;
-  if (data.items) {
-    data.items = data.items.filter(
-      (item: LeadAttachmentItem) => item.leadId === leadId && !item.isDeleted
-    );
-    data.totalCount = data.items.length;
-  }
-  return data;
+  
+  // Return the response data directly without client-side filtering
+  // The API should already filter by leadId and non-deleted items
+  return response.data;
 };
 
 // Upload a new attachment
 export const uploadLeadAttachment = async (
   payload: LeadAttachmentCreatePayload
 ): Promise<LeadAttachmentItem> => {
+  if (isFakeBackend) {
+    // For fake backend, we'll simulate file upload by creating a fake file object
+    const fakeFileData = {
+      tenantId: payload.tenantId,
+      leadId: payload.leadId,
+      fileName: payload.attachment.name,
+      filePath: URL.createObjectURL(payload.attachment),
+      fileSizeBytes: payload.attachment.size,
+    };
+
+    try {
+      const response = await addNewLeadAttachmentFake(
+        fakeFileData
+      ) as unknown as Promise<LeadAttachmentItem>;
+      return response;
+    } catch (error) {
+      throw new Error("Failed to upload attachment in fake mode");
+    }
+  }
+
   const token = getAuthToken();
   const formData = new FormData();
   formData.append("TenantId", payload.tenantId);
@@ -110,6 +155,15 @@ export const uploadLeadAttachment = async (
 
 // Delete an attachment
 export const deleteLeadAttachment = async (attachmentId: string): Promise<void> => {
+  if (isFakeBackend) {
+    try {
+      await deleteLeadAttachmentFake(attachmentId);
+      return;
+    } catch (error) {
+      throw new Error("Failed to delete attachment in fake mode");
+    }
+  }
+
   const token = getAuthToken();
   await axios.delete(`${api.API_URL}${url.DELETE_LEAD_ATTACHMENT}/${attachmentId}`, {
     headers: {
@@ -123,6 +177,12 @@ export const deleteLeadAttachment = async (attachmentId: string): Promise<void> 
 export const downloadLeadAttachment = async (
   attachment: LeadAttachmentItem
 ): Promise<Blob> => {
+  if (isFakeBackend) {
+    // For fake backend, we can't actually download files, so we'll just return a dummy blob
+    // In a real implementation, you might want to handle this differently
+    return new Blob(["Dummy file content for fake backend"], { type: "text/plain" });
+  }
+
   const token = getAuthToken();
   // Download directly from filePath URL
   const response = await axios.get(attachment.filePath, {
@@ -133,4 +193,3 @@ export const downloadLeadAttachment = async (
   });
   return response.data;
 };
-

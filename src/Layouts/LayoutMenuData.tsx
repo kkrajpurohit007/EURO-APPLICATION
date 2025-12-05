@@ -32,6 +32,8 @@ const Navdata = () => {
     // Expand Account Settings section if on account/settings routes
     if (
       pathname.includes("/account/departments") ||
+      pathname.includes("/account/tenant-roles") ||
+      pathname.includes("/account/profiles") ||
       pathname.includes("/settings/tenant-rental-config") ||
       pathname.includes("/tenant-locations")
     ) {
@@ -39,7 +41,10 @@ const Navdata = () => {
     }
     
     // Expand System Settings section if on system config routes
-    if (pathname.includes("/settings/system-config")) {
+    if (
+      pathname.includes("/settings/system-config") ||
+      pathname.includes("/settings/basic-info")
+    ) {
       setIsSystemSettings(true);
     }
   }, [location.pathname]);
@@ -93,14 +98,14 @@ const Navdata = () => {
     },
     {
       id: "clients",
-      label: "Client Management",
-      icon: "ri-group-line",
+      label: "Clients",
+      icon: "ri-building-2-line",
       link: "#",
       click: toggleClients,
       stateVariables: isClients,
       subItems: [
         {
-          id: "client-directory",
+          id: "clients-list",
           label: "Client Directory",
           link: "/clients/list",
         },
@@ -140,6 +145,16 @@ const Navdata = () => {
           link: "/account/departments",
         },
         {
+          id: "tenant-roles",
+          label: "Tenant Roles",
+          link: "/account/tenant-roles",
+        },
+        {
+          id: "profiles",
+          label: "Profiles",
+          link: "/account/profiles",
+        },
+        {
           id: "tenant-locations-list",
           label: "Tenant Locations",
           link: "/tenant-locations/list",
@@ -159,10 +174,16 @@ const Navdata = () => {
           label: "System Configuration",
           link: "/settings/system-config",
         },
+        {
+          id: "basic-info",
+          label: "Basic Info",
+          link: "/settings/basic-info",
+        },
       ],
     },
   ];
   
-  return <React.Fragment>{menuItems}</React.Fragment>;
+  return menuItems;
 };
+
 export default Navdata;

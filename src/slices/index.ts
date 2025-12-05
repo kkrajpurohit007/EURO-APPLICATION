@@ -13,8 +13,8 @@ import OtpReducer from "./auth/otp/reducer";
 // Departments
 import DepartmentsReducer from "./departments/department.slice";
 
-// Staff Positions
-import StaffPositionsReducer from "./staffPositions/reducer";
+// Tenant Roles
+import TenantRolesReducer from "./tenantRoles/tenantRole.slice";
 
 // Tenant Rental Config
 import TenantRentalConfigReducer from "./tenantRentalConfig/tenantRentalConfig.slice";
@@ -46,6 +46,12 @@ import ClientSitesReducer from "./clientSites/clientSite.slice";
 // Tenant Locations
 import TenantLocationsReducer from "./tenantLocations/tenantLocation.slice";
 
+// User Profiles
+import UserProfilesReducer from "./userProfiles/profile.slice";
+
+// Roles
+import RolesReducer from "./roles/role.slice";
+
 // Notifications
 import NotificationReducer from "./notifications/notificationSlice";
 
@@ -57,7 +63,7 @@ const rootReducer = combineReducers({
   Profile: ProfileReducer,
   Otp: OtpReducer,
   Departments: DepartmentsReducer,
-  StaffPositions: StaffPositionsReducer,
+  TenantRoles: TenantRolesReducer,
   TenantRentalConfig: TenantRentalConfigReducer,
   ClientRentalConfig: ClientRentalConfigReducer,
   Meetings: MeetingsReducer,
@@ -68,6 +74,8 @@ const rootReducer = combineReducers({
   ClientContacts: ClientContactsReducer,
   ClientSites: ClientSitesReducer,
   TenantLocations: TenantLocationsReducer,
+  UserProfiles: UserProfilesReducer,
+  Roles: RolesReducer,
   Notifications: NotificationReducer,
 });
 

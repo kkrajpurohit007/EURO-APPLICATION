@@ -21,7 +21,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
 
   const selectDashboardData = createSelector(
     (state: any) => state.Layout,
-    (sidebarVisibilitytype) => sidebarVisibilitytype
+    (layout) => layout.sidebarVisibilitytype
   );
   // Inside your component
   const sidebarVisibilitytype = useSelector(selectDashboardData);

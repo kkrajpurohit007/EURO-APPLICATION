@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import * as leadAttachmentService from "../../services/leadAttachmentService";
 import {
   LeadAttachmentItem,
@@ -86,7 +86,8 @@ const leadAttachmentSlice = createSlice({
       })
       .addCase(fetchLeadAttachments.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.items.filter((item) => !item.isDeleted);
+        // Make sure we're correctly handling the items
+        state.items = action.payload.items ? action.payload.items.filter((item) => !item.isDeleted) : [];
         state.pageNumber = action.payload.pageNumber;
         state.pageSize = action.payload.pageSize;
         state.totalCount = action.payload.totalCount;

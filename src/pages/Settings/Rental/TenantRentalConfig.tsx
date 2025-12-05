@@ -13,6 +13,7 @@ import {
   Label,
   Input,
   Alert,
+  Table,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import {
@@ -26,7 +27,7 @@ import { useProfile } from "../../../Components/Hooks/UserHooks";
 import Loader from "../../../Components/Common/Loader";
 import { useFlash } from "../../../hooks/useFlash";
 
-const TenantRentalConfig: React.FC = () => {
+const TenantRentalConfig = () => {
   document.title = "Tenant Rental Configuration | ESRM";
 
   const dispatch = useDispatch<any>();
@@ -38,18 +39,15 @@ const TenantRentalConfig: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    isGracePeriodEnabled: false,
     defaultGracePeriodDays: 0,
-    isMinimumHireEnabled: false,
     defaultMinimumHireWeeks: 0,
-    defaultInvoiceFrequency: 1,
-    defaultInvoiceDay: 1,
+    defaultInvoiceFrequency: 0,
+    defaultInvoiceDay: 7,
     includeWeekends: false,
     excludePublicHolidays: false,
     notifyOnOverdueRentals: false,
     offHireReminderDays: 0,
     notifyOnDraftInvoiceGeneration: false,
-    defaultInvoiceNotes: "",
     configurationNotes: "",
   });
 
@@ -62,9 +60,7 @@ const TenantRentalConfig: React.FC = () => {
   useEffect(() => {
     if (config) {
       setFormData({
-        isGracePeriodEnabled: config.isGracePeriodEnabled,
         defaultGracePeriodDays: config.defaultGracePeriodDays,
-        isMinimumHireEnabled: config.isMinimumHireEnabled,
         defaultMinimumHireWeeks: config.defaultMinimumHireWeeks,
         defaultInvoiceFrequency: config.defaultInvoiceFrequency,
         defaultInvoiceDay: config.defaultInvoiceDay,
@@ -73,7 +69,6 @@ const TenantRentalConfig: React.FC = () => {
         notifyOnOverdueRentals: config.notifyOnOverdueRentals,
         offHireReminderDays: config.offHireReminderDays,
         notifyOnDraftInvoiceGeneration: config.notifyOnDraftInvoiceGeneration,
-        defaultInvoiceNotes: config.defaultInvoiceNotes || "",
         configurationNotes: config.configurationNotes || "",
       });
     }
@@ -87,9 +82,7 @@ const TenantRentalConfig: React.FC = () => {
     setIsEditing(false);
     if (config) {
       setFormData({
-        isGracePeriodEnabled: config.isGracePeriodEnabled,
         defaultGracePeriodDays: config.defaultGracePeriodDays,
-        isMinimumHireEnabled: config.isMinimumHireEnabled,
         defaultMinimumHireWeeks: config.defaultMinimumHireWeeks,
         defaultInvoiceFrequency: config.defaultInvoiceFrequency,
         defaultInvoiceDay: config.defaultInvoiceDay,
@@ -98,7 +91,6 @@ const TenantRentalConfig: React.FC = () => {
         notifyOnOverdueRentals: config.notifyOnOverdueRentals,
         offHireReminderDays: config.offHireReminderDays,
         notifyOnDraftInvoiceGeneration: config.notifyOnDraftInvoiceGeneration,
-        defaultInvoiceNotes: config.defaultInvoiceNotes || "",
         configurationNotes: config.configurationNotes || "",
       });
     }
@@ -134,417 +126,352 @@ const TenantRentalConfig: React.FC = () => {
   };
 
   if (loading) {
-    return <Loader />;
+    return React.createElement(Loader);
   }
 
   if (error) {
-    return (
-      <div className="page-content">
-        <Container fluid>
-          <BreadCrumb
-            title="Tenant Rental Configuration"
-            pageTitle="Settings"
-          />
-          <Alert color="danger">
-            Failed to load rental configuration: {error}
-          </Alert>
-        </Container>
-      </div>
+    return React.createElement("div", { className: "page-content" },
+      React.createElement(Container, { fluid: true },
+        React.createElement(BreadCrumb, {
+          title: "Tenant Rental Configuration",
+          pageTitle: "Settings"
+        }),
+        React.createElement(Alert, { color: "danger" },
+          "Failed to load rental configuration: ", error
+        )
+      )
     );
   }
 
   // Handle case when no rental config data is found
   if (!config) {
-    return (
-      <div className="page-content">
-        <Container fluid>
-          <BreadCrumb
-            title="Tenant Rental Configuration"
-            pageTitle="Settings"
-          />
-          <Row className="justify-content-center">
-            <Col xl={6} lg={8} md={10}>
-              <Card>
-                <CardBody className="text-center">
-                  <div className="py-5">
-                    <i className="ri-settings-3-line ri-2x text-muted mb-3"></i>
-                    <h5>Tenant Rental Configuration Not Found</h5>
-                    <p className="text-muted">
-                      No rental configuration has been set up for your tenant yet.
-                    </p>
-                    <div className="bg-soft-warning text-warning p-3 rounded mt-4">
-                      <i className="ri-error-warning-line ri-lg me-2"></i>
-                      Please contact your system administrator to set up the tenant rental configuration.
-                    </div>
-                    <p className="text-muted mt-4 mb-0">
-                      Once configured, you'll be able to manage all rental settings here.
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
-      </div>
+    return React.createElement("div", { className: "page-content" },
+      React.createElement(Container, { fluid: true },
+        React.createElement(BreadCrumb, {
+          title: "Tenant Rental Configuration",
+          pageTitle: "Settings"
+        }),
+        React.createElement(Row, { className: "justify-content-center" },
+          React.createElement(Col, { xl: 6, lg: 8, md: 10 },
+            React.createElement(Card, null,
+              React.createElement(CardBody, { className: "text-center" },
+                React.createElement("div", { className: "py-5" },
+                  React.createElement("i", { className: "ri-settings-3-line ri-2x text-muted mb-3" }),
+                  React.createElement("h5", null, "Tenant Rental Configuration Not Found"),
+                  React.createElement("p", { className: "text-muted" },
+                    "No rental configuration has been set up for your tenant yet."
+                  ),
+                  React.createElement("div", { className: "bg-soft-warning text-warning p-3 rounded mt-4" },
+                    React.createElement("i", { className: "ri-error-warning-line ri-lg me-2" }),
+                    "Please contact your system administrator to set up the tenant rental configuration."
+                  ),
+                  React.createElement("p", { className: "text-muted mt-4 mb-0" },
+                    "Once configured, you'll be able to manage all rental settings here."
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
     );
   }
 
-  return (
-    <div className="page-content">
-      <Container fluid>
-        <BreadCrumb title="Tenant Rental Configuration" pageTitle="Settings" />
-
-        <Form onSubmit={handleSubmit}>
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader className="d-flex justify-content-between align-items-center">
-                  <h5 className="card-title mb-0">Grace Period Settings</h5>
-                  {!isEditing ? (
-                    <Button color="primary" onClick={handleEdit}>
-                      <i className="ri-edit-line align-bottom me-1"></i> Edit
-                      Configuration
-                    </Button>
-                  ) : (
-                    <div>
-                      <Button
-                        color="light"
-                        onClick={handleCancel}
-                        className="me-2"
-                      >
-                        Cancel
-                      </Button>
-                      <Button color="success" type="submit">
-                        <i className="ri-save-line align-bottom me-1"></i> Save
-                        Changes
-                      </Button>
-                    </div>
-                  )}
-                </CardHeader>
-                <CardBody>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup check className="mb-3">
-                        <Input
-                          type="checkbox"
-                          name="isGracePeriodEnabled"
-                          id="isGracePeriodEnabled"
-                          checked={formData.isGracePeriodEnabled}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <Label for="isGracePeriodEnabled" check>
-                          Enable Grace Period
-                        </Label>
-                        <p className="text-muted small mb-0">
-                          Allow a grace period before charges apply
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <Label for="defaultGracePeriodDays">Grace Period Days</Label>
-                        <Input
-                          type="number"
-                          name="defaultGracePeriodDays"
-                          id="defaultGracePeriodDays"
-                          value={formData.defaultGracePeriodDays}
-                          onChange={handleInputChange}
-                          disabled={
-                            !isEditing ? true : !formData.isGracePeriodEnabled
-                          }
-                          min="0"
-                          max="30"
-                        />
-                        <p className="text-muted small mb-0">
-                          Number of days for grace period
-                        </p>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader>
-                  <h5 className="card-title mb-0">Minimum Hire Settings</h5>
-                </CardHeader>
-                <CardBody>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup check className="mb-3">
-                        <Input
-                          type="checkbox"
-                          name="isMinimumHireEnabled"
-                          id="isMinimumHireEnabled"
-                          checked={formData.isMinimumHireEnabled}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <Label for="isMinimumHireEnabled" check>
-                          Enable Minimum Hire Period
-                        </Label>
-                        <p className="text-muted small mb-0">
-                          Set a minimum rental duration requirement
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <Label for="defaultMinimumHireWeeks">Minimum Hire Weeks</Label>
-                        <Input
-                          type="number"
-                          name="defaultMinimumHireWeeks"
-                          id="defaultMinimumHireWeeks"
-                          value={formData.defaultMinimumHireWeeks}
-                          onChange={handleInputChange}
-                          disabled={
-                            !isEditing ? true : !formData.isMinimumHireEnabled
-                          }
-                          min="0"
-                          max="52"
-                        />
-                        <p className="text-muted small mb-0">
-                          Minimum number of weeks for rental
-                        </p>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader>
-                  <h5 className="card-title mb-0">Calendar Settings</h5>
-                </CardHeader>
-                <CardBody>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup check className="mb-3">
-                        <Input
-                          type="checkbox"
-                          name="includeWeekends"
-                          id="includeWeekends"
-                          checked={formData.includeWeekends}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <Label for="includeWeekends" check>
-                          Include Weekends in Rental Period
-                        </Label>
-                        <p className="text-muted small mb-0">
-                          Count weekends in rental calculations
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup check className="mb-3">
-                        <Input
-                          type="checkbox"
-                          name="excludePublicHolidays"
-                          id="excludePublicHolidays"
-                          checked={formData.excludePublicHolidays}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <Label for="excludePublicHolidays" check>
-                          Exclude Public Holidays from Billing
-                        </Label>
-                        <p className="text-muted small mb-0">
-                          Do not charge for public holidays
-                        </p>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader>
-                  <h5 className="card-title mb-0">Invoice Settings</h5>
-                </CardHeader>
-                <CardBody>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup>
-                        <Label for="defaultInvoiceFrequency">Invoice Frequency</Label>
-                        <Input
-                          type="select"
-                          name="defaultInvoiceFrequency"
-                          id="defaultInvoiceFrequency"
-                          value={formData.defaultInvoiceFrequency}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        >
-                          <option value={1}>Weekly</option>
-                          <option value={2}>Fortnightly</option>
-                          <option value={3}>Monthly</option>
-                        </Input>
-                        <p className="text-muted small mb-0">
-                          How often invoices are generated
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <Label for="defaultInvoiceDay">Invoice Day</Label>
-                        <Input
-                          type="select"
-                          name="defaultInvoiceDay"
-                          id="defaultInvoiceDay"
-                          value={formData.defaultInvoiceDay}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        >
-                          <option value={1}>Monday</option>
-                          <option value={2}>Tuesday</option>
-                          <option value={3}>Wednesday</option>
-                          <option value={4}>Thursday</option>
-                          <option value={5}>Friday</option>
-                          <option value={6}>Saturday</option>
-                          <option value={7}>Sunday</option>
-                        </Input>
-                        <p className="text-muted small mb-0">
-                          Day of the week for invoice generation
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="defaultInvoiceNotes">Default Invoice Notes</Label>
-                        <Input
-                          type="textarea"
-                          name="defaultInvoiceNotes"
-                          id="defaultInvoiceNotes"
-                          value={formData.defaultInvoiceNotes}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          rows={3}
-                          placeholder="Enter default notes to appear on invoices..."
-                        />
-                        <p className="text-muted small mb-0">
-                          These notes will appear on all generated invoices
-                        </p>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader>
-                  <h5 className="card-title mb-0">Notification Settings</h5>
-                </CardHeader>
-                <CardBody>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup check className="mb-3">
-                        <Input
-                          type="checkbox"
-                          name="notifyOnOverdueRentals"
-                          id="notifyOnOverdueRentals"
-                          checked={formData.notifyOnOverdueRentals}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <Label for="notifyOnOverdueRentals" check>
-                          Send Notifications for Overdue Rentals
-                        </Label>
-                        <p className="text-muted small mb-0">
-                          Automatically notify when rentals are overdue
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup check className="mb-3">
-                        <Input
-                          type="checkbox"
-                          name="notifyOnDraftInvoiceGeneration"
-                          id="notifyOnDraftInvoiceGeneration"
-                          checked={formData.notifyOnDraftInvoiceGeneration}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <Label for="notifyOnDraftInvoiceGeneration" check>
-                          Notify on Draft Invoice Generation
-                        </Label>
-                        <p className="text-muted small mb-0">
-                          Send notifications when draft invoices are created
-                        </p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="offHireReminderDays">
-                          Off-Hire Reminder Days
-                        </Label>
-                        <Input
-                          type="number"
-                          name="offHireReminderDays"
-                          id="offHireReminderDays"
-                          value={formData.offHireReminderDays}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          min="0"
-                          max="30"
-                        />
-                        <p className="text-muted small mb-0">
-                          Days before off-hire to send reminder
-                        </p>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col lg={12}>
-              <Card>
-                <CardHeader>
-                  <h5 className="card-title mb-0">Configuration Notes</h5>
-                </CardHeader>
-                <CardBody>
-                  <FormGroup>
-                    <Label for="configurationNotes">Notes</Label>
-                    <Input
-                      type="textarea"
-                      name="configurationNotes"
-                      id="configurationNotes"
-                      value={formData.configurationNotes}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      rows={4}
-                      placeholder="Enter any additional configuration notes or instructions..."
-                    />
-                    <p className="text-muted small mb-0">
-                      Internal notes about this rental configuration
-                    </p>
-                  </FormGroup>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        </Form>
-      </Container>
-    </div>
+  return React.createElement("div", { className: "page-content" },
+    React.createElement(Container, { fluid: true },
+      React.createElement(BreadCrumb, {
+        title: "Tenant Rental Configuration",
+        pageTitle: "Settings"
+      }),
+      React.createElement(Form, { onSubmit: handleSubmit },
+        React.createElement(Row, null,
+          React.createElement(Col, { lg: 12 },
+            React.createElement(Card, null,
+              React.createElement(CardHeader, { className: "d-flex justify-content-between align-items-center" },
+                React.createElement("h5", { className: "card-title mb-0" }, "Tenant Rental Configuration"),
+                !isEditing && React.createElement(Button, { color: "primary", onClick: handleEdit },
+                  React.createElement("i", { className: "ri-pencil-line align-bottom me-1" }),
+                  "Edit Configuration"
+                )
+              ),
+              React.createElement(CardBody, null,
+                isEditing ? 
+                  // Editing form
+                  React.createElement("div", { className: "live-preview" },
+                    React.createElement(Row, null,
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement(Label, { for: "defaultGracePeriodDays" },
+                            "Default Grace Period (Days)"
+                          ),
+                          React.createElement(Input, {
+                            type: "number",
+                            className: "form-control",
+                            id: "defaultGracePeriodDays",
+                            name: "defaultGracePeriodDays",
+                            value: formData.defaultGracePeriodDays,
+                            onChange: handleInputChange,
+                            min: "0"
+                          })
+                        )
+                      ),
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement(Label, { for: "defaultMinimumHireWeeks" },
+                            "Default Minimum Hire (Weeks)"
+                          ),
+                          React.createElement(Input, {
+                            type: "number",
+                            className: "form-control",
+                            id: "defaultMinimumHireWeeks",
+                            name: "defaultMinimumHireWeeks",
+                            value: formData.defaultMinimumHireWeeks,
+                            onChange: handleInputChange,
+                            min: "0"
+                          })
+                        )
+                      )
+                    ),
+                    React.createElement(Row, null,
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement(Label, { for: "defaultInvoiceFrequency" },
+                            "Default Invoice Frequency"
+                          ),
+                          React.createElement(Input, {
+                            type: "select",
+                            className: "form-control",
+                            id: "defaultInvoiceFrequency",
+                            name: "defaultInvoiceFrequency",
+                            value: formData.defaultInvoiceFrequency,
+                            onChange: handleInputChange
+                          },
+                            React.createElement("option", { value: "0" }, "Weekly"),
+                            React.createElement("option", { value: "1" }, "Fortnightly"),
+                            React.createElement("option", { value: "2" }, "Monthly")
+                          )
+                        )
+                      ),
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement(Label, { for: "defaultInvoiceDay" },
+                            "Default Invoice Day"
+                          ),
+                          React.createElement(Input, {
+                            type: "select",
+                            className: "form-control",
+                            id: "defaultInvoiceDay",
+                            name: "defaultInvoiceDay",
+                            value: formData.defaultInvoiceDay,
+                            onChange: handleInputChange
+                          },
+                            React.createElement("option", { value: "1" }, "Monday"),
+                            React.createElement("option", { value: "2" }, "Tuesday"),
+                            React.createElement("option", { value: "3" }, "Wednesday"),
+                            React.createElement("option", { value: "4" }, "Thursday"),
+                            React.createElement("option", { value: "5" }, "Friday"),
+                            React.createElement("option", { value: "6" }, "Saturday"),
+                            React.createElement("option", { value: "7" }, "Sunday")
+                          )
+                        )
+                      )
+                    ),
+                    React.createElement(Row, null,
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement("div", { className: "form-check mb-3" },
+                            React.createElement(Input, {
+                              className: "form-check-input",
+                              type: "checkbox",
+                              id: "includeWeekends",
+                              name: "includeWeekends",
+                              checked: formData.includeWeekends,
+                              onChange: handleInputChange
+                            }),
+                            React.createElement(Label, {
+                              className: "form-check-label",
+                              for: "includeWeekends"
+                            }, "Include Weekends in Calculations")
+                          )
+                        )
+                      ),
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement("div", { className: "form-check mb-3" },
+                            React.createElement(Input, {
+                              className: "form-check-input",
+                              type: "checkbox",
+                              id: "excludePublicHolidays",
+                              name: "excludePublicHolidays",
+                              checked: formData.excludePublicHolidays,
+                              onChange: handleInputChange
+                            }),
+                            React.createElement(Label, {
+                              className: "form-check-label",
+                              for: "excludePublicHolidays"
+                            }, "Exclude Public Holidays")
+                          )
+                        )
+                      )
+                    ),
+                    React.createElement(Row, null,
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement("div", { className: "form-check mb-3" },
+                            React.createElement(Input, {
+                              className: "form-check-input",
+                              type: "checkbox",
+                              id: "notifyOnOverdueRentals",
+                              name: "notifyOnOverdueRentals",
+                              checked: formData.notifyOnOverdueRentals,
+                              onChange: handleInputChange
+                            }),
+                            React.createElement(Label, {
+                              className: "form-check-label",
+                              for: "notifyOnOverdueRentals"
+                            }, "Notify on Overdue Rentals")
+                          )
+                        )
+                      ),
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement(Label, { for: "offHireReminderDays" },
+                            "Off-Hire Reminder (Days)"
+                          ),
+                          React.createElement(Input, {
+                            type: "number",
+                            className: "form-control",
+                            id: "offHireReminderDays",
+                            name: "offHireReminderDays",
+                            value: formData.offHireReminderDays,
+                            onChange: handleInputChange,
+                            min: "0"
+                          })
+                        )
+                      )
+                    ),
+                    React.createElement(Row, null,
+                      React.createElement(Col, { md: 6 },
+                        React.createElement(FormGroup, null,
+                          React.createElement("div", { className: "form-check mb-3" },
+                            React.createElement(Input, {
+                              className: "form-check-input",
+                              type: "checkbox",
+                              id: "notifyOnDraftInvoiceGeneration",
+                              name: "notifyOnDraftInvoiceGeneration",
+                              checked: formData.notifyOnDraftInvoiceGeneration,
+                              onChange: handleInputChange
+                            }),
+                            React.createElement(Label, {
+                              className: "form-check-label",
+                              for: "notifyOnDraftInvoiceGeneration"
+                            }, "Notify on Draft Invoice Generation")
+                          )
+                        )
+                      )
+                    ),
+                    React.createElement(Row, null,
+                      React.createElement(Col, { md: 12 },
+                        React.createElement(FormGroup, null,
+                          React.createElement(Label, { for: "configurationNotes" },
+                            "Configuration Notes"
+                          ),
+                          React.createElement(Input, {
+                            type: "textarea",
+                            className: "form-control",
+                            id: "configurationNotes",
+                            name: "configurationNotes",
+                            value: formData.configurationNotes,
+                            onChange: handleInputChange,
+                            rows: "3"
+                          })
+                        )
+                      )
+                    ),
+                    React.createElement("div", { className: "hstack gap-2 justify-content-end" },
+                      React.createElement(Button, { type: "button", color: "light", onClick: handleCancel },
+                        "Cancel"
+                      ),
+                      React.createElement(Button, { type: "submit", color: "primary" },
+                        "Save Changes"
+                      )
+                    )
+                  ) :
+                  // View mode - display current configuration
+                  React.createElement("div", { className: "table-responsive" },
+                    React.createElement(Table, { className: "table table-bordered table-striped mb-0" },
+                      React.createElement("tbody", null,
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Default Grace Period (Days)"),
+                          React.createElement("td", null, config.defaultGracePeriodDays)
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Default Minimum Hire (Weeks)"),
+                          React.createElement("td", null, config.defaultMinimumHireWeeks)
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Default Invoice Frequency"),
+                          React.createElement("td", null,
+                            config.defaultInvoiceFrequency === 0 ? "Weekly" :
+                            config.defaultInvoiceFrequency === 1 ? "Fortnightly" : "Monthly"
+                          )
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Default Invoice Day"),
+                          React.createElement("td", null,
+                            config.defaultInvoiceDay === 1 ? "Monday" :
+                            config.defaultInvoiceDay === 2 ? "Tuesday" :
+                            config.defaultInvoiceDay === 3 ? "Wednesday" :
+                            config.defaultInvoiceDay === 4 ? "Thursday" :
+                            config.defaultInvoiceDay === 5 ? "Friday" :
+                            config.defaultInvoiceDay === 6 ? "Saturday" : "Sunday"
+                          )
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Include Weekends"),
+                          React.createElement("td", null,
+                            config.includeWeekends ? 
+                              React.createElement("span", { className: "badge bg-success" }, "Yes") :
+                              React.createElement("span", { className: "badge bg-secondary" }, "No")
+                          )
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Exclude Public Holidays"),
+                          React.createElement("td", null,
+                            config.excludePublicHolidays ? 
+                              React.createElement("span", { className: "badge bg-success" }, "Yes") :
+                              React.createElement("span", { className: "badge bg-secondary" }, "No")
+                          )
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Notify on Overdue Rentals"),
+                          React.createElement("td", null,
+                            config.notifyOnOverdueRentals ? 
+                              React.createElement("span", { className: "badge bg-success" }, "Yes") :
+                              React.createElement("span", { className: "badge bg-secondary" }, "No")
+                          )
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Off-Hire Reminder (Days)"),
+                          React.createElement("td", null, config.offHireReminderDays)
+                        ),
+                        React.createElement("tr", null,
+                          React.createElement("td", { className: "fw-bold" }, "Notify on Draft Invoice Generation"),
+                          React.createElement("td", null,
+                            config.notifyOnDraftInvoiceGeneration ? 
+                              React.createElement("span", { className: "badge bg-success" }, "Yes") :
+                              React.createElement("span", { className: "badge bg-secondary" }, "No")
+                          )
+                        )
+                      )
+                    )
+                  )
+              )
+            )
+          )
+        )
+      )
+    )
   );
 };
 

@@ -35,17 +35,16 @@ import ContactEdit from "../pages/Clients/Contact/ContactEdit";
 import ContactView from "../pages/Clients/Contact/ContactView";
 
 // Staff Management
-import StaffUsersList from "../pages/Staff/User/StaffUsersList";
-import StaffUsersCreate from "../pages/Staff/User/StaffUsersCreate";
-import StaffUsersEdit from "../pages/Staff/User/StaffUsersEdit";
 
 // Account Management
 import DepartmentList from "../pages/Account/Department/DepartmentList";
 import DepartmentCreate from "../pages/Account/Department/DepartmentCreate";
 import DepartmentEdit from "../pages/Account/Department/DepartmentEdit";
-import StaffPositionList from "../pages/Account/StaffPosition/StaffPositionList";
-import StaffPositionCreate from "../pages/Account/StaffPosition/StaffPositionCreate";
-import StaffPositionEdit from "../pages/Account/StaffPosition/StaffPositionEdit";
+import TenantRoleList from "../pages/Account/TenantRole/TenantRoleList";
+import TenantRoleCreate from "../pages/Account/TenantRole/TenantRoleCreate";
+import TenantRoleEdit from "../pages/Account/TenantRole/TenantRoleEdit";
+import TenantRoleView from "../pages/Account/TenantRole/TenantRoleView";
+import ProfileList from "../pages/Account/Profile/ProfileList";
 
 // Settings
 import SystemConfig from "../pages/Settings/General/SystemConfig";
@@ -112,24 +111,24 @@ const authProtectedRoutes = [
   { path: "/clients/contacts/edit/:id", component: <ContactEdit /> },
   { path: "/clients/contacts/view/:id", component: <ContactView /> },
 
-  // Staff Management
-  { path: "/staff/users", component: <StaffUsersList /> },
-  { path: "/staff/users/create", component: <StaffUsersCreate /> },
-  { path: "/staff/users/edit/:id", component: <StaffUsersEdit /> },
-
   // Account Management
   { path: "/account/departments", component: <DepartmentList /> },
   { path: "/account/departments/create", component: <DepartmentCreate /> },
   { path: "/account/departments/edit/:id", component: <DepartmentEdit /> },
-  { path: "/account/staff-positions", component: <StaffPositionList /> },
+  { path: "/account/tenant-roles", component: <TenantRoleList /> },
   {
-    path: "/account/staff-positions/create",
-    component: <StaffPositionCreate />,
+    path: "/account/tenant-roles/create",
+    component: <TenantRoleCreate />,
   },
   {
-    path: "/account/staff-positions/edit/:id",
-    component: <StaffPositionEdit />,
+    path: "/account/tenant-roles/edit/:id",
+    component: <TenantRoleEdit />,
   },
+  {
+    path: "/account/tenant-roles/view/:id",
+    component: <TenantRoleView />,
+  },
+  { path: "/account/profiles", component: <ProfileList /> },
 
   // Settings
   { path: "/settings/system-config", component: <SystemConfig /> },

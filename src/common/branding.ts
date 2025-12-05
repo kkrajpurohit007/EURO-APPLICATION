@@ -68,10 +68,14 @@ export const PAGE_TITLES = {
   MEETING_VIEW: getPageTitle("Meeting Details"),
   MEETING_CALENDAR: getPageTitle("Meeting Calendar"),
 
-  // Staff Positions
-  STAFF_POSITIONS_LIST: getPageTitle("Staff Positions"),
-  STAFF_POSITION_CREATE: getPageTitle("Create Staff Position"),
-  STAFF_POSITION_EDIT: getPageTitle("Edit Staff Position"),
+  // Tenant Roles
+  TENANT_ROLES_LIST: getPageTitle("Tenant Roles"),
+  TENANT_ROLE_CREATE: getPageTitle("Create Tenant Role"),
+  TENANT_ROLE_EDIT: getPageTitle("Edit Tenant Role"),
+  TENANT_ROLE_VIEW: getPageTitle("View Tenant Role"),
+
+  // Profiles
+  PROFILES_LIST: getPageTitle("Profiles"),
 
   // Staff Users
   STAFF_USERS_LIST: getPageTitle("Staff Users"),

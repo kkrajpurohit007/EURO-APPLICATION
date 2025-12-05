@@ -4,6 +4,8 @@ import { fetchCountries } from "../slices/countries/country.slice";
 import { fetchClients } from "../slices/clients/client.slice";
 import { fetchClientContacts } from "../slices/clientContacts/clientContact.slice";
 import { fetchClientSites } from "../slices/clientSites/clientSite.slice";
+import { fetchProfiles } from "../slices/userProfiles/profile.slice";
+import { fetchRoles } from "../slices/roles/role.slice";
 
 /**
  * Centralized App Initialization Service
@@ -45,9 +47,14 @@ class AppInitService {
             // Load Client Sites
             await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
 
+            // Load User Profiles
+            await dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
+
+            // Load Roles
+            await dispatch(fetchRoles({ pageNumber: 1, pageSize: 50 }));
+
             // Future: Load other master data here
             // await dispatch(fetchMeetings());
-            // await dispatch(fetchUserProfile());
 
             this.isInitialized = true;
             console.log("App initialization complete");
@@ -104,6 +111,22 @@ class AppInitService {
      */
     async forceRefreshClientSites(dispatch: any) {
         await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
+    }
+
+    /**
+     * Force refresh user profiles data
+     * Used after CRUD operations
+     */
+    async forceRefreshProfiles(dispatch: any) {
+        await dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
+    }
+
+    /**
+     * Force refresh roles data
+     * Used after CRUD operations
+     */
+    async forceRefreshRoles(dispatch: any) {
+        await dispatch(fetchRoles({ pageNumber: 1, pageSize: 20 }));
     }
 
     /**

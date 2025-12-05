@@ -12,9 +12,19 @@ export const SOCIAL_LOGIN = "/social-login";
 export const POST_OTP_VERIFY = "/auth/verify-otp";
 export const POST_OTP_RESEND = "/auth/resend-otp";
 
+// ROLES (using Profile endpoint)
+export const GET_ROLES = "/api/v1/Profile";
+export const POST_ROLE = "/Role";
+export const PUT_ROLE = "/Role";
+export const DELETE_ROLE = "/Role";
+
 //PROFILE
 export const POST_EDIT_JWT_PROFILE = "/post-jwt-profile";
 export const POST_EDIT_PROFILE = "/user";
+export const GET_PROFILES = "/Profile";
+export const POST_PROFILE = "/Profile";
+export const PUT_PROFILE = "/Profile";
+export const DELETE_PROFILE = "/Profile";
 
 //DEPARTMENTS
 export const GET_DEPARTMENTS = "/Department";
@@ -63,3 +73,9 @@ export const GET_TENANT_LOCATIONS = "/TenantLocation";
 export const ADD_NEW_TENANT_LOCATION = "/TenantLocation";
 export const UPDATE_TENANT_LOCATION = "/TenantLocation";
 export const DELETE_TENANT_LOCATION = "/TenantLocation";
+
+// TENANT ROLES
+export const GET_TENANT_ROLES = "/Role";
+export const POST_TENANT_ROLE = "/Role";
+export const PUT_TENANT_ROLE = "/Role";
+export const DELETE_TENANT_ROLE = "/Role";

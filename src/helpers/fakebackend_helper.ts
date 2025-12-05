@@ -21,6 +21,21 @@ import {
   initialClientSites,
   ClientSiteItem,
 } from "../slices/clientSites/clientSite.fakeData";
+import {
+  LeadAttachmentItem,
+} from "../services/leadAttachmentService";
+import {
+  initialProfiles,
+  ProfileItem,
+} from "../slices/userProfiles/profile.fakeData";
+import {
+  initialRoles,
+  RoleItem,
+} from "../slices/roles/role.fakeData";
+import {
+  initialTenantRoles,
+  TenantRoleItem,
+} from "../slices/tenantRoles/tenantRole.fakeData";
 
 const api = new APIClient();
 
@@ -345,23 +360,29 @@ export const deleteStaffPosition = (id: number) => {
 
 // Tenant Rental Configuration
 export const getTenantRentalConfig = (tenantId: string) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       // In a real implementation, this would filter by tenantId
-      // For fake backend, we return the singleton config
-      resolve(tenantRentalConfigData);
+      // For fake backend, we check if the requested tenantId matches our config
+      if (tenantRentalConfigData.tenantId === tenantId) {
+        resolve(tenantRentalConfigData);
+      } else {
+        // If no config found for this tenant, reject with 404-like error
+        reject({ message: "Tenant rental config not found", status: 404 });
+      }
     }, 300);
   });
 };
 
-export const updateTenantRentalConfig = (id: number, data: any) => {
+export const updateTenantRentalConfig = (id: string, data: any) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       // In a real implementation, this would update the config by id
       Object.assign(tenantRentalConfigData, {
         ...data,
         id: id,
-        updatedAt: new Date().toISOString().split("T")[0],
+        modified: new Date().toISOString(),
+        lastConfigurationUpdate: new Date().toISOString(),
       });
       resolve(tenantRentalConfigData);
     }, 300);
@@ -741,3 +762,310 @@ export const deleteClientSite = (id: string) => {
     }, 300);
   });
 };
+
+// ========================
+// LEAD ATTACHMENTS API
+// ========================
+
+let leadAttachmentsData: LeadAttachmentItem[] = [];
+
+export const getLeadAttachments = (
+  leadId: string,
+  pageNumber: number = 1,
+  pageSize: number = 100
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filter attachments by leadId and non-deleted items
+      const filteredAttachments = leadAttachmentsData.filter(
+        (attachment) => attachment.leadId === leadId && !attachment.isDeleted
+      );
+      
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = filteredAttachments.slice(start, end);
+      
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: filteredAttachments.length,
+        totalPages: Math.ceil(filteredAttachments.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < filteredAttachments.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewLeadAttachment = (attachment: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newAttachment: LeadAttachmentItem = {
+        ...attachment,
+        id: (leadAttachmentsData.length + 1).toString(),
+        isDeleted: false,
+      };
+      leadAttachmentsData.unshift(newAttachment);
+      resolve(newAttachment);
+    }, 300);
+  });
+};
+
+export const deleteLeadAttachment = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = leadAttachmentsData.findIndex((a) => a.id === id);
+      if (index !== -1) {
+        leadAttachmentsData[index] = {
+          ...leadAttachmentsData[index],
+          isDeleted: true,
+        };
+        resolve({ success: true });
+      } else {
+        resolve({ success: false });
+      }
+    }, 300);
+  });
+};
+
+// ========================
+// PROFILES API
+// ========================
+
+let profilesData = [...initialProfiles];
+
+export const getProfiles = (
+  pageNumber: number = 1,
+  pageSize: number = 50
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = profilesData.slice(start, end);
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: profilesData.length,
+        totalPages: Math.ceil(profilesData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < profilesData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewProfile = (profile: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newProfile: ProfileItem = {
+        ...profile,
+        id: (profilesData.length + 1).toString(),
+        isDeleted: false,
+      };
+      profilesData.unshift(newProfile);
+      resolve(newProfile);
+    }, 300);
+  });
+};
+
+export const updateProfile = (id: string, profile: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = profilesData.findIndex((p) => p.id === id);
+      if (index !== -1) {
+        profilesData[index] = { ...profilesData[index], ...profile };
+        resolve(profilesData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteProfile = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      profilesData = profilesData.filter((p) => p.id !== id);
+      resolve({ success: true });
+    }, 300);
+  });
+};
+
+// ========================
+// ROLES API
+// ========================
+
+let rolesData = [...initialRoles];
+
+export const getRoles = (
+  pageNumber: number = 1,
+  pageSize: number = 50
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filter out deleted roles
+      const activeRoles = rolesData.filter(role => !role.isDeleted);
+      
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = activeRoles.slice(start, end);
+      
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: activeRoles.length,
+        totalPages: Math.ceil(activeRoles.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < activeRoles.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewRole = (role: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newRole: RoleItem = {
+        ...role,
+        id: (rolesData.length + 1).toString(),
+        isDeleted: false,
+      };
+      rolesData.unshift(newRole);
+      resolve(newRole);
+    }, 300);
+  });
+};
+
+export const updateRole = (id: string, role: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = rolesData.findIndex((r) => r.id === id);
+      if (index !== -1) {
+        rolesData[index] = { ...rolesData[index], ...role };
+        resolve(rolesData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteRole = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = rolesData.findIndex((r) => r.id === id);
+      if (index !== -1) {
+        rolesData[index] = {
+          ...rolesData[index],
+          isDeleted: true,
+        };
+        resolve({ success: true });
+      } else {
+        resolve({ success: false });
+      }
+    }, 300);
+  });
+};
+
+// ========================
+// TENANT ROLES API
+// ========================
+
+let tenantRolesData = [...initialTenantRoles];
+
+export const getTenantRoles = (
+  pageNumber: number = 1,
+  pageSize: number = 20
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filter out deleted roles
+      const activeRoles = tenantRolesData.filter(role => !role.isDeleted);
+      
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = activeRoles.slice(start, end);
+      
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: activeRoles.length,
+        totalPages: Math.ceil(activeRoles.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < activeRoles.length,
+      });
+    }, 300);
+  });
+};
+
+export const getTenantRoleById = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const role = tenantRolesData.find((r) => r.id === id);
+      resolve(role);
+    }, 300);
+  });
+};
+
+export const addNewTenantRole = (role: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newRole: TenantRoleItem = {
+        ...role,
+        id: (tenantRolesData.length + 1).toString(),
+        isDeleted: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      tenantRolesData.unshift(newRole);
+      resolve(newRole);
+    }, 300);
+  });
+};
+
+export const updateTenantRole = (id: string, role: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = tenantRolesData.findIndex((r) => r.id === id);
+      if (index !== -1) {
+        tenantRolesData[index] = { 
+          ...tenantRolesData[index], 
+          ...role,
+          updatedAt: new Date().toISOString(),
+        };
+        resolve(tenantRolesData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteTenantRole = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = tenantRolesData.findIndex((r) => r.id === id);
+      if (index !== -1) {
+        tenantRolesData[index] = {
+          ...tenantRolesData[index],
+          isDeleted: true,
+          updatedAt: new Date().toISOString(),
+        };
+        resolve(tenantRolesData[index]);
+      }
+    }, 300);
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+

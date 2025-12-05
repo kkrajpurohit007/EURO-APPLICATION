@@ -93,16 +93,6 @@ const TenantLocationView: React.FC = () => {
                       />
                     </Col>
                     <Col md={6}>
-                      <Label className="form-label">Tenant</Label>
-                      <Input
-                        name="tenantName"
-                        value={location.tenantName || "-"}
-                        readOnly
-                        plaintext
-                        className="form-control-plaintext bg-light px-3 py-2 rounded"
-                      />
-                    </Col>
-                    <Col md={6}>
                       <Label className="form-label">Created</Label>
                       <Input
                         name="created"
