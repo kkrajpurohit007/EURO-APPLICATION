@@ -19,6 +19,7 @@ import { selectLeadById } from "../../../slices/leads/lead.slice";
 import { LeadStatusLabels, LeadStatus } from "../../../slices/leads/lead.fakeData";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import LeadAttachmentManager from "../../../Components/Common/LeadAttachmentManager";
 
 const LeadView: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_VIEW;
@@ -62,10 +63,10 @@ const LeadView: React.FC = () => {
                 <Form>
                   <Row className="g-3">
                     <Col md={6}>
-                      <Label className="form-label">Title</Label>
+                      <Label className="form-label">Lead Name</Label>
                       <Input
                         name="title"
-                        value={lead.title || ""}
+                        value={lead.title || "-"}
                         readOnly
                         plaintext
                         className="form-control-plaintext bg-light px-3 py-2 rounded"
@@ -75,7 +76,7 @@ const LeadView: React.FC = () => {
                       <Label className="form-label">Contact Person</Label>
                       <Input
                         name="contactPerson"
-                        value={lead.contactPerson || ""}
+                        value={lead.contactPerson || "-"}
                         readOnly
                         plaintext
                         className="form-control-plaintext bg-light px-3 py-2 rounded"
@@ -87,17 +88,39 @@ const LeadView: React.FC = () => {
                       <Input
                         type="email"
                         name="contactEmail"
-                        value={lead.contactEmail || ""}
+                        value={lead.contactEmail || "-"}
                         readOnly
                         plaintext
                         className="form-control-plaintext bg-light px-3 py-2 rounded"
                       />
                     </Col>
                     <Col md={6}>
+                      <Label className="form-label">Phone Number</Label>
+                      <Input
+                        type="tel"
+                        name="phoneNumber"
+                        value={lead.phoneNumber || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+
+                    <Col md={6}>
                       <Label className="form-label">Lead Status</Label>
                       <Input
                         name="leadStatus"
-                        value={LeadStatusLabels[lead.leadStatus as LeadStatus] || ""}
+                        value={LeadStatusLabels[lead.leadStatus as LeadStatus] || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Tenant Location</Label>
+                      <Input
+                        name="tenantLocationName"
+                        value={lead.tenantLocationName || "-"}
                         readOnly
                         plaintext
                         className="form-control-plaintext bg-light px-3 py-2 rounded"
@@ -110,7 +133,7 @@ const LeadView: React.FC = () => {
                         type="textarea"
                         rows={3}
                         name="description"
-                        value={lead.description || ""}
+                        value={lead.description || "-"}
                         readOnly
                         plaintext
                         className="form-control-plaintext bg-light px-3 py-2 rounded"
@@ -118,11 +141,38 @@ const LeadView: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tentative Week</Label>
+                      <Label className="form-label">Site Address</Label>
+                      <Input
+                        type="textarea"
+                        rows={2}
+                        name="siteAddress"
+                        value={lead.siteAddress || "-"}
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Tentative Project Start Date</Label>
+                      <Input
+                        name="tentativeProjectStartDate"
+                        value={
+                          lead.tentativeProjectStartDate
+                            ? new Date(lead.tentativeProjectStartDate).toLocaleString()
+                            : "-"
+                        }
+                        readOnly
+                        plaintext
+                        className="form-control-plaintext bg-light px-3 py-2 rounded"
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Tentative Work Days</Label>
                       <Input
                         type="text"
-                        name="tentativeHours"
-                        value={lead.tentativeHours || "0"}
+                        name="tentativeWorkDays"
+                        value={lead.tentativeWorkDays || "0"}
                         readOnly
                         plaintext
                         className="form-control-plaintext bg-light px-3 py-2 rounded"
@@ -145,6 +195,12 @@ const LeadView: React.FC = () => {
                 </Form>
               </CardBody>
             </Card>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col lg={12}>
+            <LeadAttachmentManager leadId={id || ""} readOnly={true} />
           </Col>
         </Row>
       </Container>

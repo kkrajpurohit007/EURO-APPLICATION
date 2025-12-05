@@ -80,7 +80,7 @@ const LeadList: React.FC = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Title",
+        header: "Lead Name",
         accessorKey: "title",
         enableColumnFilter: false,
       },
@@ -93,6 +93,12 @@ const LeadList: React.FC = () => {
         header: "Contact Email",
         accessorKey: "contactEmail",
         enableColumnFilter: false,
+      },
+      {
+        header: "Phone Number",
+        accessorKey: "phoneNumber",
+        enableColumnFilter: false,
+        cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Description",
@@ -129,8 +135,8 @@ const LeadList: React.FC = () => {
         },
       },
       {
-        header: "Tentative Week",
-        accessorKey: "tentativeHours",
+        header: "Tentative Work Days",
+        accessorKey: "tentativeWorkDays",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "0",
       },

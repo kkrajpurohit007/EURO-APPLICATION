@@ -88,6 +88,12 @@ export const PAGE_TITLES = {
   SETTINGS_TENANT_RENTAL: getPageTitle("Tenant Rental Configuration"),
   SETTINGS_CLIENT_RENTAL: getPageTitle("Client Rental Configuration"),
 
+  // Tenant Locations
+  TENANT_LOCATIONS_LIST: getPageTitle("Tenant Locations"),
+  TENANT_LOCATION_CREATE: getPageTitle("Create Tenant Location"),
+  TENANT_LOCATION_EDIT: getPageTitle("Edit Tenant Location"),
+  TENANT_LOCATION_VIEW: getPageTitle("View Tenant Location"),
+
   // Auth
   LOGIN_PAGE: getPageTitle("Login"),
   REGISTER: getPageTitle("Register"),

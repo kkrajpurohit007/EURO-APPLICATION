@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -27,11 +27,15 @@ import { LeadStatus, LeadStatusLabels } from "../../../slices/leads/lead.fakeDat
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
+import {
+  fetchTenantLocations,
+  selectTenantLocationList,
+} from "../../../slices/tenantLocations/tenantLocation.slice";
+import { TenantLocationItem } from "../../../services/tenantLocationService";
 
 import { PAGE_TITLES } from "../../../common/branding";
 import { useFlash } from "../../../hooks/useFlash";
-
-const titleOptions = ["Mr.", "Mrs.", "Ms.", "Dr.", "Er."];
+import LeadAttachmentManager from "../../../Components/Common/LeadAttachmentManager";
 
 const LeadCreate: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_CREATE;
@@ -42,6 +46,13 @@ const LeadCreate: React.FC = () => {
   const error = useSelector(selectLeadError);
 
   const authUser = getLoggedinUser();
+  const tenantLocations = useSelector(selectTenantLocationList);
+  const [createdLeadId, setCreatedLeadId] = useState<string | null>(null);
+
+  // Fetch tenant locations on component mount
+  useEffect(() => {
+    dispatch(fetchTenantLocations({ pageNumber: 1, pageSize: 200 }));
+  }, [dispatch]);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -51,34 +62,53 @@ const LeadCreate: React.FC = () => {
       contactEmail: "",
       description: "",
       leadStatus: LeadStatus.New,
-      tentativeHours: 0,
+      tentativeWorkDays: 0,
       notes: "",
+      phoneNumber: "",
+      siteAddress: "",
+      tenantLocationId: "",
+      tentativeProjectStartDate: "",
     },
     validationSchema: Yup.object({
-      title: Yup.string().required("Title is required"),
+      title: Yup.string().required("Lead name is required"),
       contactPerson: Yup.string().required("Contact person is required"),
       contactEmail: Yup.string()
         .email("Enter a valid email")
         .required("Contact email is required"),
       description: Yup.string().required("Description is required"),
+      phoneNumber: Yup.string().nullable(),
+      siteAddress: Yup.string().nullable(),
+      tenantLocationId: Yup.string().nullable(),
+      tentativeProjectStartDate: Yup.string().nullable(),
     }),
     onSubmit: async (values) => {
       const payload = {
         tenantId: authUser?.tenantId || "",
         clientId: null,
         userId: authUser?.userId || "",
-        ...values,
+        title: values.title,
+        contactPerson: values.contactPerson,
+        contactEmail: values.contactEmail,
+        description: values.description,
         leadStatus: values.leadStatus,
+        tentativeWorkDays: values.tentativeWorkDays || 0,
+        notes: values.notes || "",
+        phoneNumber: values.phoneNumber || null,
+        siteAddress: values.siteAddress || null,
+        tenantLocationId: values.tenantLocationId || null,
+        tentativeProjectStartDate: values.tentativeProjectStartDate
+          ? new Date(values.tentativeProjectStartDate).toISOString()
+          : null,
       };
       const result = await dispatch(createLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Lead created successfully");
+        const newLeadId = result.payload.id;
+        setCreatedLeadId(newLeadId);
+        showSuccess("Lead created successfully. You can now add attachments.");
         // Refresh leads list
         dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-        // Delay navigation to show notification
-        setTimeout(() => {
-          navigate("/leads/list");
-        }, 500);
+        // Don't navigate immediately - allow user to add attachments
+        // User can click "Done" button to navigate back
       } else {
         showError("Failed to create lead");
       }
@@ -100,23 +130,25 @@ const LeadCreate: React.FC = () => {
                     onClick={() => navigate("/leads/list")}
                     disabled={loading}
                   >
-                    Cancel
+                    {createdLeadId ? "Done" : "Cancel"}
                   </Button>
-                  <Button
-                    color="primary"
-                    onClick={() => validation.handleSubmit()}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Spinner size="sm" /> Saving...
-                      </>
-                    ) : (
-                      <>
-                        <i className="ri-save-line align-bottom me-1"></i> Save
-                      </>
-                    )}
-                  </Button>
+                  {!createdLeadId && (
+                    <Button
+                      color="primary"
+                      onClick={() => validation.handleSubmit()}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Spinner size="sm" /> Saving...
+                        </>
+                      ) : (
+                        <>
+                          <i className="ri-save-line align-bottom me-1"></i> Save
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardBody>
@@ -128,9 +160,8 @@ const LeadCreate: React.FC = () => {
                 <Form onSubmit={(e) => e.preventDefault()}>
                   <Row className="g-3">
                     <Col md={6}>
-                      <Label className="form-label">Title *</Label>
+                      <Label className="form-label">Lead Name *</Label>
                       <Input
-                        type="select"
                         name="title"
                         value={validation.values.title}
                         onChange={validation.handleChange}
@@ -138,14 +169,8 @@ const LeadCreate: React.FC = () => {
                         invalid={
                           !!(validation.touched.title && validation.errors.title)
                         }
-                      >
-                        <option value="">Select Title</option>
-                        {titleOptions.map((title) => (
-                          <option key={title} value={title}>
-                            {title}
-                          </option>
-                        ))}
-                      </Input>
+                        placeholder="Enter lead name"
+                      />
                       {validation.touched.title && validation.errors.title && (
                         <FormFeedback type="invalid">
                           {String(validation.errors.title)}
@@ -165,6 +190,7 @@ const LeadCreate: React.FC = () => {
                             validation.errors.contactPerson
                           )
                         }
+                        placeholder="Enter contact person name"
                       />
                       {validation.touched.contactPerson &&
                         validation.errors.contactPerson && (
@@ -188,6 +214,7 @@ const LeadCreate: React.FC = () => {
                             validation.errors.contactEmail
                           )
                         }
+                        placeholder="Enter contact email"
                       />
                       {validation.touched.contactEmail &&
                         validation.errors.contactEmail && (
@@ -196,6 +223,17 @@ const LeadCreate: React.FC = () => {
                           </FormFeedback>
                         )}
                     </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Phone Number</Label>
+                      <Input
+                        type="tel"
+                        name="phoneNumber"
+                        value={validation.values.phoneNumber}
+                        onChange={validation.handleChange}
+                        placeholder="Enter phone number"
+                      />
+                    </Col>
+
                     <Col md={6}>
                       <Label className="form-label">Lead Status</Label>
                       <Input
@@ -211,6 +249,26 @@ const LeadCreate: React.FC = () => {
                             </option>
                           )
                         )}
+                      </Input>
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Tenant Location</Label>
+                      <Input
+                        type="select"
+                        name="tenantLocationId"
+                        value={validation.values.tenantLocationId}
+                        onChange={validation.handleChange}
+                      >
+                        <option value="">Select Location</option>
+                        {tenantLocations && tenantLocations.length > 0
+                          ? tenantLocations
+                              .filter((loc: TenantLocationItem) => !loc.isDeleted)
+                              .map((location: TenantLocationItem) => (
+                                <option key={location.id} value={location.id}>
+                                  {location.name}
+                                </option>
+                              ))
+                          : null}
                       </Input>
                     </Col>
 
@@ -229,6 +287,7 @@ const LeadCreate: React.FC = () => {
                             validation.errors.description
                           )
                         }
+                        placeholder="Enter description"
                       />
                       {validation.touched.description &&
                         validation.errors.description && (
@@ -239,12 +298,35 @@ const LeadCreate: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tentative Week</Label>
+                      <Label className="form-label">Site Address</Label>
+                      <Input
+                        type="textarea"
+                        rows={2}
+                        name="siteAddress"
+                        value={validation.values.siteAddress}
+                        onChange={validation.handleChange}
+                        placeholder="Enter site address"
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Tentative Project Start Date</Label>
+                      <Input
+                        type="datetime-local"
+                        name="tentativeProjectStartDate"
+                        value={validation.values.tentativeProjectStartDate}
+                        onChange={validation.handleChange}
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Tentative Work Days</Label>
                       <Input
                         type="number"
-                        name="tentativeHours"
-                        value={validation.values.tentativeHours}
+                        name="tentativeWorkDays"
+                        value={validation.values.tentativeWorkDays}
                         onChange={validation.handleChange}
+                        min="0"
+                        placeholder="Enter work days"
                       />
                     </Col>
 
@@ -256,6 +338,7 @@ const LeadCreate: React.FC = () => {
                         name="notes"
                         value={validation.values.notes}
                         onChange={validation.handleChange}
+                        placeholder="Enter notes"
                       />
                     </Col>
                   </Row>
@@ -264,6 +347,14 @@ const LeadCreate: React.FC = () => {
             </Card>
           </Col>
         </Row>
+
+        {createdLeadId && (
+          <Row>
+            <Col lg={12}>
+              <LeadAttachmentManager leadId={createdLeadId} readOnly={false} />
+            </Col>
+          </Row>
+        )}
       </Container>
     </div>
   );

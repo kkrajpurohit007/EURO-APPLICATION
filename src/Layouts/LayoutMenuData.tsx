@@ -32,7 +32,8 @@ const Navdata = () => {
     // Expand Account Settings section if on account/settings routes
     if (
       pathname.includes("/account/departments") ||
-      pathname.includes("/settings/tenant-rental-config")
+      pathname.includes("/settings/tenant-rental-config") ||
+      pathname.includes("/tenant-locations")
     ) {
       setIsAccountSettings(true);
     }
@@ -137,6 +138,11 @@ const Navdata = () => {
           id: "departments",
           label: "Departments",
           link: "/account/departments",
+        },
+        {
+          id: "tenant-locations-list",
+          label: "Tenant Locations",
+          link: "/tenant-locations/list",
         },
       ],
     },

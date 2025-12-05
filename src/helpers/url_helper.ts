@@ -28,6 +28,11 @@ export const ADD_NEW_LEAD = "/Lead";
 export const UPDATE_LEAD = "/Lead";
 export const DELETE_LEAD = "/Lead";
 
+// LEAD ATTACHMENTS
+export const GET_LEAD_ATTACHMENTS = "/LeadAttachment";
+export const ADD_LEAD_ATTACHMENT = "/LeadAttachment";
+export const DELETE_LEAD_ATTACHMENT = "/LeadAttachment";
+
 // CLIENTS
 export const GET_CLIENTS = "/Client";
 export const ADD_NEW_CLIENT = "/Client";
@@ -52,3 +57,9 @@ export const DELETE_CLIENT_SITE = "/ClientSite";
 // TENANT RENTAL CONFIGURATION
 export const GET_TENANT_RENTAL_CONFIG = "/TenantRentalConfiguration";
 export const UPDATE_TENANT_RENTAL_CONFIG = "/TenantRentalConfiguration";
+
+// TENANT LOCATIONS
+export const GET_TENANT_LOCATIONS = "/TenantLocation";
+export const ADD_NEW_TENANT_LOCATION = "/TenantLocation";
+export const UPDATE_TENANT_LOCATION = "/TenantLocation";
+export const DELETE_TENANT_LOCATION = "/TenantLocation";

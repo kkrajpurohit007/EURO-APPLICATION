@@ -30,13 +30,18 @@ export interface LeadItem {
   clientName: string;
   userId: string;
   userName: string;
-  title: string;
+  title: string; // Lead name, not person title
   contactPerson: string;
   contactEmail: string;
   description: string;
   leadStatus: LeadStatus;
-  tentativeHours: number;
+  tentativeWorkDays: number;
   notes: string;
+  tentativeProjectStartDate: string | null;
+  phoneNumber: string | null;
+  siteAddress: string | null;
+  tenantLocationId: string | null;
+  tenantLocationName: string | null;
   isDeleted: boolean;
 }
 
@@ -59,13 +64,18 @@ export const initialLeads: LeadItem[] = [
     clientName: "Client One",
     userId: "user-1",
     userName: "John Doe",
-    title: "Mr.",
+    title: "Premium Plan Lead",
     contactPerson: "Jane Smith",
     contactEmail: "jane.smith@example.com",
     description: "Interested in premium plan",
     leadStatus: LeadStatus.New,
-    tentativeHours: 20,
+    tentativeWorkDays: 20,
     notes: "Initial contact made",
+    tentativeProjectStartDate: null,
+    phoneNumber: null,
+    siteAddress: null,
+    tenantLocationId: null,
+    tenantLocationName: null,
     isDeleted: false,
   },
   {
@@ -76,13 +86,18 @@ export const initialLeads: LeadItem[] = [
     clientName: "Client Two",
     userId: "user-1",
     userName: "John Doe",
-    title: "Ms.",
+    title: "Consultation Lead",
     contactPerson: "Alice Johnson",
     contactEmail: "alice.j@example.com",
     description: "Looking for consultation",
     leadStatus: LeadStatus.Open,
-    tentativeHours: 10,
+    tentativeWorkDays: 10,
     notes: "Scheduled a meeting",
+    tentativeProjectStartDate: null,
+    phoneNumber: null,
+    siteAddress: null,
+    tenantLocationId: null,
+    tenantLocationName: null,
     isDeleted: false,
   },
 ];

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -21,11 +21,15 @@ import { updateLead, fetchLeads, selectLeadById, selectLeadError } from "../../.
 import { LeadStatus, LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import {
+  fetchTenantLocations,
+  selectTenantLocationList,
+} from "../../../slices/tenantLocations/tenantLocation.slice";
+import { TenantLocationItem } from "../../../services/tenantLocationService";
 
 import { PAGE_TITLES } from "../../../common/branding";
 import { useFlash } from "../../../hooks/useFlash";
-
-const titleOptions = ["Mr.", "Mrs.", "Ms.", "Dr.", "Er."];
+import LeadAttachmentManager from "../../../Components/Common/LeadAttachmentManager";
 
 const LeadEdit: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_EDIT;
@@ -35,6 +39,12 @@ const LeadEdit: React.FC = () => {
   const { showSuccess, showError } = useFlash();
   const lead = useSelector((state: any) => selectLeadById(state, id || ""));
   const error = useSelector(selectLeadError);
+  const tenantLocations = useSelector(selectTenantLocationList);
+
+  // Fetch tenant locations on component mount
+  useEffect(() => {
+    dispatch(fetchTenantLocations({ pageNumber: 1, pageSize: 200 }));
+  }, [dispatch]);
 
   const initialValues = useMemo(
     () => ({
@@ -43,8 +53,14 @@ const LeadEdit: React.FC = () => {
       contactEmail: lead?.contactEmail || "",
       description: lead?.description || "",
       leadStatus: lead?.leadStatus ?? LeadStatus.New,
-      tentativeHours: lead?.tentativeHours || 0,
+      tentativeWorkDays: lead?.tentativeWorkDays || 0,
       notes: lead?.notes || "",
+      phoneNumber: lead?.phoneNumber || "",
+      siteAddress: lead?.siteAddress || "",
+      tenantLocationId: lead?.tenantLocationId || "",
+      tentativeProjectStartDate: lead?.tentativeProjectStartDate
+        ? new Date(lead.tentativeProjectStartDate).toISOString().slice(0, 16)
+        : "",
     }),
     [lead]
   );
@@ -53,15 +69,36 @@ const LeadEdit: React.FC = () => {
     enableReinitialize: true,
     initialValues,
     validationSchema: Yup.object({
-      title: Yup.string().required("Title is required"),
+      title: Yup.string().required("Lead name is required"),
       contactPerson: Yup.string().required("Contact person is required"),
       contactEmail: Yup.string()
         .email("Enter a valid email")
         .required("Contact email is required"),
       description: Yup.string().required("Description is required"),
+      phoneNumber: Yup.string().nullable(),
+      siteAddress: Yup.string().nullable(),
+      tenantLocationId: Yup.string().nullable(),
+      tentativeProjectStartDate: Yup.string().nullable(),
     }),
     onSubmit: async (values) => {
-      const payload = { id: id as string, data: values };
+      const payload = {
+        id: id as string,
+        data: {
+          title: values.title,
+          contactPerson: values.contactPerson,
+          contactEmail: values.contactEmail,
+          description: values.description,
+          leadStatus: values.leadStatus,
+          tentativeWorkDays: values.tentativeWorkDays || 0,
+          notes: values.notes || "",
+          phoneNumber: values.phoneNumber || null,
+          siteAddress: values.siteAddress || null,
+          tenantLocationId: values.tenantLocationId || null,
+          tentativeProjectStartDate: values.tentativeProjectStartDate
+            ? new Date(values.tentativeProjectStartDate).toISOString()
+            : null,
+        },
+      };
       const result = await dispatch(updateLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
         showSuccess("Lead updated successfully");
@@ -130,9 +167,8 @@ const LeadEdit: React.FC = () => {
                 <Form onSubmit={(e) => e.preventDefault()}>
                   <Row className="g-3">
                     <Col md={6}>
-                      <Label className="form-label">Title *</Label>
+                      <Label className="form-label">Lead Name *</Label>
                       <Input
-                        type="select"
                         name="title"
                         value={validation.values.title}
                         onChange={validation.handleChange}
@@ -140,14 +176,8 @@ const LeadEdit: React.FC = () => {
                         invalid={
                           !!(validation.touched.title && validation.errors.title)
                         }
-                      >
-                        <option value="">Select Title</option>
-                        {titleOptions.map((title) => (
-                          <option key={title} value={title}>
-                            {title}
-                          </option>
-                        ))}
-                      </Input>
+                        placeholder="Enter lead name"
+                      />
                       {validation.touched.title && validation.errors.title && (
                         <FormFeedback type="invalid">
                           {String(validation.errors.title)}
@@ -167,6 +197,7 @@ const LeadEdit: React.FC = () => {
                             validation.errors.contactPerson
                           )
                         }
+                        placeholder="Enter contact person name"
                       />
                       {validation.touched.contactPerson &&
                         validation.errors.contactPerson && (
@@ -190,6 +221,7 @@ const LeadEdit: React.FC = () => {
                             validation.errors.contactEmail
                           )
                         }
+                        placeholder="Enter contact email"
                       />
                       {validation.touched.contactEmail &&
                         validation.errors.contactEmail && (
@@ -198,6 +230,17 @@ const LeadEdit: React.FC = () => {
                           </FormFeedback>
                         )}
                     </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Phone Number</Label>
+                      <Input
+                        type="tel"
+                        name="phoneNumber"
+                        value={validation.values.phoneNumber}
+                        onChange={validation.handleChange}
+                        placeholder="Enter phone number"
+                      />
+                    </Col>
+
                     <Col md={6}>
                       <Label className="form-label">Lead Status</Label>
                       <Input
@@ -213,6 +256,26 @@ const LeadEdit: React.FC = () => {
                             </option>
                           )
                         )}
+                      </Input>
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Tenant Location</Label>
+                      <Input
+                        type="select"
+                        name="tenantLocationId"
+                        value={validation.values.tenantLocationId}
+                        onChange={validation.handleChange}
+                      >
+                        <option value="">Select Location</option>
+                        {tenantLocations && tenantLocations.length > 0
+                          ? tenantLocations
+                              .filter((loc: TenantLocationItem) => !loc.isDeleted)
+                              .map((location: TenantLocationItem) => (
+                                <option key={location.id} value={location.id}>
+                                  {location.name}
+                                </option>
+                              ))
+                          : null}
                       </Input>
                     </Col>
 
@@ -231,6 +294,7 @@ const LeadEdit: React.FC = () => {
                             validation.errors.description
                           )
                         }
+                        placeholder="Enter description"
                       />
                       {validation.touched.description &&
                         validation.errors.description && (
@@ -241,12 +305,35 @@ const LeadEdit: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tentative Week</Label>
+                      <Label className="form-label">Site Address</Label>
+                      <Input
+                        type="textarea"
+                        rows={2}
+                        name="siteAddress"
+                        value={validation.values.siteAddress}
+                        onChange={validation.handleChange}
+                        placeholder="Enter site address"
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Label className="form-label">Tentative Project Start Date</Label>
+                      <Input
+                        type="datetime-local"
+                        name="tentativeProjectStartDate"
+                        value={validation.values.tentativeProjectStartDate}
+                        onChange={validation.handleChange}
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Label className="form-label">Tentative Work Days</Label>
                       <Input
                         type="number"
-                        name="tentativeHours"
-                        value={validation.values.tentativeHours}
+                        name="tentativeWorkDays"
+                        value={validation.values.tentativeWorkDays}
                         onChange={validation.handleChange}
+                        min="0"
+                        placeholder="Enter work days"
                       />
                     </Col>
 
@@ -258,12 +345,19 @@ const LeadEdit: React.FC = () => {
                         name="notes"
                         value={validation.values.notes}
                         onChange={validation.handleChange}
+                        placeholder="Enter notes"
                       />
                     </Col>
                   </Row>
                 </Form>
               </CardBody>
             </Card>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col lg={12}>
+            <LeadAttachmentManager leadId={id || ""} readOnly={false} />
           </Col>
         </Row>
       </Container>

@@ -28,6 +28,9 @@ import MeetingsReducer from "./meetings/reducer";
 // Leads
 import LeadsReducer from "./leads/lead.slice";
 
+// Lead Attachments
+import LeadAttachmentsReducer from "./leadAttachments/leadAttachment.slice";
+
 // Countries
 import CountriesReducer from "./countries/country.slice";
 
@@ -39,6 +42,9 @@ import ClientContactsReducer from "./clientContacts/clientContact.slice";
 
 // Client Sites
 import ClientSitesReducer from "./clientSites/clientSite.slice";
+
+// Tenant Locations
+import TenantLocationsReducer from "./tenantLocations/tenantLocation.slice";
 
 // Notifications
 import NotificationReducer from "./notifications/notificationSlice";
@@ -56,10 +62,12 @@ const rootReducer = combineReducers({
   ClientRentalConfig: ClientRentalConfigReducer,
   Meetings: MeetingsReducer,
   Leads: LeadsReducer,
+  LeadAttachments: LeadAttachmentsReducer,
   Countries: CountriesReducer,
   Clients: ClientsReducer,
   ClientContacts: ClientContactsReducer,
   ClientSites: ClientSitesReducer,
+  TenantLocations: TenantLocationsReducer,
   Notifications: NotificationReducer,
 });
 

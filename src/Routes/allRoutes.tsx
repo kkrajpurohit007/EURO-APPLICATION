@@ -52,6 +52,12 @@ import SystemConfig from "../pages/Settings/General/SystemConfig";
 import BasicInfo from "../pages/Settings/General/BasicInfo";
 import TenantRentalConfig from "../pages/Settings/Rental/TenantRentalConfig";
 
+// Tenant Locations
+import TenantLocationList from "../pages/TenantLocations/TenantLocationList";
+import TenantLocationCreate from "../pages/TenantLocations/TenantLocationCreate";
+import TenantLocationEdit from "../pages/TenantLocations/TenantLocationEdit";
+import TenantLocationView from "../pages/TenantLocations/TenantLocationView";
+
 // Client Rental Config
 import ClientRentalConfigForm from "../pages/Clients/Client/ClientRentalConfigForm";
 
@@ -132,6 +138,13 @@ const authProtectedRoutes = [
     path: "/settings/tenant-rental-config",
     component: <TenantRentalConfig />,
   },
+
+  // Tenant Locations
+  { path: "/tenant-locations", component: <Navigate to="/tenant-locations/list" /> },
+  { path: "/tenant-locations/list", component: <TenantLocationList /> },
+  { path: "/tenant-locations/create", component: <TenantLocationCreate /> },
+  { path: "/tenant-locations/view/:id", component: <TenantLocationView /> },
+  { path: "/tenant-locations/edit/:id", component: <TenantLocationEdit /> },
 
   // Client Rental Config
   {
