@@ -1,31 +1,72 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const Navdata = () => {
-  const history = useNavigate();
-  //state data
+  const location = useLocation();
+  
   // Menu state variables for expandable sections
-  const [isDashboard, setIsDashboard] = useState<boolean>(false); // Client Management
-  const [isApps, setIsApps] = useState<boolean>(false); // Account Management
-  const [isAuth, setIsAuth] = useState<boolean>(false); // Settings
+  const [isLeads, setIsLeads] = useState<boolean>(false);
+  const [isClients, setIsClients] = useState<boolean>(false);
+  const [isAccountSettings, setIsAccountSettings] = useState<boolean>(false);
+  const [isSystemSettings, setIsSystemSettings] = useState<boolean>(false);
 
-  const [iscurrentState] = useState("Dashboard");
-
+  // Auto-expand menu based on current route
   useEffect(() => {
-    if (iscurrentState !== "Clients") {
-      setIsDashboard(false);
+    const pathname = location.pathname;
+    
+    // Expand Leads section if on leads routes
+    if (pathname.includes("/leads")) {
+      setIsLeads(true);
     }
-    if (iscurrentState !== "Account") {
-      setIsApps(false);
+    
+    // Expand Clients section if on client-related routes
+    if (
+      pathname.includes("/clients") ||
+      pathname.includes("/meetings") ||
+      pathname.includes("/sites") ||
+      pathname.includes("/contacts")
+    ) {
+      setIsClients(true);
     }
-    if (iscurrentState !== "Settings") {
-      setIsAuth(false);
+    
+    // Expand Account Settings section if on account/settings routes
+    if (
+      pathname.includes("/account/departments") ||
+      pathname.includes("/settings/tenant-rental-config")
+    ) {
+      setIsAccountSettings(true);
     }
-  }, [history, iscurrentState, isDashboard, isApps, isAuth]);
+    
+    // Expand System Settings section if on system config routes
+    if (pathname.includes("/settings/system-config")) {
+      setIsSystemSettings(true);
+    }
+  }, [location.pathname]);
+
+  // Toggle functions for collapsible menus
+  const toggleLeads = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLeads(!isLeads);
+  };
+
+  const toggleClients = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsClients(!isClients);
+  };
+
+  const toggleAccountSettings = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsAccountSettings(!isAccountSettings);
+  };
+
+  const toggleSystemSettings = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsSystemSettings(!isSystemSettings);
+  };
 
   const menuItems: any = [
     {
-      label: "Menu",
+      label: "Navigation",
       isHeader: true,
     },
     {
@@ -35,82 +76,87 @@ const Navdata = () => {
       link: "/dashboard",
     },
     {
-      label: "Lead Management",
-      isHeader: true,
-    },
-    {
       id: "leads",
-      label: "Lead Management",
+      label: "Leads",
       icon: "ri-user-search-line",
-      link: "/leads",
+      link: "#",
+      click: toggleLeads,
+      stateVariables: isLeads,
+      subItems: [
+        {
+          id: "leads-list",
+          label: "Lead Directory",
+          link: "/leads/list",
+        },
+      ],
     },
     {
+      id: "clients",
       label: "Client Management",
-      isHeader: true,
-    },
-    {
-      id: "clientlist",
-      label: "Clients",
-      link: "/clients",
       icon: "ri-group-line",
+      link: "#",
+      click: toggleClients,
+      stateVariables: isClients,
+      subItems: [
+        {
+          id: "client-directory",
+          label: "Client Directory",
+          link: "/clients/list",
+        },
+        {
+          id: "client-sites",
+          label: "Client Sites",
+          link: "/clients/sites",
+        },
+        {
+          id: "client-contacts",
+          label: "Client Contacts",
+          link: "/clients/contacts",
+        },
+        {
+          id: "meetings",
+          label: "Meetings & Appointments",
+          link: "/clients/meetings",
+        },
+      ],
     },
     {
-      id: "sites",
-      label: "Sites",
-      link: "/clients/sites",
-      icon: "ri-building-2-line",
+      id: "account-settings",
+      label: "Account Settings",
+      icon: "ri-settings-4-line",
+      link: "#",
+      click: toggleAccountSettings,
+      stateVariables: isAccountSettings,
+      subItems: [
+        {
+          id: "tenant-rental-config",
+          label: "Tenant Rental Configuration",
+          link: "/settings/tenant-rental-config",
+        },
+        {
+          id: "departments",
+          label: "Departments",
+          link: "/account/departments",
+        },
+      ],
     },
     {
-      id: "contacts",
-      label: "Contacts",
-      link: "/clients/contacts",
-      icon: "ri-contacts-line",
-    },
-    {
-      id: "meetings",
-      label: "Meetings",
-      link: "/clients/meetings",
-      icon: "ri-calendar-event-line",
-    },
-    {
-      label: "Account Management",
-      isHeader: true,
-    },
-    {
-      id: "departments",
-      label: "Departments",
-      link: "/account/departments",
-      icon: "ri-building-line",
-    },
-    // {
-    //   id: "staffpositions",
-    //   label: "Staff Positions",
-    //   link: "/account/staff-positions",
-    //   icon: "ri-file-user-line",
-    // },
-    // {
-    //   id: "staff",
-    //   label: "Staff Management",
-    //   icon: "ri-team-line",
-    //   link: "/staff/users",
-    // },
-    {
-      label: "Settings",
-      isHeader: true,
-    },
-    {
-      id: "systemConfig",
-      label: "System Config",
-      link: "/settings/system-config",
+      id: "system-settings",
+      label: "System Settings",
       icon: "ri-settings-3-line",
-    },
-    {
-      id: "tenantRentalConfig",
-      label: "Rental Configuration",
-      link: "/settings/tenant-rental-config",
-      icon: "ri-file-settings-line",
+      link: "#",
+      click: toggleSystemSettings,
+      stateVariables: isSystemSettings,
+      subItems: [
+        {
+          id: "system-config",
+          label: "System Configuration",
+          link: "/settings/system-config",
+        },
+      ],
     },
   ];
+  
   return <React.Fragment>{menuItems}</React.Fragment>;
 };
 export default Navdata;

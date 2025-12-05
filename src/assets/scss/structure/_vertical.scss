@@ -87,8 +87,9 @@
       &[data-bs-toggle="collapse"] {
         &:after {
           display: block;
-          content: "\F0142";
-          font-family: "Material Design Icons";
+          content: "\ea6d";
+          font-family: "remixicon" !important;
+          font-style: normal;
           margin-left: auto;
           transition: transform 0.2s;
           font-size: 1.05rem;

@@ -193,6 +193,7 @@ const VerticalLayout = (props: any) => {
                   className="nav-link menu-link"
                   to={item.link ? item.link : "/#"}
                   data-bs-toggle="collapse"
+                  aria-expanded={item.stateVariables ? "true" : "false"}
                 >
                   <i className={item.icon}></i>{" "}
                   <span data-key="t-apps">{item.label}</span>
@@ -234,6 +235,7 @@ const VerticalLayout = (props: any) => {
                                 className="nav-link"
                                 to="/#"
                                 data-bs-toggle="collapse"
+                                aria-expanded={subItem.stateVariables ? "true" : "false"}
                               >
                                 {" "}
                                 {subItem.label}
@@ -269,6 +271,7 @@ const VerticalLayout = (props: any) => {
                                                 className="nav-link"
                                                 onClick={childItem.click}
                                                 data-bs-toggle="collapse"
+                                                aria-expanded={childItem.stateVariables ? "true" : "false"}
                                               >
                                                 {childItem.label}
                                               </Link>
