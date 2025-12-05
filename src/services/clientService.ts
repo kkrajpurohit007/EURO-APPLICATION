@@ -35,10 +35,8 @@ export const createClient = (data: Partial<ClientItem>): Promise<ClientItem> => 
     const payload = {
         tenantId: data.tenantId,
         name: data.name,
-        ein: data.ein || "",
-        abn: data.abn || "",
+        registeredNumber: data.ein || "",
         gstNumber: data.gstNumber || "",
-        vatNumber: "", // Always empty string
         address1: data.address1,
         address2: data.address2,
         countryId: data.countryId,
@@ -46,6 +44,9 @@ export const createClient = (data: Partial<ClientItem>): Promise<ClientItem> => 
         managerFirstName: data.managerFirstName,
         managerLastName: data.managerLastName,
         managerEmailId: data.managerEmailId,
+        isPriority: data.isPriority || false,
+        priorityReason: data.priorityReason || "",
+        logoPath: null,
     };
     return api.create(url.ADD_NEW_CLIENT, payload) as unknown as Promise<ClientItem>;
 };
@@ -60,10 +61,8 @@ export const updateClient = (
     // PUT payload must include these fields
     const payload = {
         name: data.name,
-        ein: data.ein || "",
-        abn: data.abn || "",
+        registeredNumber: data.ein || "",
         gstNumber: data.gstNumber || "",
-        vatNumber: "",
         address1: data.address1,
         address2: data.address2,
         countryId: data.countryId,
@@ -71,6 +70,9 @@ export const updateClient = (
         managerFirstName: data.managerFirstName,
         managerLastName: data.managerLastName,
         managerEmailId: data.managerEmailId,
+        isPriority: data.isPriority || false,
+        priorityReason: data.priorityReason || "",
+        logoPath: null,
     };
     return api.put(url.UPDATE_CLIENT + "/" + id, payload) as unknown as Promise<ClientItem>;
 };

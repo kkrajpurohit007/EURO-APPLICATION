@@ -8,7 +8,6 @@ const Navdata = () => {
   const [isLeads, setIsLeads] = useState<boolean>(false);
   const [isClients, setIsClients] = useState<boolean>(false);
   const [isAccountSettings, setIsAccountSettings] = useState<boolean>(false);
-  const [isSystemSettings, setIsSystemSettings] = useState<boolean>(false);
 
   // Auto-expand menu based on current route
   useEffect(() => {
@@ -39,14 +38,6 @@ const Navdata = () => {
     ) {
       setIsAccountSettings(true);
     }
-    
-    // Expand System Settings section if on system config routes
-    if (
-      pathname.includes("/settings/system-config") ||
-      pathname.includes("/settings/basic-info")
-    ) {
-      setIsSystemSettings(true);
-    }
   }, [location.pathname]);
 
   // Toggle functions for collapsible menus
@@ -63,11 +54,6 @@ const Navdata = () => {
   const toggleAccountSettings = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsAccountSettings(!isAccountSettings);
-  };
-
-  const toggleSystemSettings = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsSystemSettings(!isSystemSettings);
   };
 
   const menuItems: any = [
@@ -158,26 +144,6 @@ const Navdata = () => {
           id: "tenant-locations-list",
           label: "Tenant Locations",
           link: "/tenant-locations/list",
-        },
-      ],
-    },
-    {
-      id: "system-settings",
-      label: "System Settings",
-      icon: "ri-settings-3-line",
-      link: "#",
-      click: toggleSystemSettings,
-      stateVariables: isSystemSettings,
-      subItems: [
-        {
-          id: "system-config",
-          label: "System Configuration",
-          link: "/settings/system-config",
-        },
-        {
-          id: "basic-info",
-          label: "Basic Info",
-          link: "/settings/basic-info",
         },
       ],
     },

@@ -599,12 +599,27 @@ export const getClients = (pageNumber: number = 1, pageSize: number = 50) => {
   });
 };
 
-export const addNewClient = (client: any) => {
+export const addNewClient = (client: Partial<ClientItem>) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const newClient: ClientItem = {
-        ...client,
         id: (clientsData.length + 1).toString(),
+        tenantId: client.tenantId || "",
+        name: client.name || "",
+        ein: client.ein || "",
+        abn: "",
+        gstNumber: client.gstNumber || "",
+        vatNumber: "",
+        address1: client.address1 || "",
+        address2: client.address2 || "",
+        countryId: client.countryId || "",
+        zipcode: client.zipcode || "",
+        managerFirstName: client.managerFirstName || "",
+        managerLastName: client.managerLastName || "",
+        managerEmailId: client.managerEmailId || "",
+        logoPath: "",
+        isPriority: client.isPriority || false,
+        priorityReason: client.priorityReason || "",
         isDeleted: false,
       };
       clientsData.unshift(newClient);
@@ -613,12 +628,32 @@ export const addNewClient = (client: any) => {
   });
 };
 
-export const updateClient = (id: string, client: any) => {
+export const updateClient = (id: string, client: Partial<ClientItem>) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const index = clientsData.findIndex((c) => c.id === id);
       if (index !== -1) {
-        clientsData[index] = { ...clientsData[index], ...client };
+        clientsData[index] = { 
+          ...clientsData[index], 
+          ...client,
+          id: clientsData[index].id, // Preserve the original ID
+          tenantId: client.tenantId ?? clientsData[index].tenantId,
+          name: client.name ?? clientsData[index].name,
+          ein: client.ein ?? clientsData[index].ein,
+          abn: "",
+          gstNumber: client.gstNumber ?? clientsData[index].gstNumber,
+          vatNumber: "",
+          address1: client.address1 ?? clientsData[index].address1,
+          address2: client.address2 ?? clientsData[index].address2,
+          countryId: client.countryId ?? clientsData[index].countryId,
+          zipcode: client.zipcode ?? clientsData[index].zipcode,
+          managerFirstName: client.managerFirstName ?? clientsData[index].managerFirstName,
+          managerLastName: client.managerLastName ?? clientsData[index].managerLastName,
+          managerEmailId: client.managerEmailId ?? clientsData[index].managerEmailId,
+          logoPath: "",
+          isPriority: client.isPriority ?? clientsData[index].isPriority,
+          priorityReason: client.priorityReason ?? clientsData[index].priorityReason,
+        };
         resolve(clientsData[index]);
       }
     }, 300);
