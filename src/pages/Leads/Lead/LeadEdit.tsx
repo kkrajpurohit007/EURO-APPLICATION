@@ -17,7 +17,7 @@ import {
   Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { updateLead, fetchLeads, selectLeadById, selectLeadError } from "../../../slices/leads/lead.slice";
+import { updateLead, selectLeadById, selectLeadError } from "../../../slices/leads/lead.slice";
 import { LeadStatus, LeadStatusLabels } from "../../../slices/leads/lead.fakeData";
 import { useFormik } from "formik";
 import * as Yup from "yup";

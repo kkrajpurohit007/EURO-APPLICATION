@@ -619,7 +619,7 @@ export const addNewLead = (lead: any) => {
 };
 
 export const updateLead = (id: string, lead: Partial<LeadItem>) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const index = leadsData.findIndex((l) => l.id === id);
       if (index !== -1) {
@@ -642,6 +642,9 @@ export const updateLead = (id: string, lead: Partial<LeadItem>) => {
           tenantLocationName: lead.tenantLocationName ?? leadsData[index].tenantLocationName,
         };
         resolve(leadsData[index]);
+      } else {
+        // Lead not found - reject the promise
+        reject(new Error(`Lead with id ${id} not found`));
       }
     }, 300);
   });
@@ -736,7 +739,7 @@ export const addNewClient = (client: Partial<ClientItem> & { registeredNumber?: 
 };
 
 export const updateClient = (id: string, client: Partial<ClientItem> & { registeredNumber?: string }) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const index = clientsData.findIndex((c) => c.id === id);
       if (index !== -1) {
@@ -762,6 +765,9 @@ export const updateClient = (id: string, client: Partial<ClientItem> & { registe
           priorityReason: client.priorityReason ?? clientsData[index].priorityReason,
         };
         resolve(clientsData[index]);
+      } else {
+        // Client not found - reject the promise
+        reject(new Error(`Client with id ${id} not found`));
       }
     }, 300);
   });
@@ -1355,7 +1361,7 @@ export const addNewGlobalUser = (user: any) => {
 };
 
 export const updateGlobalUser = (id: string, user: any) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const index = globalUsersData.findIndex((u) => u.id === id);
       if (index !== -1) {
@@ -1364,6 +1370,9 @@ export const updateGlobalUser = (id: string, user: any) => {
           ...user,
         };
         resolve(globalUsersData[index]);
+      } else {
+        // Global user not found - reject the promise
+        reject(new Error(`Global user with id ${id} not found`));
       }
     }, 300);
   });

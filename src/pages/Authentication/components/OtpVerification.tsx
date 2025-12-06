@@ -76,29 +76,35 @@ const OtpVerification = () => {
   // Redirect to dashboard if already verified
   // Note: Navigation is handled in verifyOtp thunk, but this is a backup
   useEffect(() => {
-    if (otpVerified && !otpLoading) {
-      // Check if user is actually authenticated before redirecting
-      const checkAuth = () => {
-        const authUser = localStorage.getItem("authUser") || sessionStorage.getItem("authUser");
-        if (authUser) {
-          try {
-            const user = JSON.parse(authUser);
-            if (user && (user.token || user.jwt)) {
-              // Small delay to ensure state is properly set and propagated
-              const timer = setTimeout(() => {
-                navigate("/dashboard");
-              }, 300);
-              return () => clearTimeout(timer);
-            }
-          } catch (error) {
-            console.error("Error parsing auth user:", error);
-          }
-        }
-      };
-      
-      const timer = checkAuth();
-      return timer;
+    if (!otpVerified || otpLoading) {
+      return; // Early return - no cleanup needed
     }
+
+    // Check if user is actually authenticated before redirecting
+    const authUser = localStorage.getItem("authUser") || sessionStorage.getItem("authUser");
+    if (!authUser) {
+      return; // No auth user - no cleanup needed
+    }
+
+    let timer: NodeJS.Timeout | null = null;
+    try {
+      const user = JSON.parse(authUser);
+      if (user && (user.token || user.jwt)) {
+        // Small delay to ensure state is properly set and propagated
+        timer = setTimeout(() => {
+          navigate("/dashboard");
+        }, 300);
+      }
+    } catch (error) {
+      console.error("Error parsing auth user:", error);
+    }
+
+    // Always return a cleanup function
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [otpVerified, otpLoading, navigate]);
 
   const handleVerifyOtp = () => {
