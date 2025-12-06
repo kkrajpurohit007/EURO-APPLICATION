@@ -183,7 +183,7 @@ const ClientRentalConfigSection: React.FC<ClientRentalConfigSectionProps> = ({
               onChange={validation.handleChange}
               onBlur={validation.handleBlur}
               invalid={!!(touched && error)}
-              disabled={mode === "view" && !isEditing || fieldValue === null}
+              disabled={(mode === "view" && !isEditing) || fieldValue === null}
               placeholder={`Enter ${inputLabel.toLowerCase()}`}
             />
             {touched && error && (

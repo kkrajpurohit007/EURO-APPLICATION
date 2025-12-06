@@ -68,11 +68,11 @@ export const PAGE_TITLES = {
   MEETING_VIEW: getPageTitle("Meeting Details"),
   MEETING_CALENDAR: getPageTitle("Meeting Calendar"),
 
-  // Tenant Roles
-  TENANT_ROLES_LIST: getPageTitle("Tenant Roles"),
-  TENANT_ROLE_CREATE: getPageTitle("Create Tenant Role"),
-  TENANT_ROLE_EDIT: getPageTitle("Edit Tenant Role"),
-  TENANT_ROLE_VIEW: getPageTitle("View Tenant Role"),
+  // Staff Roles (formerly Tenant Roles)
+  TENANT_ROLES_LIST: getPageTitle("Staff Roles"),
+  TENANT_ROLE_CREATE: getPageTitle("Create Staff Role"),
+  TENANT_ROLE_EDIT: getPageTitle("Edit Staff Role"),
+  TENANT_ROLE_VIEW: getPageTitle("View Staff Role"),
 
   // Profiles
   PROFILES_LIST: getPageTitle("Profiles"),
@@ -89,14 +89,14 @@ export const PAGE_TITLES = {
   // Settings
   SETTINGS_BASIC_INFO: getPageTitle("Basic Information"),
   SETTINGS_SYSTEM_CONFIG: getPageTitle("System Configuration"),
-  SETTINGS_TENANT_RENTAL: getPageTitle("Tenant Rental Configuration"),
+  SETTINGS_TENANT_RENTAL: getPageTitle("Global Rental Configuration"),
   SETTINGS_CLIENT_RENTAL: getPageTitle("Client Rental Configuration"),
 
-  // Tenant Locations
-  TENANT_LOCATIONS_LIST: getPageTitle("Tenant Locations"),
-  TENANT_LOCATION_CREATE: getPageTitle("Create Tenant Location"),
-  TENANT_LOCATION_EDIT: getPageTitle("Edit Tenant Location"),
-  TENANT_LOCATION_VIEW: getPageTitle("View Tenant Location"),
+  // Global Locations (formerly Tenant Locations)
+  TENANT_LOCATIONS_LIST: getPageTitle("Global Locations"),
+  TENANT_LOCATION_CREATE: getPageTitle("Create Global Location"),
+  TENANT_LOCATION_EDIT: getPageTitle("Edit Global Location"),
+  TENANT_LOCATION_VIEW: getPageTitle("View Global Location"),
 
   // Auth
   LOGIN_PAGE: getPageTitle("Login"),

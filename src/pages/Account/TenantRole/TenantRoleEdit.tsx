@@ -103,7 +103,7 @@ const TenantRoleEdit = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Edit Tenant Role" pageTitle="Tenant Roles" />
+          <BreadCrumb title="Edit Staff Role" pageTitle="Staff Roles" />
           <Row>
             <Col lg={12}>
               <Form

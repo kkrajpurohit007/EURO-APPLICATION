@@ -11,6 +11,7 @@ interface LeadState {
   pageSize: number;
   totalCount: number;
   totalPages: number;
+  lastFetchTime: number | null; // Track last successful fetch time
 }
 
 const initialState: LeadState = {
@@ -22,6 +23,7 @@ const initialState: LeadState = {
   pageSize: 500,
   totalCount: 0,
   totalPages: 0,
+  lastFetchTime: null,
 };
 
 // Async thunk to fetch leads from API
@@ -85,20 +87,26 @@ const leadSlice = createSlice({
     builder
       // Fetch leads
       .addCase(fetchLeads.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        // Prevent concurrent requests - if already loading, don't set loading again
+        if (!state.loading) {
+          state.loading = true;
+          state.error = null;
+        }
       })
       .addCase(fetchLeads.fulfilled, (state, action) => {
         state.loading = false;
+        state.error = null; // Clear any previous errors on success
         state.items = action.payload.items;
         state.pageNumber = action.payload.pageNumber;
         state.pageSize = action.payload.pageSize;
         state.totalCount = action.payload.totalCount;
         state.totalPages = action.payload.totalPages;
+        state.lastFetchTime = Date.now(); // Track successful fetch time
       })
       .addCase(fetchLeads.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch leads";
+        // Don't update lastFetchTime on error to prevent stale data
       })
       // Create lead
       .addCase(createLead.pending, (state) => {

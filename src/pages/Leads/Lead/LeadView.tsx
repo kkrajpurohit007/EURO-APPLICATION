@@ -19,6 +19,7 @@ import { selectLeadById } from "../../../slices/leads/lead.slice";
 import { LeadStatusLabels, LeadStatus } from "../../../slices/leads/lead.fakeData";
 
 import { PAGE_TITLES } from "../../../common/branding";
+import { formatDate } from "../../../common/utils";
 import LeadAttachmentManager from "../../../Components/Common/LeadAttachmentManager";
 
 const LeadView: React.FC = () => {
@@ -26,21 +27,6 @@ const LeadView: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const lead = useSelector((state: any) => selectLeadById(state, id || ""));
-
-  // Format date to DD-MMM-YYYY
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }).replace(/ /g, '-');
-    } catch (error) {
-      return "-";
-    }
-  };
 
   if (!lead) {
     return (

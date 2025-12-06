@@ -102,8 +102,8 @@ const LeadEdit: React.FC = () => {
       const result = await dispatch(updateLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
         showSuccess("Lead updated successfully");
-        // Refresh leads list after successful update
-        dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+        // Don't refresh here - let LeadList handle it when navigated to
+        // This prevents unnecessary API calls and potential loops
         // Delay navigation to show notification
         setTimeout(() => {
           navigate("/leads/list");
@@ -347,7 +347,7 @@ const LeadEdit: React.FC = () => {
                         />
                       </Col>
                       <Col md={6}>
-                        <Label className="form-label">Tenant Location</Label>
+                        <Label className="form-label">Global Location</Label>
                         <Input
                           type="select"
                           name="tenantLocationId"

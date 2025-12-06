@@ -118,8 +118,8 @@ const TenantRoleCreate = () => {
       <div className="page-content">
         <Container fluid>
           <BreadCrumb
-            title="Create Tenant Role"
-            pageTitle="Tenant Roles"
+            title="Create Staff Role"
+            pageTitle="Staff Roles"
           />
           <Row>
             <Col lg={12}>

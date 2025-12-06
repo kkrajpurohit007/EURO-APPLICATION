@@ -97,11 +97,6 @@ const Navdata = () => {
           link: "/clients/list",
         },
         {
-          id: "client-rental-config",
-          label: "Client Rental Configuration",
-          link: "/clients/rental-config",
-        },
-        {
           id: "client-sites",
           label: "Client Sites",
           link: "/clients/sites",
@@ -128,7 +123,7 @@ const Navdata = () => {
       subItems: [
         {
           id: "tenant-rental-config",
-          label: "Tenant Rental Configuration",
+          label: "Global Rental Configuration",
           link: "/settings/tenant-rental-config",
         },
         {
@@ -138,7 +133,7 @@ const Navdata = () => {
         },
         {
           id: "tenant-roles",
-          label: "Tenant Roles",
+          label: "Staff Roles",
           link: "/account/tenant-roles",
         },
         {
@@ -148,7 +143,7 @@ const Navdata = () => {
         },
         {
           id: "tenant-locations-list",
-          label: "Tenant Locations",
+          label: "Global Locations",
           link: "/tenant-locations/list",
         },
       ],

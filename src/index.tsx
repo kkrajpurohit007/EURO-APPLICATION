@@ -20,6 +20,8 @@ store.subscribe(() => {
       try {
         localStorage.setItem("authUser", JSON.stringify(state.Login.user));
         sessionStorage.setItem("authUser", JSON.stringify(state.Login.user));
+        // Dispatch custom event to notify useProfile hook of storage update
+        window.dispatchEvent(new Event("authStorageUpdate"));
       } catch (error) {
         console.error("Failed to persist auth state:", error);
       }
@@ -29,6 +31,8 @@ store.subscribe(() => {
     if (state.Login?.isUserLogout) {
       localStorage.removeItem("authUser");
       sessionStorage.removeItem("authUser");
+      // Dispatch custom event to notify useProfile hook of storage update
+      window.dispatchEvent(new Event("authStorageUpdate"));
     }
   } catch (error) {
     console.error("Error in store subscription:", error);

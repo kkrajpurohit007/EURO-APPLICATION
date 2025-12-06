@@ -26,7 +26,6 @@ import {
   selectClientLoading,
 } from "../../../slices/clients/client.slice";
 import { selectCountryList } from "../../../slices/countries/country.slice";
-import { fetchCountries } from "../../../slices/countries/country.slice";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 

@@ -26,9 +26,10 @@ import {
 import { useProfile } from "../../../Components/Hooks/UserHooks";
 import Loader from "../../../Components/Common/Loader";
 import { useFlash } from "../../../hooks/useFlash";
+import { PAGE_TITLES } from "../../../common/branding";
 
 const TenantRentalConfig = () => {
-  document.title = "Tenant Rental Configuration | ESRM";
+  document.title = PAGE_TITLES.SETTINGS_TENANT_RENTAL;
 
   const dispatch = useDispatch<any>();
   const { userProfile } = useProfile();
@@ -133,7 +134,7 @@ const TenantRentalConfig = () => {
     return React.createElement("div", { className: "page-content" },
       React.createElement(Container, { fluid: true },
         React.createElement(BreadCrumb, {
-          title: "Tenant Rental Configuration",
+          title: "Global Rental Configuration",
           pageTitle: "Settings"
         }),
         React.createElement(Alert, { color: "danger" },
@@ -148,7 +149,7 @@ const TenantRentalConfig = () => {
     return React.createElement("div", { className: "page-content" },
       React.createElement(Container, { fluid: true },
         React.createElement(BreadCrumb, {
-          title: "Tenant Rental Configuration",
+          title: "Global Rental Configuration",
           pageTitle: "Settings"
         }),
         React.createElement(Row, { className: "justify-content-center" },
@@ -157,7 +158,7 @@ const TenantRentalConfig = () => {
               React.createElement(CardBody, { className: "text-center" },
                 React.createElement("div", { className: "py-5" },
                   React.createElement("i", { className: "ri-settings-3-line ri-2x text-muted mb-3" }),
-                  React.createElement("h5", null, "Tenant Rental Configuration Not Found"),
+                  React.createElement("h5", null, "Global Rental Configuration Not Found"),
                   React.createElement("p", { className: "text-muted" },
                     "No rental configuration has been set up for your tenant yet."
                   ),
@@ -188,7 +189,7 @@ const TenantRentalConfig = () => {
           React.createElement(Col, { lg: 12 },
             React.createElement(Card, null,
               React.createElement(CardHeader, { className: "d-flex justify-content-between align-items-center" },
-                React.createElement("h5", { className: "card-title mb-0" }, "Tenant Rental Configuration"),
+                React.createElement("h5", { className: "card-title mb-0" }, "Global Rental Configuration"),
                 !isEditing && React.createElement(Button, { color: "primary", onClick: handleEdit },
                   React.createElement("i", { className: "ri-pencil-line align-bottom me-1" }),
                   "Edit Configuration"

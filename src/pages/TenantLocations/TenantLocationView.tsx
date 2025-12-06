@@ -39,7 +39,7 @@ const TenantLocationView: React.FC = () => {
     return (
       <div className="page-content">
         <Container fluid>
-          <Alert color="danger">Tenant location not found</Alert>
+          <Alert color="danger">Global location not found</Alert>
         </Container>
       </div>
     );
@@ -48,12 +48,12 @@ const TenantLocationView: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="View Tenant Location" pageTitle="Tenant Locations" />
+        <BreadCrumb title="View Global Location" pageTitle="Global Locations" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">View Tenant Location Details</h5>
+                <h5 className="card-title mb-0">View Global Location Details</h5>
                 <div className="d-flex gap-2">
                   <Button color="light" onClick={() => navigate("/tenant-locations/list")}>
                     Close

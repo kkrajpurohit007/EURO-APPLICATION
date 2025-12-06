@@ -61,7 +61,7 @@ const TenantRoleView: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="View Tenant Role" pageTitle="Tenant Roles" />
+        <BreadCrumb title="View Staff Role" pageTitle="Staff Roles" />
         <Row>
           <Col lg={12}>
             <Card>

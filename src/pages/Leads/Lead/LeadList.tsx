@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Container,
@@ -35,21 +35,6 @@ import { useFlash } from "../../../hooks/useFlash";
 
 const statusOptions: LeadStatus[] = [0, 1, 2, 3, 4, 5];
 
-// Format date to DD-MMM-YYYY
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "-";
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }).replace(/ /g, '-');
-  } catch (error) {
-    return "-";
-  }
-};
-
 const LeadList: React.FC = () => {
   document.title = PAGE_TITLES.LEADS_LIST;
   const dispatch = useDispatch<any>();
@@ -58,11 +43,16 @@ const LeadList: React.FC = () => {
   const leads: LeadItem[] = useSelector(selectLeadList);
   const loading = useSelector(selectLeadLoading);
   const error = useSelector(selectLeadError);
+  const hasFetchedRef = useRef(false);
 
-  // Fetch leads on component mount
+  // Fetch leads on component mount - only once and if not already loading
   useEffect(() => {
-    dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-  }, [dispatch]);
+    // Prevent multiple calls: only fetch if not already loading and not fetched yet
+    if (!loading && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+    }
+  }, [dispatch, loading]);
 
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "">("");
   const [deleteModal, setDeleteModal] = useState(false);
@@ -80,6 +70,10 @@ const LeadList: React.FC = () => {
         showSuccess("Lead deleted successfully");
         setDeleteModal(false);
         setLeadToDelete(null);
+        // Refresh leads list only if delete was successful
+        if (!loading) {
+          dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+        }
       } catch (error) {
         showError("Failed to delete lead");
       }

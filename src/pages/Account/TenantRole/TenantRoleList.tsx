@@ -168,7 +168,7 @@ const TenantRoleList = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Tenant Roles" pageTitle="Account" />
+          <BreadCrumb title="Staff Roles" pageTitle="Account" />
           <Row>
             <Col lg={12}>
               <Card id="tenantRolesList">
@@ -204,7 +204,7 @@ const TenantRoleList = () => {
                         customPageSize={10}
                         divClass="table-responsive table-card mb-3"
                         tableClass="align-middle table-nowrap mb-0"
-                        SearchPlaceholder="Search for tenant roles..."
+                        SearchPlaceholder="Search for staff roles..."
                       />
                     )}
                   </div>

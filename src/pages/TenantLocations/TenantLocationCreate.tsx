@@ -58,15 +58,15 @@ const TenantLocationCreate: React.FC = () => {
       };
       const result = await dispatch(createTenantLocation(payload));
       if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Tenant location created successfully");
-        // Refresh tenant locations list
+        showSuccess("Global location created successfully");
+        // Refresh global locations list
         dispatch(fetchTenantLocations({ pageNumber: 1, pageSize: 20 }));
         // Delay navigation to show notification
         setTimeout(() => {
           navigate("/tenant-locations/list");
         }, 500);
       } else {
-        showError("Failed to create tenant location");
+        showError("Failed to create global location");
       }
     },
   });
@@ -74,12 +74,12 @@ const TenantLocationCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Tenant Location" pageTitle="Tenant Locations" />
+        <BreadCrumb title="Create Global Location" pageTitle="Global Locations" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">New Tenant Location</h5>
+                <h5 className="card-title mb-0">New Global Location</h5>
                 <div className="d-flex gap-2">
                   <Button color="light" onClick={() => navigate("/tenant-locations/list")}>
                     Close

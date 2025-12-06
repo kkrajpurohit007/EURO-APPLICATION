@@ -281,7 +281,7 @@ const LeadCreate: React.FC = () => {
                       />
                     </Col>
                     <Col md={6}>
-                      <Label className="form-label">Tenant Location</Label>
+                      <Label className="form-label">Global Location</Label>
                       <Input
                         type="select"
                         name="tenantLocationId"

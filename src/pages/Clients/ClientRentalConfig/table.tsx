@@ -20,6 +20,7 @@ import { fetchClientRentalConfigs } from "../../../slices/clientRentalConfig/cli
 
 // Import utilities
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
+import { formatDate } from "../../../common/utils";
 
 const ClientRentalConfigList = () => {
   const dispatch = useDispatch<any>();
@@ -51,17 +52,6 @@ const ClientRentalConfigList = () => {
       config.clientName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [configs, searchTerm]);
-
-  // Format date to DD-MMM-YYYY
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }).replace(/ /g, '-');
-  };
 
   // Get user name by ID (mock implementation)
   const getUserNameById = (userId: string) => {

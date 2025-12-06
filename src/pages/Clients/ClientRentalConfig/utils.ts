@@ -1,20 +1,7 @@
 // Utility functions for Client Rental Configuration
 
-// Format date to DD-MMM-YYYY
-export const formatDate = (dateString: string): string => {
-  if (!dateString) return "-";
-  
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }).replace(/ /g, '-');
-  } catch (error) {
-    return "-";
-  }
-};
+// Re-export formatDate from common utils for backward compatibility
+export { formatDate } from "../../../common/utils";
 
 // Get user name by ID (mock implementation)
 export const getUserNameById = (userId: string): string => {

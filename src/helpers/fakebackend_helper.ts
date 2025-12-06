@@ -6,7 +6,7 @@ import { staffPositions } from "../common/data/staffPositions";
 import { tenantRentalConfigData } from "../common/data/tenantRentalConfig";
 import { clientRentalConfigData } from "../common/data/clientRentalConfig";
 import { meetingsData } from "../common/data/meetings";
-import { initialLeads, LeadItem } from "../slices/leads/lead.fakeData";
+import { LeadItem } from "../slices/leads/lead.fakeData";
 import {
   initialDepartments,
   DepartmentItem,

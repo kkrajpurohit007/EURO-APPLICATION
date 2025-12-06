@@ -56,7 +56,7 @@ const TenantLocationList: React.FC = () => {
     if (locationToDelete !== null) {
       const result = await dispatch(deleteTenantLocation(locationToDelete));
       if (result.meta.requestStatus === "fulfilled") {
-        // Refresh tenant locations list after successful deletion
+        // Refresh global locations list after successful deletion
         dispatch(fetchTenantLocations({ pageNumber: 1, pageSize: 20 }));
       }
     }
@@ -134,14 +134,14 @@ const TenantLocationList: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Tenant Locations" pageTitle="Settings" />
+        <BreadCrumb title="Global Locations" pageTitle="Settings" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader>
                 <Row className="g-3 align-items-center">
                   <Col sm={6}>
-                    <h5 className="card-title mb-0">Tenant Location List</h5>
+                    <h5 className="card-title mb-0">Global Location List</h5>
                   </Col>
                   <Col sm={6}>
                     <div className="d-flex gap-2 flex-wrap justify-content-end">
@@ -150,7 +150,7 @@ const TenantLocationList: React.FC = () => {
                         onClick={() => navigate("/tenant-locations/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Tenant Location
+                        Create Global Location
                       </Button>
                     </div>
                   </Col>
@@ -166,7 +166,7 @@ const TenantLocationList: React.FC = () => {
                 {loading ? (
                   <div className="text-center py-5">
                     <Spinner color="primary" />
-                    <p className="mt-2">Loading tenant locations...</p>
+                    <p className="mt-2">Loading global locations...</p>
                   </div>
                 ) : (
                   <div>
@@ -177,7 +177,7 @@ const TenantLocationList: React.FC = () => {
                       customPageSize={10}
                       divClass="table-responsive table-card mb-3"
                       tableClass="align-middle table-nowrap mb-0"
-                      SearchPlaceholder="Search tenant locations..."
+                      SearchPlaceholder="Search global locations..."
                     />
                   </div>
                 )}
