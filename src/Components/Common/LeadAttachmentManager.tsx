@@ -9,21 +9,28 @@ import {
   Spinner,
   ListGroup,
   ListGroupItem,
+  Row,
+  Col,
+  Modal,
+  ModalHeader,
+  ModalBody,
 } from "reactstrap";
 import {
   fetchLeadAttachments,
   uploadLeadAttachment,
   deleteLeadAttachment,
-  selectLeadAttachmentList,
   selectLeadAttachmentLoading,
   selectLeadAttachmentError,
+  selectLeadAttachmentsByLeadId,
 } from "../../slices/leadAttachments/leadAttachment.slice";
 import {
   LeadAttachmentItem,
-  downloadLeadAttachment,
 } from "../../services/leadAttachmentService";
 import { getLoggedinUser } from "../../helpers/api_helper";
 import { useFlash } from "../../hooks/useFlash";
+import AttachmentCard from "./AttachmentCard";
+import { formatFileSize } from "../../common/attachmentUtils";
+import { isImageFile, isPdfFile } from "../../common/attachmentUtils";
 
 interface LeadAttachmentManagerProps {
   leadId: string;
@@ -36,7 +43,10 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
 }) => {
   const dispatch = useDispatch<any>();
   const { showSuccess, showError } = useFlash();
-  const attachments: LeadAttachmentItem[] = useSelector(selectLeadAttachmentList);
+  // Use selector that filters by leadId
+  const attachments: LeadAttachmentItem[] = useSelector((state: any) =>
+    selectLeadAttachmentsByLeadId(state, leadId)
+  );
   const loading = useSelector(selectLeadAttachmentLoading);
   const error = useSelector(selectLeadAttachmentError);
   const authUser = getLoggedinUser();
@@ -44,12 +54,14 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<LeadAttachmentItem | null>(null);
+  const [previewModal, setPreviewModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (leadId) {
-      dispatch(fetchLeadAttachments({ leadId }));
+      dispatch(fetchLeadAttachments({ leadId, pageNumber: 1, pageSize: 100 }));
     }
   }, [dispatch, leadId]);
 
@@ -139,7 +151,7 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
         fileInputRef.current.value = "";
       }
       // Refresh attachments list
-      dispatch(fetchLeadAttachments({ leadId }));
+      dispatch(fetchLeadAttachments({ leadId, pageNumber: 1, pageSize: 100 }));
     } catch (err) {
       showError("Failed to upload files");
     } finally {
@@ -154,7 +166,7 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
         if (result.meta.requestStatus === "fulfilled") {
           showSuccess("Attachment deleted successfully");
           // Refresh attachments list
-          dispatch(fetchLeadAttachments({ leadId }));
+          dispatch(fetchLeadAttachments({ leadId, pageNumber: 1, pageSize: 100 }));
         } else {
           showError("Failed to delete attachment");
         }
@@ -164,25 +176,44 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  const handlePreview = (attachment: LeadAttachmentItem) => {
+    setPreviewAttachment(attachment);
+    setPreviewModal(true);
+  };
+
+  const handleDownload = (attachment: LeadAttachmentItem) => {
+    if (attachment.filePath) {
+      // For direct blob URLs, open in new tab for images/PDFs, download for others
+      if (isImageFile(attachment.fileName) || isPdfFile(attachment.fileName)) {
+        window.open(attachment.filePath, "_blank");
+      } else {
+        // Trigger download for other file types
+        const link = document.createElement("a");
+        link.href = attachment.filePath;
+        link.download = attachment.fileName;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } else {
+      showError("Download not available");
+    }
   };
 
 
   return (
-    <Card>
-      <CardBody>
-        <h5 className="card-title mb-3">Attachments</h5>
-        
-        {error && (
-          <Alert color="danger" className="mb-3">
-            {error}
-          </Alert>
-        )}
+    <>
+      <Card>
+        <CardBody>
+          <h5 className="card-title mb-3">Attachments</h5>
+          
+          {/* Only show error if there's an actual error from rejected thunk */}
+          {error && (
+            <Alert color="danger" className="mb-3">
+              {error}
+            </Alert>
+          )}
 
         {!readOnly && (
           <>
@@ -298,79 +329,107 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
           </>
         )}
 
-        {loading && attachments.length === 0 ? (
-          <div className="text-center py-3">
-            <Spinner color="primary" />
-            <p className="mt-2 text-muted">Loading attachments...</p>
-          </div>
-        ) : !loading && attachments.length === 0 ? (
-          <Alert color="info" className="mb-0">
-            No attachments found
-          </Alert>
-        ) : (
-          <ListGroup>
-            {attachments.map((attachment) => (
-              <ListGroupItem
-                key={attachment.id}
-                className="d-flex justify-content-between align-items-center"
-              >
-                <div className="flex-grow-1">
-                  <div className="d-flex align-items-center">
-                    <i className="ri-file-line fs-4 text-primary me-2"></i>
-                    <div>
-                      <h6 className="mb-0">{attachment.fileName}</h6>
-                      <small className="text-muted">
-                        {formatFileSize(attachment.fileSizeBytes)}
-                      </small>
-                    </div>
+          {loading && attachments.length === 0 ? (
+            <div className="text-center py-5">
+              <Spinner color="primary" />
+              <p className="mt-2 text-muted">Loading attachments...</p>
+            </div>
+          ) : !loading && attachments.length === 0 ? (
+            <Alert color="info" className="mb-0">
+              <i className="ri-inbox-line align-middle me-2"></i>
+              No attachments found for this lead
+            </Alert>
+          ) : (
+            <Row className="row-cols-xxl-4 row-cols-xl-3 row-cols-lg-2 row-cols-md-2 row-cols-1 g-4">
+              {attachments.map((attachment) => (
+                <Col key={attachment.id}>
+                  <AttachmentCard
+                    attachment={attachment}
+                    onPreview={handlePreview}
+                    onDownload={handleDownload}
+                    onDelete={handleDelete}
+                    readOnly={readOnly}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Preview Modal */}
+      <Modal
+        isOpen={previewModal}
+        toggle={() => {
+          setPreviewModal(false);
+          setPreviewAttachment(null);
+        }}
+        size="lg"
+        centered
+      >
+        <ModalHeader toggle={() => {
+          setPreviewModal(false);
+          setPreviewAttachment(null);
+        }}>
+          {previewAttachment?.fileName}
+        </ModalHeader>
+        <ModalBody>
+          {previewAttachment && (
+            <>
+              {isImageFile(previewAttachment.fileName) && previewAttachment.filePath ? (
+                <div className="text-center">
+                  <img
+                    src={previewAttachment.filePath}
+                    alt={previewAttachment.fileName}
+                    className="img-fluid"
+                    style={{ maxHeight: "70vh" }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      const errorDiv = target.nextElementSibling as HTMLElement;
+                      if (errorDiv) errorDiv.style.display = "block";
+                    }}
+                  />
+                  <div className="d-none mt-3">
+                    <Alert color="warning">
+                      <i className="ri-error-warning-line align-middle me-2"></i>
+                      Image failed to load. Please try downloading the file.
+                    </Alert>
                   </div>
                 </div>
-                <div className="d-flex gap-2">
-                  <Button
-                    size="sm"
-                    color="soft-primary"
-                    onClick={async () => {
-                      try {
-                        // Download directly from filePath URL
-                        const blob = await downloadLeadAttachment(attachment);
-                        const url = window.URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = url;
-                        link.download = attachment.fileName;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(url);
-                      } catch (error) {
-                        // Fallback to opening file path directly
-                        if (attachment.filePath) {
-                          window.open(attachment.filePath, "_blank");
-                        } else {
-                          showError("Download not available");
-                        }
-                      }
-                    }}
-                    title="Download"
-                  >
-                    <i className="ri-download-line"></i>
-                  </Button>
-                  {!readOnly && (
-                    <Button
-                      size="sm"
-                      color="soft-danger"
-                      onClick={() => handleDelete(attachment.id)}
-                      title="Delete"
-                    >
-                      <i className="ri-delete-bin-line"></i>
-                    </Button>
-                  )}
+              ) : isPdfFile(previewAttachment.fileName) && previewAttachment.filePath ? (
+                <div className="text-center">
+                  <iframe
+                    src={previewAttachment.filePath}
+                    title={previewAttachment.fileName}
+                    style={{ width: "100%", height: "70vh", border: "none" }}
+                  />
                 </div>
-              </ListGroupItem>
-            ))}
-          </ListGroup>
-        )}
-      </CardBody>
-    </Card>
+              ) : (
+                <Alert color="info">
+                  <i className="ri-information-line align-middle me-2"></i>
+                  Preview is not available for this file type. Please download to view.
+                </Alert>
+              )}
+              <div className="mt-3 d-flex justify-content-between align-items-center">
+                <small className="text-muted">
+                  Size: {formatFileSize(previewAttachment.fileSizeBytes)}
+                </small>
+                <Button
+                  color="primary"
+                  onClick={() => {
+                    handleDownload(previewAttachment);
+                  }}
+                >
+                  <i className="ri-download-line align-bottom me-1"></i>
+                  Download
+                </Button>
+              </div>
+            </>
+          )}
+        </ModalBody>
+      </Modal>
+    </>
   );
 };
 

@@ -87,19 +87,22 @@ const leadAttachmentSlice = createSlice({
       })
       .addCase(fetchLeadAttachments.fulfilled, (state, action) => {
         state.loading = false;
+        state.error = null; // Clear any previous errors on successful fetch
         // Make sure we're correctly handling the items
-        if (action.payload && action.payload.items) {
+        if (action.payload && action.payload.items && Array.isArray(action.payload.items)) {
+          // Filter out deleted items and store the filtered list
           state.items = action.payload.items.filter((item) => !item.isDeleted);
-          state.pageNumber = action.payload.pageNumber;
-          state.pageSize = action.payload.pageSize;
-          state.totalCount = action.payload.totalCount;
-          state.totalPages = action.payload.totalPages;
+          state.pageNumber = action.payload.pageNumber || 1;
+          state.pageSize = action.payload.pageSize || 100;
+          state.totalCount = action.payload.totalCount || 0;
+          state.totalPages = action.payload.totalPages || 0;
         } else {
+          // Empty response - clear items but keep pagination metadata if provided
           state.items = [];
-          state.pageNumber = 1;
-          state.pageSize = 100;
-          state.totalCount = 0;
-          state.totalPages = 0;
+          state.pageNumber = action.payload?.pageNumber || 1;
+          state.pageSize = action.payload?.pageSize || 100;
+          state.totalCount = action.payload?.totalCount || 0;
+          state.totalPages = action.payload?.totalPages || 0;
         }
       })
       .addCase(fetchLeadAttachments.rejected, (state, action) => {
@@ -149,3 +152,9 @@ export const selectLeadAttachmentError = (state: any) =>
   state.LeadAttachments?.error || null;
 export const selectLeadAttachmentTotalCount = (state: any) =>
   state.LeadAttachments?.totalCount || 0;
+
+// Selector to filter attachments by leadId
+export const selectLeadAttachmentsByLeadId = (state: any, leadId: string) => {
+  const items = state.LeadAttachments?.items || [];
+  return items.filter((item: LeadAttachmentItem) => item.leadId === leadId);
+};

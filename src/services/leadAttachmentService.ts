@@ -104,9 +104,10 @@ export const getLeadAttachments = async (
     },
   });
   
-  // Return the response data directly without client-side filtering
+  // Axios interceptor already unwraps response.data, so response IS the data
+  // Return directly - API returns: { items: [], pageNumber, pageSize, totalCount, ... }
   // The API should already filter by leadId and non-deleted items
-  return response.data;
+  return response as unknown as LeadAttachmentResponse;
 };
 
 // Upload a new attachment
