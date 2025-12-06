@@ -16,11 +16,11 @@ import ClientCreate from "../pages/Clients/Client/ClientCreate";
 import ClientEdit from "../pages/Clients/Client/ClientEdit";
 import ClientView from "../pages/Clients/Client/ClientView";
 import MeetingSchedule from "../pages/Clients/Meeting/Meetings";
-import MeetingsList from "../pages/Clients/Meeting/MeetingsList";
 import MeetingCreate from "../pages/Clients/Meeting/MeetingCreate";
 import MeetingEdit from "../pages/Clients/Meeting/MeetingEdit";
 import MeetingView from "../pages/Clients/Meeting/MeetingView";
 import MeetingCalendar from "../pages/Clients/Meeting/MeetingCalendar";
+import MeetingReschedule from "../pages/Clients/Meeting/MeetingReschedule";
 
 // Site Management
 import SitesList from "../pages/Clients/Site/SitesList";
@@ -97,10 +97,10 @@ const authProtectedRoutes = [
 
   // Meeting Management
   { path: "/meetings", component: <MeetingSchedule /> },
-  { path: "/meetings/list", component: <MeetingsList /> },
   { path: "/meetings/create", component: <MeetingCreate /> },
   { path: "/meetings/edit/:id", component: <MeetingEdit /> },
   { path: "/meetings/view/:id", component: <MeetingView /> },
+  { path: "/meetings/reschedule/:id", component: <MeetingReschedule /> },
   { path: "/meetings/calendar", component: <MeetingCalendar /> },
 
   // Site Management

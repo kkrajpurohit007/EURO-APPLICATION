@@ -55,6 +55,9 @@ import RolesReducer from "./roles/role.slice";
 // Global Users
 import GlobalUsersReducer from "./globalUsers/globalUser.slice";
 
+// Client Meetings
+import ClientMeetingsReducer from "./clientMeetings/clientMeeting.slice";
+
 // Notifications
 import NotificationReducer from "./notifications/notificationSlice";
 
@@ -80,6 +83,7 @@ const rootReducer = combineReducers({
   UserProfiles: UserProfilesReducer,
   Roles: RolesReducer,
   GlobalUsers: GlobalUsersReducer,
+  ClientMeetings: ClientMeetingsReducer,
   Notifications: NotificationReducer,
 });
 

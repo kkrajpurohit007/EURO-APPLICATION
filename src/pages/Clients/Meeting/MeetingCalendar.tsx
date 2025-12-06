@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Card,
@@ -16,6 +16,7 @@ import {
   Form,
   FormFeedback,
 } from "reactstrap";
+import Select from "react-select";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
@@ -28,39 +29,58 @@ import SimpleBar from "simplebar-react";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import Loader from "../../../Components/Common/Loader";
 import {
-  getMeetings,
-  addNewMeeting as onAddNewMeeting,
-  updateMeeting as onUpdateMeeting,
-  deleteMeeting as onDeleteMeeting,
-} from "../../../slices/thunks";
-import { Meeting } from "../../../slices/meetings/reducer";
+  selectClientMeetingsList,
+  fetchClientMeetings,
+  updateClientMeeting,
+  createClientMeeting,
+  deleteClientMeeting,
+  selectClientMeetingLoading,
+} from "../../../slices/clientMeetings/clientMeeting.slice";
+import { selectClientList } from "../../../slices/clients/client.slice";
+import { fetchClients } from "../../../slices/clients/client.slice";
+import {
+  ClientMeeting,
+  MEETING_TYPE_MAP,
+  MEETING_STATUS_MAP,
+} from "../../../slices/clientMeetings/clientMeeting.fakeData";
 import { PAGE_TITLES } from "../../../common/branding";
-
-// Categories for meeting types
-const categories = [
-  { id: 1, title: "Client Meeting", type: "bg-info-subtle text-info" },
-  { id: 2, title: "Site Inspection", type: "bg-warning-subtle text-warning" },
-  { id: 3, title: "Internal Meeting", type: "bg-success-subtle text-success" },
-  { id: 4, title: "Training", type: "bg-primary-subtle text-primary" },
-];
 
 const MeetingCalendar: React.FC = () => {
   document.title = PAGE_TITLES.MEETING_CALENDAR;
 
   const dispatch: any = useDispatch();
 
-  const { meetings } = useSelector((state: any) => state.Meetings);
-  const [loading, setLoading] = useState(true);
+  const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
+  const loading = useSelector(selectClientMeetingLoading);
+  const clients = useSelector(selectClientList);
+
   const [modal, setModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [event, setEvent] = useState<any>({});
   const [selectedDay, setSelectedDay] = useState<any>(0);
   const [isEdit, setIsEdit] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  const [dayMeetingsModal, setDayMeetingsModal] = useState(false);
+  const [selectedDayMeetings, setSelectedDayMeetings] = useState<ClientMeeting[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
+  // Fetch clients if not loaded
   useEffect(() => {
-    dispatch(getMeetings());
-    setTimeout(() => setLoading(false), 500);
-  }, [dispatch]);
+    if (!clients || clients.length === 0) {
+      dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, clients]);
+
+  // Fetch meetings when selected client changes
+  useEffect(() => {
+    dispatch(
+      fetchClientMeetings({
+        clientId: selectedClientId,
+        pageNumber: 1,
+        pageSize: 100, // Get more meetings for calendar view
+      })
+    );
+  }, [dispatch, selectedClientId]);
 
   // Initialize draggable external events
   useEffect(() => {
@@ -78,41 +98,101 @@ const MeetingCalendar: React.FC = () => {
     }
   }, []);
 
+  const clientOptions = useMemo(() => {
+    return [
+      { value: "", label: "All Clients" },
+      ...clients
+        .filter((c: any) => !c.isDeleted)
+        .map((client: any) => ({
+          value: client.id,
+          label: client.name,
+        })),
+    ];
+  }, [clients]);
+
+  // Filter meetings by selected client
+  const filteredMeetings = useMemo(() => {
+    if (!meetings) return [];
+    let filtered = meetings.filter((m) => !m.isDeleted);
+    if (selectedClientId) {
+      filtered = filtered.filter((m) => m.clientId === selectedClientId);
+    }
+    return filtered;
+  }, [meetings, selectedClientId]);
+
+  // Group meetings by date
+  const meetingsByDate = useMemo(() => {
+    const grouped: Record<string, ClientMeeting[]> = {};
+    filteredMeetings.forEach((meeting: ClientMeeting) => {
+      const dateKey = meeting.meetingDate.split("T")[0];
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(meeting);
+    });
+    return grouped;
+  }, [filteredMeetings]);
+
   // Convert meetings to FullCalendar events
-  const calendarEvents = meetings.map((meeting: Meeting) => ({
-    id: meeting.id,
-    title: meeting.title,
-    start: `${meeting.meetingDate}T${meeting.meetingTime}`,
-    end: meeting.endTime
-      ? `${meeting.meetingDate}T${meeting.endTime}`
-      : undefined,
-    className: getStatusClassName(meeting.status),
-    extendedProps: {
-      clientName: meeting.clientName,
-      location: meeting.location,
-      locationType: meeting.locationType,
-      meetingLink: meeting.meetingLink,
-      attendees: meeting.attendees,
-      organizer: meeting.organizer,
-      agenda: meeting.agenda,
-      notes: meeting.notes,
-      status: meeting.status,
-      meetingType: meeting.meetingType,
-      priority: meeting.priority,
-      duration: meeting.duration,
-    },
-  }));
+  const calendarEvents = useMemo(() => {
+    const events: any[] = [];
+    
+    Object.keys(meetingsByDate).forEach((dateKey) => {
+      const dayMeetings = meetingsByDate[dateKey];
+      
+      if (dayMeetings.length <= 2) {
+        // Show individual events if 2 or fewer meetings
+        dayMeetings.forEach((meeting: ClientMeeting) => {
+          const startDateTime = `${dateKey}T${meeting.meetingStartTime}`;
+          const endDateTime = meeting.meetingEndTime ? `${dateKey}T${meeting.meetingEndTime}` : undefined;
+
+          events.push({
+            id: meeting.id,
+            title: meeting.meetingTitle || "Untitled Meeting",
+            start: startDateTime,
+            end: endDateTime,
+            className: getStatusClassName(meeting.meetingStatus),
+            extendedProps: {
+              clientName: meeting.clientName,
+              location: meeting.meetingLocation,
+              meetingType: MEETING_TYPE_MAP[meeting.meetingType] || "Unknown",
+              organizer: meeting.organizerUserName,
+              status: MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown",
+              description: meeting.meetingDescription,
+              meeting: meeting,
+            },
+          });
+        });
+      } else {
+        // Show a single "more" event if more than 2 meetings
+        events.push({
+          id: `more-${dateKey}`,
+          title: `${dayMeetings.length} Meetings`,
+          start: dateKey,
+          allDay: true,
+          className: "bg-primary-subtle text-primary fw-semibold",
+          extendedProps: {
+            isMoreEvent: true,
+            date: dateKey,
+            meetings: dayMeetings,
+          },
+        });
+      }
+    });
+    
+    return events;
+  }, [meetingsByDate]);
 
   // Get status class name for calendar events
-  function getStatusClassName(status: string) {
+  function getStatusClassName(status: number) {
     switch (status) {
-      case "Scheduled":
+      case 1: // Scheduled
         return "bg-info-subtle text-info";
-      case "In Progress":
+      case 2: // In Progress
         return "bg-warning-subtle text-warning";
-      case "Completed":
+      case 3: // Completed
         return "bg-success-subtle text-success";
-      case "Cancelled":
+      case 4: // Cancelled
         return "bg-danger-subtle text-danger";
       default:
         return "bg-info-subtle text-info";
@@ -144,58 +224,143 @@ const MeetingCalendar: React.FC = () => {
     setModal(true);
   };
 
-  // Handle event click - view/edit meeting
+  // Handle event click - view/edit meeting or show day meetings
   const handleEventClick = (arg: any) => {
     const clickedEvent = arg.event;
-    const meeting = meetings.find(
-      (m: Meeting) => String(m.id) === String(clickedEvent.id)
+    const extendedProps = clickedEvent.extendedProps || {};
+    
+    // If it's a "more" event, show all meetings for that day
+    if (extendedProps.isMoreEvent && extendedProps.meetings) {
+      setSelectedDayMeetings(extendedProps.meetings);
+      setSelectedDate(extendedProps.date);
+      setDayMeetingsModal(true);
+      return;
+    }
+    
+    // Otherwise, handle individual meeting click
+    const meeting = extendedProps.meeting || filteredMeetings.find(
+      (m: ClientMeeting) => String(m.id) === String(clickedEvent.id)
     );
 
     if (meeting) {
+      const startDateTime = meeting.meetingDate
+        ? `${meeting.meetingDate.split("T")[0]}T${meeting.meetingStartTime}`
+        : "";
+      const endDateTime = meeting.meetingEndTime
+        ? `${meeting.meetingDate.split("T")[0]}T${meeting.meetingEndTime}`
+        : "";
+
       setEvent({
         id: meeting.id,
-        title: meeting.title,
-        start: new Date(`${meeting.meetingDate}T${meeting.meetingTime}`),
-        end: meeting.endTime
-          ? new Date(`${meeting.meetingDate}T${meeting.endTime}`)
-          : "",
+        title: meeting.meetingTitle || "Untitled Meeting",
+        start: startDateTime ? new Date(startDateTime) : new Date(),
+        end: endDateTime ? new Date(endDateTime) : "",
         clientName: meeting.clientName,
-        location: meeting.location,
-        locationType: meeting.locationType,
-        meetingLink: meeting.meetingLink,
-        attendees: meeting.attendees,
-        organizer: meeting.organizer,
-        agenda: meeting.agenda,
-        notes: meeting.notes,
-        status: meeting.status,
-        meetingType: meeting.meetingType,
-        priority: meeting.priority,
-        className: getStatusClassName(meeting.status),
+        location: meeting.meetingLocation,
+        meetingType: MEETING_TYPE_MAP[meeting.meetingType] || "Unknown",
+        organizer: meeting.organizerUserName,
+        description: meeting.meetingDescription,
+        status: MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown",
+        className: getStatusClassName(meeting.meetingStatus),
       });
       setIsEdit(true);
       setModal(true);
     }
   };
 
+  // Handle event mouse enter - show count on hover for days with multiple meetings
+  const handleEventMouseEnter = (arg: any) => {
+    const extendedProps = arg.event.extendedProps || {};
+    if (extendedProps.isMoreEvent && extendedProps.meetings) {
+      // Remove any existing tooltip first
+      const existingTooltip = document.querySelector(".fc-event-tooltip");
+      if (existingTooltip && document.body.contains(existingTooltip)) {
+        try {
+          document.body.removeChild(existingTooltip);
+        } catch (e) {
+          // Tooltip already removed, ignore
+        }
+      }
+      
+      const tooltip = document.createElement("div");
+      tooltip.className = "fc-event-tooltip";
+      tooltip.innerHTML = `${extendedProps.meetings.length} meetings on this day. Click to view all.`;
+      tooltip.style.cssText = `
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 10000;
+        pointer-events: none;
+        white-space: nowrap;
+      `;
+      document.body.appendChild(tooltip);
+      
+      let isRemoved = false;
+      
+      const updateTooltipPosition = (e: MouseEvent) => {
+        if (!isRemoved && tooltip.parentNode && document.body.contains(tooltip)) {
+          tooltip.style.left = `${e.pageX + 10}px`;
+          tooltip.style.top = `${e.pageY - 10}px`;
+        }
+      };
+      
+      const removeTooltip = () => {
+        if (isRemoved) return;
+        
+        if (tooltip && document.body.contains(tooltip)) {
+          try {
+            document.body.removeChild(tooltip);
+            isRemoved = true;
+          } catch (e) {
+            // Tooltip already removed, ignore
+            isRemoved = true;
+          }
+        } else {
+          isRemoved = true;
+        }
+        
+        document.removeEventListener("mousemove", updateTooltipPosition);
+        document.removeEventListener("mouseleave", removeTooltip);
+      };
+      
+      const handleMouseLeave = () => {
+        removeTooltip();
+      };
+      
+      document.addEventListener("mousemove", updateTooltipPosition);
+      document.addEventListener("mouseleave", removeTooltip);
+      arg.el.addEventListener("mouseleave", handleMouseLeave);
+      
+      // Store cleanup function on the element
+      (arg.el as any).__tooltipCleanup = handleMouseLeave;
+    }
+  };
+
   // Handle event drop - reschedule meeting
   const handleEventDrop = (arg: any) => {
     const droppedEvent = arg.event;
-    const meeting = meetings.find((m: Meeting) => m.id === droppedEvent.id);
+    const meeting = filteredMeetings.find((m: ClientMeeting) => m.id === droppedEvent.id);
 
     if (meeting) {
-      const newDate = droppedEvent.start.toISOString().split("T")[0];
-      const newTime = droppedEvent.start
-        .toTimeString()
-        .split(" ")[0]
-        .substring(0, 5);
+      const newDate = droppedEvent.start.toISOString();
+      const newStartTime = droppedEvent.start.toTimeString().split(" ")[0];
+      const newEndTime = droppedEvent.end
+        ? droppedEvent.end.toTimeString().split(" ")[0]
+        : meeting.meetingEndTime || newStartTime;
 
-      const updatedMeeting = {
-        ...meeting,
-        meetingDate: newDate,
-        meetingTime: newTime,
-      };
-
-      dispatch(onUpdateMeeting(updatedMeeting));
+      dispatch(
+        updateClientMeeting({
+          id: meeting.id,
+          data: {
+            meetingDate: newDate.split("T")[0],
+            meetingStartTime: newStartTime,
+            meetingEndTime: newEndTime,
+          },
+        })
+      );
     }
   };
 
@@ -246,33 +411,22 @@ const MeetingCalendar: React.FC = () => {
         const startDate = new Date(values.start);
         const endDate = values.end ? new Date(values.end) : null;
 
-        const updatedMeeting = {
-          id: event.id,
-          title: values.title,
-          clientId: "client-001", // Default for now
-          clientName: values.clientName,
-          meetingDate: startDate.toISOString().split("T")[0],
-          meetingTime: startDate.toTimeString().split(" ")[0].substring(0, 5),
-          endTime: endDate
-            ? endDate.toTimeString().split(" ")[0].substring(0, 5)
-            : "",
-          duration: calculateDuration(values.start, values.end),
-          location: values.location,
-          locationType: values.locationType,
-          meetingLink: values.meetingLink,
-          attendees: event.attendees || [],
-          organizer: values.organizer,
-          agenda: values.agenda,
-          notes: values.notes,
-          status: values.status,
-          meetingType: values.meetingType,
-          priority: values.priority,
-          reminders: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        dispatch(onUpdateMeeting(updatedMeeting));
+        dispatch(
+          updateClientMeeting({
+            id: event.id,
+            data: {
+              meetingTitle: values.title,
+              meetingDescription: values.agenda,
+              meetingDate: startDate.toISOString(),
+              meetingStartTime: startDate.toTimeString().split(" ")[0],
+              meetingEndTime: endDate
+                ? endDate.toTimeString().split(" ")[0]
+                : startDate.toTimeString().split(" ")[0],
+              meetingLocation: values.location,
+              meetingType: values.meetingType === "Virtual" ? 2 : values.meetingType === "Phone" ? 3 : values.meetingType === "Hybrid" ? 4 : 1,
+            },
+          })
+        );
       } else {
         // Create new meeting
         const startDate = new Date(values.start);
@@ -304,7 +458,9 @@ const MeetingCalendar: React.FC = () => {
           updatedAt: new Date().toISOString(),
         };
 
-        dispatch(onAddNewMeeting(newMeeting));
+        // Note: Calendar create should redirect to create form
+        // For now, we'll skip direct creation from calendar
+        window.location.href = "/meetings/create";
       }
 
       toggle();
@@ -333,7 +489,9 @@ const MeetingCalendar: React.FC = () => {
 
   // Handle delete meeting
   const handleDeleteEvent = () => {
-    dispatch(onDeleteMeeting(event.id));
+    if (event.id) {
+      dispatch(deleteClientMeeting(event.id));
+    }
     setDeleteModal(false);
     toggle();
   };
@@ -343,14 +501,14 @@ const MeetingCalendar: React.FC = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return meetings
-      .filter((meeting: Meeting) => {
+    return filteredMeetings
+      .filter((meeting: ClientMeeting) => {
         const meetingDate = new Date(meeting.meetingDate);
-        return meetingDate >= today && meeting.status !== "Cancelled";
+        return meetingDate >= today && meeting.meetingStatus !== 4; // 4 = Cancelled
       })
-      .sort((a: Meeting, b: Meeting) => {
-        const dateA = new Date(`${a.meetingDate}T${a.meetingTime}`);
-        const dateB = new Date(`${b.meetingDate}T${b.meetingTime}`);
+      .sort((a: ClientMeeting, b: ClientMeeting) => {
+        const dateA = new Date(`${a.meetingDate.split("T")[0]}T${a.meetingStartTime}`);
+        const dateB = new Date(`${b.meetingDate.split("T")[0]}T${b.meetingStartTime}`);
         return dateA.getTime() - dateB.getTime();
       })
       .slice(0, 10);
@@ -375,6 +533,23 @@ const MeetingCalendar: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <BreadCrumb title="Meeting Calendar" pageTitle="Meetings" />
+          <Row className="mb-3">
+            <Col md={4}>
+              <Label className="form-label">Filter by Client</Label>
+              <Select
+                value={clientOptions.find(
+                  (opt: any) => opt.value === selectedClientId
+                )}
+                onChange={(selectedOption: any) => {
+                  setSelectedClientId(selectedOption?.value || undefined);
+                }}
+                options={clientOptions}
+                placeholder="Select Client"
+                classNamePrefix="select2-selection"
+                isClearable
+              />
+            </Col>
+          </Row>
           <Row>
             <Col xs={12}>
               <Row>
@@ -398,7 +573,12 @@ const MeetingCalendar: React.FC = () => {
                         <p className="text-muted">
                           Drag and drop your meeting type to the calendar
                         </p>
-                        {categories.map((category) => (
+                        {[
+                          { id: 1, title: "In Person", type: "bg-info-subtle text-info" },
+                          { id: 2, title: "Virtual", type: "bg-warning-subtle text-warning" },
+                          { id: 3, title: "Phone", type: "bg-success-subtle text-success" },
+                          { id: 4, title: "Hybrid", type: "bg-primary-subtle text-primary" },
+                        ].map((category: any) => (
                           <div
                             className={`external-event fc-event ${category.type} mb-2`}
                             key={category.id}
@@ -414,10 +594,9 @@ const MeetingCalendar: React.FC = () => {
                         <h5 className="mb-3">Upcoming Meetings</h5>
                         <SimpleBar style={{ maxHeight: "420px" }}>
                           <div className="d-flex flex-column gap-3">
-                            {getUpcomingMeetings().map((m: Meeting) => {
-                              const d = new Date(
-                                `${m.meetingDate}T${m.meetingTime || "09:00"}`
-                              );
+                            {getUpcomingMeetings().map((m: ClientMeeting) => {
+                              const startDateTime = `${m.meetingDate.split("T")[0]}T${m.meetingStartTime || "09:00:00"}`;
+                              const d = new Date(startDateTime);
                               const month = d
                                 .toLocaleString("default", { month: "short" })
                                 .toUpperCase();
@@ -425,10 +604,9 @@ const MeetingCalendar: React.FC = () => {
                               const weekday = d.toLocaleString("default", {
                                 weekday: "short",
                               });
-                              const online =
-                                m.locationType === "Virtual" ||
-                                m.locationType === "Hybrid";
-                              const duration = m.duration || "60 mins";
+                              const online = m.meetingType === 2 || m.meetingType === 4; // Virtual or Hybrid
+                              const startTime = m.meetingStartTime?.substring(0, 5) || "09:00";
+                              const endTime = m.meetingEndTime?.substring(0, 5) || "10:00";
                               return (
                                 <div
                                   key={m.id}
@@ -458,10 +636,10 @@ const MeetingCalendar: React.FC = () => {
                                           <Badge
                                             color=""
                                             className={`text-uppercase ${getStatusClassName(
-                                              m.status
+                                              m.meetingStatus
                                             )} px-2 py-1`}
                                           >
-                                            {m.status}
+                                            {MEETING_STATUS_MAP[m.meetingStatus] || "Unknown"}
                                           </Badge>
                                           {online && (
                                             <span className="text-muted d-inline-flex align-items-center">
@@ -470,32 +648,30 @@ const MeetingCalendar: React.FC = () => {
                                             </span>
                                           )}
                                         </div>
-                                        <h6 className="mb-1">{m.title}</h6>
+                                        <h6 className="mb-1">{m.meetingTitle || "Untitled Meeting"}</h6>
                                         <div className="text-muted mb-2 d-flex align-items-center">
                                           <i className="mdi mdi-account me-1" />{" "}
-                                          {m.clientName}
+                                          {m.clientName || "-"}
                                         </div>
-                                        {m.meetingLink && (
-                                          <div className="mb-2">
-                                            <i className="mdi mdi-link-variant me-1" />
-                                            <a
-                                              href={m.meetingLink}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                              className="text-decoration-underline"
-                                            >
-                                              {m.meetingLink}
-                                            </a>
+                                        {m.organizerUserName && (
+                                          <div className="text-muted mb-2 d-flex align-items-center">
+                                            <i className="mdi mdi-account-circle me-1" />{" "}
+                                            Organizer: {m.organizerUserName}
                                           </div>
                                         )}
                                         <div className="text-muted mb-2 d-flex align-items-center">
                                           <i className="mdi mdi-clock-outline me-1" />{" "}
-                                          {formatTime(m.meetingTime)} (
-                                          {duration})
+                                          {formatTime(startTime)} - {formatTime(endTime)}
                                         </div>
-                                        {m.agenda && (
+                                        {m.meetingLocation && (
+                                          <div className="text-muted mb-2 d-flex align-items-center">
+                                            <i className="mdi mdi-map-marker me-1" />{" "}
+                                            {m.meetingLocation}
+                                          </div>
+                                        )}
+                                        {m.meetingDescription && (
                                           <div className="bg-light rounded p-2 fst-italic text-muted">
-                                            {m.agenda}
+                                            {m.meetingDescription}
                                           </div>
                                         )}
                                       </div>
@@ -535,8 +711,32 @@ const MeetingCalendar: React.FC = () => {
                         selectable={true}
                         dateClick={handleDateClick}
                         eventClick={handleEventClick}
+                        eventMouseEnter={handleEventMouseEnter}
+                        eventMouseLeave={() => {
+                          // Cleanup tooltip when mouse leaves any event
+                          const existingTooltip = document.querySelector(".fc-event-tooltip");
+                          if (existingTooltip && document.body.contains(existingTooltip)) {
+                            try {
+                              document.body.removeChild(existingTooltip);
+                            } catch (e) {
+                              // Tooltip already removed, ignore
+                            }
+                          }
+                        }}
                         eventDrop={handleEventDrop}
                         initialView="dayGridMonth"
+                        eventContent={(arg) => {
+                          const extendedProps = arg.event.extendedProps || {};
+                          if (extendedProps.isMoreEvent) {
+                            return {
+                              html: `<div class="d-flex align-items-center justify-content-center gap-1">
+                                <i class="ri-calendar-event-line"></i>
+                                <span class="fw-semibold">${extendedProps.meetings?.length || 0} Meetings</span>
+                              </div>`,
+                            };
+                          }
+                          return null; // Use default rendering
+                        }}
                       />
                     </CardBody>
                   </Card>
@@ -783,6 +983,125 @@ const MeetingCalendar: React.FC = () => {
                       </Button>
                     </div>
                   </Form>
+                </ModalBody>
+              </Modal>
+
+              {/* Day Meetings Modal - Shows all meetings for a day */}
+              <Modal isOpen={dayMeetingsModal} toggle={() => setDayMeetingsModal(false)} size="lg" centered>
+                <ModalHeader toggle={() => setDayMeetingsModal(false)}>
+                  Meetings on {selectedDate ? new Date(selectedDate).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }) : ""}
+                </ModalHeader>
+                <ModalBody>
+                  <div className="d-flex flex-column gap-3">
+                    {selectedDayMeetings.length === 0 ? (
+                      <p className="text-muted text-center py-4">No meetings found</p>
+                    ) : (
+                      selectedDayMeetings
+                        .sort((a, b) => {
+                          const timeA = a.meetingStartTime || "00:00:00";
+                          const timeB = b.meetingStartTime || "00:00:00";
+                          return timeA.localeCompare(timeB);
+                        })
+                        .map((meeting: ClientMeeting) => {
+                          const startTime = meeting.meetingStartTime?.substring(0, 5) || "";
+                          const endTime = meeting.meetingEndTime?.substring(0, 5) || "";
+                          return (
+                            <Card
+                              key={meeting.id}
+                              className="border shadow-sm"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                setDayMeetingsModal(false);
+                                const startDateTime = `${meeting.meetingDate.split("T")[0]}T${meeting.meetingStartTime}`;
+                                const endDateTime = meeting.meetingEndTime
+                                  ? `${meeting.meetingDate.split("T")[0]}T${meeting.meetingEndTime}`
+                                  : "";
+                                setEvent({
+                                  id: meeting.id,
+                                  title: meeting.meetingTitle || "Untitled Meeting",
+                                  start: startDateTime ? new Date(startDateTime) : new Date(),
+                                  end: endDateTime ? new Date(endDateTime) : "",
+                                  clientName: meeting.clientName,
+                                  location: meeting.meetingLocation,
+                                  meetingType: MEETING_TYPE_MAP[meeting.meetingType] || "Unknown",
+                                  organizer: meeting.organizerUserName,
+                                  description: meeting.meetingDescription,
+                                  status: MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown",
+                                  className: getStatusClassName(meeting.meetingStatus),
+                                });
+                                setIsEdit(true);
+                                setModal(true);
+                              }}
+                            >
+                              <CardBody className="p-3">
+                                <div className="d-flex align-items-start justify-content-between">
+                                  <div className="flex-grow-1">
+                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                      <Badge
+                                        color=""
+                                        className={`text-uppercase ${getStatusClassName(
+                                          meeting.meetingStatus
+                                        )} px-2 py-1`}
+                                      >
+                                        {MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown"}
+                                      </Badge>
+                                      <span className="text-muted fs-13">
+                                        {MEETING_TYPE_MAP[meeting.meetingType] || "Unknown"}
+                                      </span>
+                                    </div>
+                                    <h6 className="mb-1">{meeting.meetingTitle || "Untitled Meeting"}</h6>
+                                    <div className="text-muted mb-1 d-flex align-items-center">
+                                      <i className="ri-time-line me-1"></i>
+                                      {formatTime(startTime)} - {formatTime(endTime)}
+                                    </div>
+                                    {meeting.meetingLocation && (
+                                      <div className="text-muted mb-1 d-flex align-items-center">
+                                        <i className="ri-map-pin-line me-1"></i>
+                                        {meeting.meetingLocation}
+                                      </div>
+                                    )}
+                                    {meeting.clientName && (
+                                      <div className="text-muted mb-1 d-flex align-items-center">
+                                        <i className="ri-building-line me-1"></i>
+                                        {meeting.clientName}
+                                      </div>
+                                    )}
+                                    {meeting.organizerUserName && (
+                                      <div className="text-muted mb-1 d-flex align-items-center">
+                                        <i className="ri-user-line me-1"></i>
+                                        Organizer: {meeting.organizerUserName}
+                                      </div>
+                                    )}
+                                    {meeting.meetingDescription && (
+                                      <p className="text-muted mb-0 mt-2 fs-13">
+                                        {meeting.meetingDescription.length > 100
+                                          ? `${meeting.meetingDescription.substring(0, 100)}...`
+                                          : meeting.meetingDescription}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Button
+                                    color="light"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.location.href = `/meetings/view/${meeting.id}`;
+                                    }}
+                                  >
+                                    <i className="ri-eye-line"></i>
+                                  </Button>
+                                </div>
+                              </CardBody>
+                            </Card>
+                          );
+                        })
+                    )}
+                  </div>
                 </ModalBody>
               </Modal>
 

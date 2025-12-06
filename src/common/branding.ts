@@ -61,7 +61,6 @@ export const PAGE_TITLES = {
   CLIENT_SITE_VIEW: getPageTitle("View Site"),
 
   // Meetings
-  MEETINGS_LIST: getPageTitle("Meetings List"),
   MEETINGS_SCHEDULE: getPageTitle("Meetings & Schedule"),
   MEETING_CREATE: getPageTitle("Schedule Meeting"),
   MEETING_EDIT: getPageTitle("Edit Meeting"),

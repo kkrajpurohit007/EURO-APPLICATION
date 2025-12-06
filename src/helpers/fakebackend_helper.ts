@@ -40,6 +40,10 @@ import {
   initialGlobalUsers,
   GlobalUserItem,
 } from "../slices/globalUsers/globalUser.fakeData";
+import {
+  initialClientMeetings,
+  ClientMeeting,
+} from "../slices/clientMeetings/clientMeeting.fakeData";
 
 const api = new APIClient();
 
@@ -896,6 +900,116 @@ export const deleteClientSite = (id: string) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       clientSitesData = clientSitesData.filter((s) => s.id !== id);
+      resolve({ success: true });
+    }, 300);
+  });
+};
+
+// ========================
+// CLIENT MEETINGS API
+// ========================
+
+let clientMeetingsData = [...initialClientMeetings];
+
+export const getClientMeetings = (
+  pageNumber: number = 1,
+  pageSize: number = 20,
+  clientId?: string
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      let filteredData = clientMeetingsData.filter((m) => !m.isDeleted);
+      
+      // Filter by clientId if provided
+      if (clientId) {
+        filteredData = filteredData.filter((m) => m.clientId === clientId);
+      }
+      
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = filteredData.slice(start, end);
+      
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: filteredData.length,
+        totalPages: Math.ceil(filteredData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < filteredData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewClientMeeting = (meeting: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newMeeting: ClientMeeting = {
+        ...meeting,
+        id: (clientMeetingsData.length + 1).toString(),
+        isDeleted: false,
+        created: new Date().toISOString(),
+        meetingStatus: meeting.meetingStatus || 1,
+      };
+      clientMeetingsData.unshift(newMeeting);
+      resolve(newMeeting);
+    }, 300);
+  });
+};
+
+export const updateClientMeeting = (id: string, meeting: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientMeetingsData.findIndex((m) => m.id === id);
+      if (index !== -1) {
+        clientMeetingsData[index] = {
+          ...clientMeetingsData[index],
+          ...meeting,
+          modified: new Date().toISOString(),
+        };
+        resolve(clientMeetingsData[index]);
+      } else {
+        resolve(null);
+      }
+    }, 300);
+  });
+};
+
+export const rescheduleClientMeeting = (
+  id: string,
+  newDate: string,
+  newStartTime: string,
+  newEndTime: string
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientMeetingsData.findIndex((m) => m.id === id);
+      if (index !== -1) {
+        clientMeetingsData[index] = {
+          ...clientMeetingsData[index],
+          meetingDate: newDate,
+          meetingStartTime: newStartTime,
+          meetingEndTime: newEndTime,
+          modified: new Date().toISOString(),
+        };
+        resolve(clientMeetingsData[index]);
+      } else {
+        resolve(null);
+      }
+    }, 300);
+  });
+};
+
+export const deleteClientMeeting = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientMeetingsData.findIndex((m) => m.id === id);
+      if (index !== -1) {
+        // Soft delete
+        clientMeetingsData[index].isDeleted = true;
+        clientMeetingsData[index].modified = new Date().toISOString();
+      }
       resolve({ success: true });
     }, 300);
   });
