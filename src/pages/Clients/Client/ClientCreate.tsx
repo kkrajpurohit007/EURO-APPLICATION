@@ -75,6 +75,8 @@ const ClientCreate: React.FC = () => {
       address1: Yup.string().required("Address is required"),
       countryId: Yup.string().required("Country is required"),
       zipcode: Yup.string().required("Zipcode is required"),
+      managerFirstName: Yup.string().required("Manager first name is required"),
+      managerLastName: Yup.string().required("Manager last name is required"),
       managerEmailId: Yup.string()
         .email("Enter a valid email")
         .required("Manager email is required"),
