@@ -144,13 +144,6 @@ const ClientList: React.FC = () => {
               </Button>
               <Button
                 size="sm"
-                color="soft-info"
-                onClick={() => navigate(`/clients/${client.id}/rental-config`)}
-              >
-                <i className="ri-settings-line"></i>
-              </Button>
-              <Button
-                size="sm"
                 color="soft-danger"
                 onClick={() => onDelete(client.id)}
               >

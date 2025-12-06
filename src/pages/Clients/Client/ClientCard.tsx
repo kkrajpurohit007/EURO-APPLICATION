@@ -71,13 +71,6 @@ const ClientCard: React.FC<ClientCardProps> = ({ client, onDelete }) => {
             </Button>
             <Button
               size="sm"
-              color="soft-info"
-              onClick={() => navigate(`/clients/${client.id}/rental-config`)}
-            >
-              <i className="ri-settings-line align-bottom"></i> Rental
-            </Button>
-            <Button
-              size="sm"
               color="soft-danger"
               onClick={() => onDelete(client.id)}
             >

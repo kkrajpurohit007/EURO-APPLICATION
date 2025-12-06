@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Container,
   Row,
@@ -18,19 +18,77 @@ import {
   NavLink,
   TabContent,
   TabPane,
+  Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
+import ContactCard from "../Contact/ContactCard";
+import DeleteModal from "../../../Components/Common/DeleteModal";
 import { selectClientById } from "../../../slices/clients/client.slice";
-
+import {
+  selectClientContactList,
+  fetchClientContacts,
+  deleteClientContact,
+  selectClientContactLoading,
+  selectClientContactError,
+} from "../../../slices/clientContacts/clientContact.slice";
+import { ClientContactItem } from "../../../slices/clientContacts/clientContact.fakeData";
+import { filterContactsByClient } from "../Contact/utils/contactUtils";
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
 
 const ClientView: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_VIEW;
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch<any>();
+  const { showSuccess, showError } = useFlash();
   const client = useSelector((state: any) => selectClientById(state, id || ""));
+  const allContacts: ClientContactItem[] = useSelector(selectClientContactList);
+  const contactsLoading = useSelector(selectClientContactLoading);
+  const contactsError = useSelector(selectClientContactError);
   
   const [activeTab, setActiveTab] = useState("1");
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
+
+  // Fetch contacts on mount
+  useEffect(() => {
+    dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+  }, [dispatch]);
+
+  // Filter contacts by current client ID
+  const clientContacts = useMemo(() => {
+    if (!id || !allContacts) return [];
+    return filterContactsByClient(
+      allContacts.filter((c) => !c.isDeleted),
+      id
+    );
+  }, [allContacts, id]);
+
+  const handleDeleteContact = async (contactId: string) => {
+    setContactToDelete(contactId);
+    setDeleteModal(true);
+  };
+
+  const confirmDeleteContact = async () => {
+    if (!contactToDelete) return;
+    
+    try {
+      const result = await dispatch(deleteClientContact(contactToDelete));
+      if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Contact deleted successfully");
+        // Refresh contacts list
+        dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+      } else {
+        showError("Failed to delete contact");
+      }
+    } catch (err) {
+      showError("Failed to delete contact");
+    } finally {
+      setDeleteModal(false);
+      setContactToDelete(null);
+    }
+  };
 
   if (!client) {
     return (
@@ -85,16 +143,6 @@ const ClientView: React.FC = () => {
                       >
                         <i className="ri-contacts-line me-2"></i>
                         Client Contacts
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={activeTab === "3" ? "active" : ""}
-                        onClick={() => setActiveTab("3")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i className="ri-settings-3-line me-2"></i>
-                        Client Rental Configuration
                       </NavLink>
                     </NavItem>
                   </Nav>
@@ -250,31 +298,56 @@ const ClientView: React.FC = () => {
                   </TabPane>
                   
                   <TabPane tabId="2">
-                    <div className="text-center py-5">
-                      <i className="ri-contacts-line ri-2x text-muted mb-3"></i>
-                      <h5 className="text-muted">Client Contacts</h5>
-                      <p className="text-muted mb-4">
-                        Manage client contacts and communication preferences.
-                      </p>
-                      <Link to={`/clients/contacts?clientId=${id}`} className="btn btn-primary">
-                        <i className="ri-arrow-right-line align-bottom me-1"></i>
-                        View Client Contacts
-                      </Link>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h5 className="mb-0">Client Contacts ({clientContacts.length})</h5>
+                      <Button
+                        color="primary"
+                        size="sm"
+                        onClick={() => navigate(`/clients/contacts/create?clientId=${id}`)}
+                      >
+                        <i className="ri-add-line align-bottom me-1"></i>
+                        Add Contact
+                      </Button>
                     </div>
-                  </TabPane>
-                  
-                  <TabPane tabId="3">
-                    <div className="text-center py-5">
-                      <i className="ri-settings-3-line ri-2x text-muted mb-3"></i>
-                      <h5 className="text-muted">Client Rental Configuration</h5>
-                      <p className="text-muted mb-4">
-                        Configure client-specific rental settings and overrides.
-                      </p>
-                      <Link to={`/clients/${id}/rental-config`} className="btn btn-primary">
-                        <i className="ri-arrow-right-line align-bottom me-1"></i>
-                        Configure Rental Settings
-                      </Link>
-                    </div>
+
+                    {contactsError && (
+                      <Alert color="danger" className="mb-3">
+                        {contactsError}
+                      </Alert>
+                    )}
+
+                    {contactsLoading ? (
+                      <div className="text-center py-5">
+                        <Spinner color="primary" />
+                        <p className="mt-2 text-muted">Loading contacts...</p>
+                      </div>
+                    ) : clientContacts.length === 0 ? (
+                      <div className="text-center py-5">
+                        <i className="ri-contacts-line ri-2x text-muted mb-3"></i>
+                        <h5 className="text-muted">No Contacts Found</h5>
+                        <p className="text-muted mb-4">
+                          This client doesn't have any contacts yet.
+                        </p>
+                        <Button
+                          color="primary"
+                          onClick={() => navigate(`/clients/contacts/create?clientId=${id}`)}
+                        >
+                          <i className="ri-add-line align-bottom me-1"></i>
+                          Add First Contact
+                        </Button>
+                      </div>
+                    ) : (
+                      <Row className="row-cols-xxl-4 row-cols-xl-3 row-cols-lg-2 row-cols-md-2 row-cols-1 g-4">
+                        {clientContacts.map((contact) => (
+                          <Col key={contact.id}>
+                            <ContactCard
+                              contact={contact}
+                              onDelete={handleDeleteContact}
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    )}
                   </TabPane>
                 </TabContent>
               </CardBody>
@@ -282,6 +355,15 @@ const ClientView: React.FC = () => {
           </Col>
         </Row>
       </Container>
+
+      <DeleteModal
+        show={deleteModal}
+        onDeleteClick={confirmDeleteContact}
+        onCloseClick={() => {
+          setDeleteModal(false);
+          setContactToDelete(null);
+        }}
+      />
     </div>
   );
 };
