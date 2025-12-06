@@ -98,6 +98,12 @@ export const PAGE_TITLES = {
   TENANT_LOCATION_EDIT: getPageTitle("Edit Global Location"),
   TENANT_LOCATION_VIEW: getPageTitle("View Global Location"),
 
+  // Global Users
+  GLOBAL_USERS_LIST: getPageTitle("Global Users"),
+  GLOBAL_USER_CREATE: getPageTitle("Create Global User"),
+  GLOBAL_USER_EDIT: getPageTitle("Edit Global User"),
+  GLOBAL_USER_VIEW: getPageTitle("View Global User"),
+
   // Auth
   LOGIN_PAGE: getPageTitle("Login"),
   REGISTER: getPageTitle("Register"),

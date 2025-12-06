@@ -1,0 +1,436 @@
+import React, { useMemo, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Form,
+  Label,
+  Input,
+  FormFeedback,
+  Alert,
+  Spinner,
+} from "reactstrap";
+import BreadCrumb from "../../../Components/Common/BreadCrumb";
+import {
+  updateGlobalUser,
+  fetchGlobalUsers,
+  selectGlobalUserById,
+  selectGlobalUserLoading,
+  selectGlobalUserError,
+} from "../../../slices/globalUsers/globalUser.slice";
+import { selectProfileList } from "../../../slices/userProfiles/profile.slice";
+import { selectRoleList } from "../../../slices/roles/role.slice";
+import { selectDepartmentList } from "../../../slices/departments/department.slice";
+import { fetchProfiles } from "../../../slices/userProfiles/profile.slice";
+import { fetchRoles } from "../../../slices/roles/role.slice";
+import { fetchDepartments } from "../../../slices/departments/department.slice";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import Select from "react-select";
+import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
+
+const GlobalUserEdit: React.FC = () => {
+  document.title = PAGE_TITLES.GLOBAL_USER_EDIT;
+  const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { showSuccess, showError } = useFlash();
+  const user = useSelector((state: any) => selectGlobalUserById(state, id || ""));
+  const loading = useSelector(selectGlobalUserLoading);
+  const error = useSelector(selectGlobalUserError);
+  const profiles = useSelector(selectProfileList);
+  const roles = useSelector(selectRoleList);
+  const departments = useSelector(selectDepartmentList);
+
+  // Fetch dropdown data if not already loaded
+  useEffect(() => {
+    if (!profiles || profiles.length === 0) {
+      dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!roles || roles.length === 0) {
+      dispatch(fetchRoles({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!departments || departments.length === 0) {
+      dispatch(fetchDepartments({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, profiles, roles, departments]);
+
+  const profileOptions = profiles
+    .filter((p: any) => !p.isDeleted)
+    .map((profile: any) => ({
+      value: profile.id,
+      label: profile.name,
+    }));
+
+  const roleOptions = roles
+    .filter((r: any) => !r.isDeleted)
+    .map((role: any) => ({
+      value: role.id,
+      label: role.name,
+    }));
+
+  const departmentOptions = departments
+    .filter((d: any) => !d.isDeleted)
+    .map((dept: any) => ({
+      value: dept.id,
+      label: dept.name,
+    }));
+
+  const accessScopeOptions = [
+    { value: "Global", label: "Global" },
+    { value: "Department", label: "Department" },
+    { value: "Client", label: "Client" },
+  ];
+
+  const initialValues = useMemo(
+    () => ({
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      username: user?.username || "",
+      email: user?.email || "",
+      mobileNumber: user?.mobileNumber || "",
+      dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : "",
+      profileId: user?.profileId || "",
+      roleId: user?.roleId || "",
+      departmentId: user?.departmentId || "",
+      accessScope: user?.accessScope || "",
+      disabled: user?.disabled || false,
+    }),
+    [user]
+  );
+
+  const validation = useFormik({
+    enableReinitialize: true,
+    initialValues,
+    validationSchema: Yup.object({
+      firstName: Yup.string().required("First name is required"),
+      lastName: Yup.string().required("Last name is required"),
+      username: Yup.string().required("Username is required"),
+      email: Yup.string()
+        .email("Enter a valid email")
+        .required("Email is required"),
+      profileId: Yup.string().required("Profile is required"),
+      roleId: Yup.string().required("Role is required"),
+      departmentId: Yup.string().required("Department is required"),
+      accessScope: Yup.string().required("Access scope is required"),
+    }),
+    onSubmit: async (values) => {
+      const payload = {
+        id: id as string,
+        data: values,
+      };
+      const result = await dispatch(updateGlobalUser(payload));
+      if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Global user updated successfully");
+        // Refresh global users list after successful update
+        dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 20 }));
+        // Delay navigation to show notification
+        setTimeout(() => {
+          navigate("/account/global-users");
+        }, 500);
+      } else {
+        showError("Failed to update global user");
+      }
+    },
+  });
+
+  if (!user) {
+    return (
+      <div className="page-content">
+        <Container fluid>
+          <Alert color="danger">Global User not found</Alert>
+        </Container>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-content">
+      <Container fluid>
+        <BreadCrumb title="Edit Global User" pageTitle="Global Users" />
+        <Row>
+          <Col lg={12}>
+            <Card>
+              <CardHeader className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">Edit Global User</h5>
+                <div className="d-flex gap-2">
+                  <Button color="light" onClick={() => navigate("/account/global-users")}>
+                    Close
+                  </Button>
+                  <Button
+                    color="secondary"
+                    onClick={() => navigate("/account/global-users")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => validation.handleSubmit()}
+                    disabled={loading}
+                  >
+                    {loading ? <Spinner size="sm" /> : "Update"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardBody>
+                {error && (
+                  <Alert color="danger" className="mb-3">
+                    {error}
+                  </Alert>
+                )}
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    validation.handleSubmit();
+                  }}
+                >
+                  {/* Section A: Personal Details */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Personal Details</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">First Name *</Label>
+                        <Input
+                          name="firstName"
+                          value={validation.values.firstName}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.firstName &&
+                              validation.errors.firstName
+                            )
+                          }
+                        />
+                        {validation.touched.firstName &&
+                          validation.errors.firstName && (
+                            <FormFeedback type="invalid">
+                              {String(validation.errors.firstName)}
+                            </FormFeedback>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Last Name *</Label>
+                        <Input
+                          name="lastName"
+                          value={validation.values.lastName}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.lastName &&
+                              validation.errors.lastName
+                            )
+                          }
+                        />
+                        {validation.touched.lastName &&
+                          validation.errors.lastName && (
+                            <FormFeedback type="invalid">
+                              {String(validation.errors.lastName)}
+                            </FormFeedback>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Username *</Label>
+                        <Input
+                          name="username"
+                          value={validation.values.username}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.username &&
+                              validation.errors.username
+                            )
+                          }
+                        />
+                        {validation.touched.username &&
+                          validation.errors.username && (
+                            <FormFeedback type="invalid">
+                              {String(validation.errors.username)}
+                            </FormFeedback>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Email *</Label>
+                        <Input
+                          type="email"
+                          name="email"
+                          value={validation.values.email}
+                          onChange={validation.handleChange}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            !!(
+                              validation.touched.email && validation.errors.email
+                            )
+                          }
+                        />
+                        {validation.touched.email && validation.errors.email && (
+                          <FormFeedback type="invalid">
+                            {String(validation.errors.email)}
+                          </FormFeedback>
+                        )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Mobile Number</Label>
+                        <Input
+                          name="mobileNumber"
+                          value={validation.values.mobileNumber}
+                          onChange={validation.handleChange}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Date of Birth</Label>
+                        <Input
+                          type="date"
+                          name="dateOfBirth"
+                          value={validation.values.dateOfBirth}
+                          onChange={validation.handleChange}
+                        />
+                      </Col>
+                    </Row>
+                  </div>
+
+                  {/* Section B: Permission/Role */}
+                  <div className="border border-dashed border-primary-subtle rounded p-3 mb-4">
+                    <h5 className="mb-3">Permission/Role</h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Label className="form-label">Profile *</Label>
+                        <Select
+                          value={profileOptions.find(
+                            (option: any) =>
+                              option.value === validation.values.profileId
+                          )}
+                          onChange={(selectedOption: any) => {
+                            validation.setFieldValue(
+                              "profileId",
+                              selectedOption?.value || ""
+                            );
+                          }}
+                          options={profileOptions}
+                          placeholder="Select profile"
+                          classNamePrefix="select2-selection"
+                        />
+                        {validation.touched.profileId &&
+                          validation.errors.profileId && (
+                            <div className="invalid-feedback d-block">
+                              {String(validation.errors.profileId)}
+                            </div>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Role *</Label>
+                        <Select
+                          value={roleOptions.find(
+                            (option: any) =>
+                              option.value === validation.values.roleId
+                          )}
+                          onChange={(selectedOption: any) => {
+                            validation.setFieldValue(
+                              "roleId",
+                              selectedOption?.value || ""
+                            );
+                          }}
+                          options={roleOptions}
+                          placeholder="Select role"
+                          classNamePrefix="select2-selection"
+                        />
+                        {validation.touched.roleId &&
+                          validation.errors.roleId && (
+                            <div className="invalid-feedback d-block">
+                              {String(validation.errors.roleId)}
+                            </div>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Department *</Label>
+                        <Select
+                          value={departmentOptions.find(
+                            (option: any) =>
+                              option.value === validation.values.departmentId
+                          )}
+                          onChange={(selectedOption: any) => {
+                            validation.setFieldValue(
+                              "departmentId",
+                              selectedOption?.value || ""
+                            );
+                          }}
+                          options={departmentOptions}
+                          placeholder="Select department"
+                          classNamePrefix="select2-selection"
+                        />
+                        {validation.touched.departmentId &&
+                          validation.errors.departmentId && (
+                            <div className="invalid-feedback d-block">
+                              {String(validation.errors.departmentId)}
+                            </div>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Access Scope *</Label>
+                        <Select
+                          value={accessScopeOptions.find(
+                            (option: any) =>
+                              option.value === validation.values.accessScope
+                          )}
+                          onChange={(selectedOption: any) => {
+                            validation.setFieldValue(
+                              "accessScope",
+                              selectedOption?.value || ""
+                            );
+                          }}
+                          options={accessScopeOptions}
+                          placeholder="Select access scope"
+                          classNamePrefix="select2-selection"
+                        />
+                        {validation.touched.accessScope &&
+                          validation.errors.accessScope && (
+                            <div className="invalid-feedback d-block">
+                              {String(validation.errors.accessScope)}
+                            </div>
+                          )}
+                      </Col>
+                      <Col md={6}>
+                        <Label className="form-label">Status</Label>
+                        <div className="form-check form-switch form-switch-lg mt-2">
+                          <Input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="disabledSwitch"
+                            checked={validation.values.disabled}
+                            onChange={(e) =>
+                              validation.setFieldValue("disabled", e.target.checked)
+                            }
+                          />
+                          <Label
+                            className="form-check-label"
+                            htmlFor="disabledSwitch"
+                          >
+                            {validation.values.disabled
+                              ? "Disabled"
+                              : "Active"}
+                          </Label>
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+                </Form>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
+  );
+};
+
+export default GlobalUserEdit;
+

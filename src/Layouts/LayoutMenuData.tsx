@@ -142,6 +142,11 @@ const Navdata = () => {
           link: "/account/profiles",
         },
         {
+          id: "global-users",
+          label: "Global User Management",
+          link: "/account/global-users",
+        },
+        {
           id: "tenant-locations-list",
           label: "Global Locations",
           link: "/tenant-locations/list",

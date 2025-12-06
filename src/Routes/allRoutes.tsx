@@ -45,6 +45,10 @@ import TenantRoleCreate from "../pages/Account/TenantRole/TenantRoleCreate";
 import TenantRoleEdit from "../pages/Account/TenantRole/TenantRoleEdit";
 import TenantRoleView from "../pages/Account/TenantRole/TenantRoleView";
 import ProfileList from "../pages/Account/Profile/ProfileList";
+import GlobalUserList from "../pages/Account/GlobalUser/GlobalUserList";
+import GlobalUserCreate from "../pages/Account/GlobalUser/GlobalUserCreate";
+import GlobalUserEdit from "../pages/Account/GlobalUser/GlobalUserEdit";
+import GlobalUserView from "../pages/Account/GlobalUser/GlobalUserView";
 
 // Settings
 import SystemConfig from "../pages/Settings/General/SystemConfig";
@@ -129,6 +133,10 @@ const authProtectedRoutes = [
     component: <TenantRoleView />,
   },
   { path: "/account/profiles", component: <ProfileList /> },
+  { path: "/account/global-users", component: <GlobalUserList /> },
+  { path: "/account/global-users/create", component: <GlobalUserCreate /> },
+  { path: "/account/global-users/edit/:id", component: <GlobalUserEdit /> },
+  { path: "/account/global-users/view/:id", component: <GlobalUserView /> },
 
   // Settings
   { path: "/settings/system-config", component: <SystemConfig /> },

@@ -36,6 +36,10 @@ import {
   initialTenantRoles,
   TenantRoleItem,
 } from "../slices/tenantRoles/tenantRole.fakeData";
+import {
+  initialGlobalUsers,
+  GlobalUserItem,
+} from "../slices/globalUsers/globalUser.fakeData";
 
 const api = new APIClient();
 
@@ -1186,6 +1190,76 @@ export const deleteTenantRole = (id: string) => {
         };
         resolve(tenantRolesData[index]);
       }
+    }, 300);
+  });
+};
+
+// ========================
+// GLOBAL USERS API
+// ========================
+
+let globalUsersData = [...initialGlobalUsers];
+
+export const getGlobalUsers = (
+  pageNumber: number = 1,
+  pageSize: number = 20
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = globalUsersData.slice(start, end);
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: globalUsersData.length,
+        totalPages: Math.ceil(globalUsersData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < globalUsersData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewGlobalUser = (user: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newUser: GlobalUserItem = {
+        ...user,
+        id: (globalUsersData.length + 1).toString(),
+        emailVerified: false,
+        initialSetupDone: false,
+        disabled: false,
+        isDeleted: false,
+        appUserCode: `USR${String(globalUsersData.length + 1).padStart(3, '0')}`,
+      };
+      globalUsersData.unshift(newUser);
+      resolve(newUser);
+    }, 300);
+  });
+};
+
+export const updateGlobalUser = (id: string, user: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = globalUsersData.findIndex((u) => u.id === id);
+      if (index !== -1) {
+        globalUsersData[index] = {
+          ...globalUsersData[index],
+          ...user,
+        };
+        resolve(globalUsersData[index]);
+      }
+    }, 300);
+  });
+};
+
+export const deleteGlobalUser = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      globalUsersData = globalUsersData.filter((u) => u.id !== id);
+      resolve({ success: true });
     }, 300);
   });
 };
