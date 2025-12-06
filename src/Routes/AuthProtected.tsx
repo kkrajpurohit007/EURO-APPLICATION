@@ -36,7 +36,7 @@ const AuthProtected = (props: any) => {
   const reduxToken = useMemo(() => {
     if (!reduxUser) return null;
     return reduxUser.token || reduxUser.jwt || null;
-  }, [reduxUser?.token, reduxUser?.jwt]);
+  }, [reduxUser]);
   const hasReduxAuth = !!reduxToken;
 
   // Single effect to handle all auth and initialization logic

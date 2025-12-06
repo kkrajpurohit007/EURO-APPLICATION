@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Container,
   Row,
@@ -28,7 +28,6 @@ import { selectClientList } from "../../../slices/clients/client.slice";
 import { fetchClients } from "../../../slices/clients/client.slice";
 import {
   ClientMeeting,
-  MEETING_STATUS_MAP,
 } from "../../../slices/clientMeetings/clientMeeting.fakeData";
 import MeetingCard from "./MeetingCard";
 import { PAGE_TITLES } from "../../../common/branding";

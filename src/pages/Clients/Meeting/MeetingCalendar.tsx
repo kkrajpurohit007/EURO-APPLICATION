@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -32,7 +33,6 @@ import {
   selectClientMeetingsList,
   fetchClientMeetings,
   updateClientMeeting,
-  createClientMeeting,
   deleteClientMeeting,
   selectClientMeetingLoading,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
@@ -49,6 +49,7 @@ const MeetingCalendar: React.FC = () => {
   document.title = PAGE_TITLES.MEETING_CALENDAR;
 
   const dispatch: any = useDispatch();
+  const navigate = useNavigate();
 
   const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingLoading);
@@ -428,39 +429,11 @@ const MeetingCalendar: React.FC = () => {
           })
         );
       } else {
-        // Create new meeting
-        const startDate = new Date(values.start);
-        const endDate = values.end ? new Date(values.end) : null;
-
-        const newMeeting = {
-          id: String(Date.now()),
-          title: values.title,
-          clientId: "client-001", // Default for now
-          clientName: values.clientName,
-          meetingDate: startDate.toISOString().split("T")[0],
-          meetingTime: startDate.toTimeString().split(" ")[0].substring(0, 5),
-          endTime: endDate
-            ? endDate.toTimeString().split(" ")[0].substring(0, 5)
-            : "",
-          duration: calculateDuration(values.start, values.end),
-          location: values.location,
-          locationType: values.locationType,
-          meetingLink: values.meetingLink,
-          attendees: [],
-          organizer: values.organizer,
-          agenda: values.agenda,
-          notes: values.notes,
-          status: values.status,
-          meetingType: values.meetingType,
-          priority: values.priority,
-          reminders: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        // Note: Calendar create should redirect to create form
-        // For now, we'll skip direct creation from calendar
-        window.location.href = "/meetings/create";
+        // Navigate to create meeting page for new meetings
+        // Calendar drag-and-drop create should use the dedicated form
+        toggle();
+        navigate("/meetings/create");
+        return;
       }
 
       toggle();
@@ -468,24 +441,6 @@ const MeetingCalendar: React.FC = () => {
     },
   });
 
-  // Calculate duration between start and end time
-  const calculateDuration = (start: any, end: any) => {
-    if (!end) return "1 hour";
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
-    const hours = Math.floor(diff / 60);
-    const minutes = diff % 60;
-
-    if (hours > 0 && minutes > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} min${minutes > 1 ? "s" : ""
-        }`;
-    } else if (hours > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""}`;
-    } else {
-      return `${minutes} min${minutes > 1 ? "s" : ""}`;
-    }
-  };
 
   // Handle delete meeting
   const handleDeleteEvent = () => {

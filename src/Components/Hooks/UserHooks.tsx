@@ -11,7 +11,7 @@ const useProfile = () => {
   const reduxToken = useMemo(() => {
     if (!reduxUser) return null;
     return reduxUser.token || reduxUser.jwt || null;
-  }, [reduxUser?.token, reduxUser?.jwt]);
+  }, [reduxUser]);
   
   const [userProfile, setUserProfile] = useState(() => {
     const stored = getLoggedinUser();
@@ -64,7 +64,8 @@ const useProfile = () => {
         }
       }
     }
-  }, [reduxUser, reduxToken]); // Only depend on stable values
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduxUser, reduxToken, userProfile?.token, userProfile?.jwt]); // Dependencies include token refs
 
   // Listen to storage changes (for cross-tab sync and immediate updates)
   useEffect(() => {

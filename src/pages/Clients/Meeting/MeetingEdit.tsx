@@ -28,12 +28,6 @@ import {
   selectClientMeetingSaving,
   selectClientMeetingError,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
-import { selectClientList } from "../../../slices/clients/client.slice";
-import { selectClientContactList } from "../../../slices/clientContacts/clientContact.slice";
-import { selectGlobalUserList } from "../../../slices/globalUsers/globalUser.slice";
-import { fetchClients } from "../../../slices/clients/client.slice";
-import { fetchClientContacts } from "../../../slices/clientContacts/clientContact.slice";
-import { fetchGlobalUsers } from "../../../slices/globalUsers/globalUser.slice";
 import { PAGE_TITLES } from "../../../common/branding";
 import { useFlash } from "../../../hooks/useFlash";
 import {
@@ -59,22 +53,6 @@ const MeetingEdit: React.FC = () => {
   const loading = useSelector(selectClientMeetingDetailLoading);
   const saving = useSelector(selectClientMeetingSaving);
   const error = useSelector(selectClientMeetingError);
-  const clients = useSelector(selectClientList);
-  const clientContacts = useSelector(selectClientContactList);
-  const globalUsers = useSelector(selectGlobalUserList);
-
-  // Fetch dropdown data if not already loaded
-  useEffect(() => {
-    if (!clients || clients.length === 0) {
-      dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
-    }
-    if (!clientContacts || clientContacts.length === 0) {
-      dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
-    }
-    if (!globalUsers || globalUsers.length === 0) {
-      dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 50 }));
-    }
-  }, [dispatch, clients, clientContacts, globalUsers]);
 
   useEffect(() => {
     if (id && !meeting) {
@@ -96,24 +74,6 @@ const MeetingEdit: React.FC = () => {
   );
 
   const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
-
-  const clientOptions = useMemo(() => {
-    return clients
-      .filter((c: any) => !c.isDeleted)
-      .map((client: any) => ({
-        value: client.id,
-        label: client.name,
-      }));
-  }, [clients]);
-
-  const globalUserOptions = useMemo(() => {
-    return globalUsers
-      .filter((u: any) => !u.isDeleted)
-      .map((user: any) => ({
-        value: user.id,
-        label: `${user.firstName} ${user.lastName} (${user.email})`,
-      }));
-  }, [globalUsers]);
 
   // Get selected client contacts for display
   const selectedClientContacts = useMemo(() => {

@@ -10,7 +10,6 @@ import {
 import {
   ClientMeeting,
   ClientMeetingsResponse,
-  ClientMeetingApiResponse,
   ClientMeetingPayload,
 } from "../slices/clientMeetings/clientMeeting.fakeData";
 
