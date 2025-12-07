@@ -76,7 +76,7 @@ const TenantRoleEdit = () => {
 
   useEffect(() => {
     if (isUpdated && !error) {
-      showSuccess("Tenant role updated successfully");
+      showSuccess("User role updated successfully");
       setTimeout(() => {
         navigate("/account/tenant-roles");
       }, 1000);
@@ -85,7 +85,7 @@ const TenantRoleEdit = () => {
 
   useEffect(() => {
     if (error) {
-      showError("Failed to update tenant role");
+      showError("Failed to update user role");
     }
   }, [error, showError]);
 
@@ -97,13 +97,13 @@ const TenantRoleEdit = () => {
     return <Loader error={error} />;
   }
 
-  document.title = PAGE_TITLES.TENANT_ROLE_EDIT || "Edit Tenant Role | ESRM";
+  document.title = PAGE_TITLES.TENANT_ROLE_EDIT || "Edit User Role | ESRM";
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Edit Tenant Role" pageTitle="Tenant Roles" />
+          <BreadCrumb title="Edit User Role" pageTitle="User Roles" />
           <Row>
             <Col lg={12}>
               <Form
@@ -115,7 +115,7 @@ const TenantRoleEdit = () => {
               >
                 <Card>
                   <CardHeader>
-                    <h5 className="card-title mb-0">Edit Tenant Role</h5>
+                    <h5 className="card-title mb-0">Edit User Role</h5>
                   </CardHeader>
                   <CardBody>
                     <Row>

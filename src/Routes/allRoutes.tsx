@@ -16,11 +16,11 @@ import ClientCreate from "../pages/Clients/Client/ClientCreate";
 import ClientEdit from "../pages/Clients/Client/ClientEdit";
 import ClientView from "../pages/Clients/Client/ClientView";
 import MeetingSchedule from "../pages/Clients/Meeting/Meetings";
-import MeetingsList from "../pages/Clients/Meeting/MeetingsList";
 import MeetingCreate from "../pages/Clients/Meeting/MeetingCreate";
 import MeetingEdit from "../pages/Clients/Meeting/MeetingEdit";
 import MeetingView from "../pages/Clients/Meeting/MeetingView";
 import MeetingCalendar from "../pages/Clients/Meeting/MeetingCalendar";
+import MeetingReschedule from "../pages/Clients/Meeting/MeetingReschedule";
 
 // Site Management
 import SitesList from "../pages/Clients/Site/SitesList";
@@ -45,6 +45,10 @@ import TenantRoleCreate from "../pages/Account/TenantRole/TenantRoleCreate";
 import TenantRoleEdit from "../pages/Account/TenantRole/TenantRoleEdit";
 import TenantRoleView from "../pages/Account/TenantRole/TenantRoleView";
 import ProfileList from "../pages/Account/Profile/ProfileList";
+import GlobalUserList from "../pages/Account/GlobalUser/GlobalUserList";
+import GlobalUserCreate from "../pages/Account/GlobalUser/GlobalUserCreate";
+import GlobalUserEdit from "../pages/Account/GlobalUser/GlobalUserEdit";
+import GlobalUserView from "../pages/Account/GlobalUser/GlobalUserView";
 
 // Settings
 import SystemConfig from "../pages/Settings/General/SystemConfig";
@@ -58,7 +62,7 @@ import TenantLocationEdit from "../pages/TenantLocations/TenantLocationEdit";
 import TenantLocationView from "../pages/TenantLocations/TenantLocationView";
 
 // Client Rental Config
-import ClientRentalConfigForm from "../pages/Clients/Client/ClientRentalConfigForm";
+import ClientRentalConfig from "../pages/Clients/ClientRentalConfig";
 
 import Basic404 from "../pages/AuthenticationInner/Errors/Basic404";
 import Cover404 from "../pages/AuthenticationInner/Errors/Cover404";
@@ -93,10 +97,10 @@ const authProtectedRoutes = [
 
   // Meeting Management
   { path: "/meetings", component: <MeetingSchedule /> },
-  { path: "/meetings/list", component: <MeetingsList /> },
   { path: "/meetings/create", component: <MeetingCreate /> },
   { path: "/meetings/edit/:id", component: <MeetingEdit /> },
   { path: "/meetings/view/:id", component: <MeetingView /> },
+  { path: "/meetings/reschedule/:id", component: <MeetingReschedule /> },
   { path: "/meetings/calendar", component: <MeetingCalendar /> },
 
   // Site Management
@@ -129,6 +133,10 @@ const authProtectedRoutes = [
     component: <TenantRoleView />,
   },
   { path: "/account/profiles", component: <ProfileList /> },
+  { path: "/account/global-users", component: <GlobalUserList /> },
+  { path: "/account/global-users/create", component: <GlobalUserCreate /> },
+  { path: "/account/global-users/edit/:id", component: <GlobalUserEdit /> },
+  { path: "/account/global-users/view/:id", component: <GlobalUserView /> },
 
   // Settings
   { path: "/settings/system-config", component: <SystemConfig /> },
@@ -148,7 +156,11 @@ const authProtectedRoutes = [
   // Client Rental Config
   {
     path: "/clients/:clientId/rental-config",
-    component: <ClientRentalConfigForm />,
+    component: <ClientRentalConfig />,
+  },
+  {
+    path: "/clients/rental-config",
+    component: <ClientRentalConfig />,
   },
 
   // this route should be at the end of all other routes

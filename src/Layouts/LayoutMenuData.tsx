@@ -8,7 +8,6 @@ const Navdata = () => {
   const [isLeads, setIsLeads] = useState<boolean>(false);
   const [isClients, setIsClients] = useState<boolean>(false);
   const [isAccountSettings, setIsAccountSettings] = useState<boolean>(false);
-  const [isSystemSettings, setIsSystemSettings] = useState<boolean>(false);
 
   // Auto-expand menu based on current route
   useEffect(() => {
@@ -24,7 +23,8 @@ const Navdata = () => {
       pathname.includes("/clients") ||
       pathname.includes("/meetings") ||
       pathname.includes("/sites") ||
-      pathname.includes("/contacts")
+      pathname.includes("/contacts") ||
+      pathname.includes("/rental-config")
     ) {
       setIsClients(true);
     }
@@ -38,14 +38,6 @@ const Navdata = () => {
       pathname.includes("/tenant-locations")
     ) {
       setIsAccountSettings(true);
-    }
-    
-    // Expand System Settings section if on system config routes
-    if (
-      pathname.includes("/settings/system-config") ||
-      pathname.includes("/settings/basic-info")
-    ) {
-      setIsSystemSettings(true);
     }
   }, [location.pathname]);
 
@@ -63,11 +55,6 @@ const Navdata = () => {
   const toggleAccountSettings = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsAccountSettings(!isAccountSettings);
-  };
-
-  const toggleSystemSettings = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsSystemSettings(!isSystemSettings);
   };
 
   const menuItems: any = [
@@ -136,7 +123,7 @@ const Navdata = () => {
       subItems: [
         {
           id: "tenant-rental-config",
-          label: "Tenant Rental Configuration",
+          label: "Global Rental Configuration",
           link: "/settings/tenant-rental-config",
         },
         {
@@ -146,38 +133,24 @@ const Navdata = () => {
         },
         {
           id: "tenant-roles",
-          label: "Tenant Roles",
+          label: "User Roles",
           link: "/account/tenant-roles",
         },
+        // Profiles hidden from UI but backend functionality remains active
+        // {
+        //   id: "profiles",
+        //   label: "Profiles",
+        //   link: "/account/profiles",
+        // },
         {
-          id: "profiles",
-          label: "Profiles",
-          link: "/account/profiles",
+          id: "global-users",
+          label: "User Management",
+          link: "/account/global-users",
         },
         {
           id: "tenant-locations-list",
-          label: "Tenant Locations",
+          label: "Global Locations",
           link: "/tenant-locations/list",
-        },
-      ],
-    },
-    {
-      id: "system-settings",
-      label: "System Settings",
-      icon: "ri-settings-3-line",
-      link: "#",
-      click: toggleSystemSettings,
-      stateVariables: isSystemSettings,
-      subItems: [
-        {
-          id: "system-config",
-          label: "System Configuration",
-          link: "/settings/system-config",
-        },
-        {
-          id: "basic-info",
-          label: "Basic Info",
-          link: "/settings/basic-info",
         },
       ],
     },

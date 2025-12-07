@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Container,
   Row,
@@ -7,34 +7,241 @@ import {
   CardBody,
   CardHeader,
   Button,
+  Label,
+  Spinner,
+  Input,
+  InputGroup,
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { getMeetings } from "../../../slices/thunks";
+import Loader from "../../../Components/Common/Loader";
+import DeleteModal from "../../../Components/Common/DeleteModal";
+import { useFlash } from "../../../hooks/useFlash";
+import {
+  selectClientMeetingsList,
+  selectClientMeetingPagination,
+  fetchClientMeetings,
+  deleteClientMeeting,
+  selectClientMeetingLoading,
+} from "../../../slices/clientMeetings/clientMeeting.slice";
+import { selectClientList } from "../../../slices/clients/client.slice";
+import { fetchClients } from "../../../slices/clients/client.slice";
+import {
+  ClientMeeting,
+} from "../../../slices/clientMeetings/clientMeeting.fakeData";
 import MeetingCard from "./MeetingCard";
-
 import { PAGE_TITLES } from "../../../common/branding";
+import { getMeetingStatusOptions } from "./utils/meetingUtils";
 
 const Meetings: React.FC = () => {
   document.title = PAGE_TITLES.MEETINGS_SCHEDULE;
 
-  const dispatch: any = useDispatch();
+  const dispatch = useDispatch<any>();
   const navigate = useNavigate();
-  const { meetings } = useSelector((state: any) => state.Meetings);
+  const { showSuccess, showError } = useFlash();
+  const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
+  const pagination = useSelector(selectClientMeetingPagination);
+  const loading = useSelector(selectClientMeetingLoading);
+  const clients = useSelector(selectClientList);
 
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<number | "">("");
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [meetingToDelete, setMeetingToDelete] = useState<string | null>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
+  const hasMoreRef = useRef(true);
+
+  // Fetch clients if not loaded
   useEffect(() => {
-    dispatch(getMeetings());
-  }, [dispatch]);
+    if (!clients || clients.length === 0) {
+      dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, clients]);
 
-  const upcomingMeetings = meetings.filter(
-    (m: any) => m.status === "Scheduled" || m.status === "In Progress"
-  );
+  // Fetch meetings when selected client changes - reset to page 1
+  useEffect(() => {
+    hasMoreRef.current = true;
+    dispatch(
+      fetchClientMeetings({
+        clientId: selectedClientId,
+        pageNumber: 1,
+        pageSize: 20,
+      })
+    );
+  }, [dispatch, selectedClientId]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreRef.current && !loading && !isLoadingMore) {
+          const hasMore = pagination.pageNumber < pagination.totalPages;
+          if (hasMore) {
+            setIsLoadingMore(true);
+            dispatch(
+              fetchClientMeetings({
+                clientId: selectedClientId,
+                pageNumber: pagination.pageNumber + 1,
+                pageSize: 20,
+              })
+            ).finally(() => {
+              setIsLoadingMore(false);
+            });
+          } else {
+            hasMoreRef.current = false;
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [dispatch, selectedClientId, pagination.pageNumber, pagination.totalPages, loading, isLoadingMore]);
+
+  // Update hasMoreRef when pagination changes
+  useEffect(() => {
+    hasMoreRef.current = pagination.pageNumber < pagination.totalPages;
+  }, [pagination.pageNumber, pagination.totalPages]);
+
+  const clientOptions = useMemo(() => {
+    return [
+      { value: "", label: "All Clients" },
+      ...clients
+        .filter((c: any) => !c.isDeleted)
+        .map((client: any) => ({
+          value: client.id,
+          label: client.name,
+        })),
+    ];
+  }, [clients]);
+
+  // Status filter options
+  const statusOptions = useMemo(() => getMeetingStatusOptions(), []);
+
+  // Filter meetings by selected client, search query, status, and sort by date (newest first)
+  const filteredMeetings = useMemo(() => {
+    if (!meetings) return [];
+    let filtered = meetings.filter((m) => !m.isDeleted);
+    
+    // Filter by client
+    if (selectedClientId) {
+      filtered = filtered.filter((m) => m.clientId === selectedClientId);
+    }
+    
+    // Filter by status
+    if (statusFilter !== "") {
+      filtered = filtered.filter((m) => m.meetingStatus === statusFilter);
+    }
+    
+    // Filter by search query (search in title, description, location, client name)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((m) => {
+        const title = (m.meetingTitle || "").toLowerCase();
+        const description = (m.meetingDescription || "").toLowerCase();
+        const location = (m.meetingLocation || "").toLowerCase();
+        const clientName = (m.clientName || "").toLowerCase();
+        const organizerName = (m.organizerUserName || "").toLowerCase();
+        
+        return (
+          title.includes(query) ||
+          description.includes(query) ||
+          location.includes(query) ||
+          clientName.includes(query) ||
+          organizerName.includes(query)
+        );
+      });
+    }
+    
+    // Sort by meeting date (newest first)
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.meetingDate).getTime();
+      const dateB = new Date(b.meetingDate).getTime();
+      return dateB - dateA;
+    });
+  }, [meetings, selectedClientId, statusFilter, searchQuery]);
+
+  const upcomingMeetings = useMemo(() => {
+    return filteredMeetings.filter(
+      (m: ClientMeeting) => m.meetingStatus === 1 || m.meetingStatus === 2 // Scheduled or In Progress
+    );
+  }, [filteredMeetings]);
+
+  const completedMeetings = useMemo(() => {
+    return filteredMeetings.filter(
+      (m: ClientMeeting) => m.meetingStatus === 3 // Completed
+    );
+  }, [filteredMeetings]);
+
+  // Handle delete meeting
+  const onDelete = (id: string) => {
+    setMeetingToDelete(id);
+    setDeleteModal(true);
+  };
+
+  // Confirm delete meeting
+  const confirmDelete = async () => {
+    if (meetingToDelete !== null) {
+      const result = await dispatch(deleteClientMeeting(meetingToDelete));
+      if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Meeting deleted successfully");
+        // Refresh meetings list after deletion
+        dispatch(
+          fetchClientMeetings({
+            clientId: selectedClientId,
+            pageNumber: 1,
+            pageSize: 20,
+          })
+        );
+      } else {
+        const errorMessage = result.payload?.message || "Failed to delete meeting";
+        showError(errorMessage);
+      }
+    }
+    setDeleteModal(false);
+    setMeetingToDelete(null);
+  };
+
+  // Show loader only on initial load, not when loading more
+  if (loading && meetings.length === 0) {
+    return <Loader />;
+  }
 
   return (
     <div className="page-content">
       <Container fluid>
         <BreadCrumb title="Meetings & Schedule" pageTitle="Client Management" />
+
+        <Row className="mb-3">
+          <Col md={4}>
+            <Label className="form-label">Filter by Client</Label>
+            <Select
+              value={clientOptions.find(
+                (opt: any) => opt.value === selectedClientId
+              )}
+              onChange={(selectedOption: any) => {
+                setSelectedClientId(selectedOption?.value || undefined);
+              }}
+              options={clientOptions}
+              placeholder="Select Client"
+              classNamePrefix="select2-selection"
+              isClearable
+            />
+          </Col>
+        </Row>
 
         <Row className="mb-4">
           <Col lg={12}>
@@ -54,10 +261,10 @@ const Meetings: React.FC = () => {
                     <Button
                       color="light"
                       className="me-2"
-                      onClick={() => navigate("/meetings/list")}
+                      onClick={() => navigate("/meetings/calendar")}
                     >
-                      <i className="ri-list-check align-bottom me-1"></i>
-                      View All
+                      <i className="ri-calendar-line align-bottom me-1"></i>
+                      Calendar View
                     </Button>
                     <Button
                       color="success"
@@ -82,7 +289,7 @@ const Meetings: React.FC = () => {
                     <p className="text-uppercase fw-medium text-muted mb-1">
                       Total Meetings
                     </p>
-                    <h4 className="mb-0">{meetings.length}</h4>
+                    <h4 className="mb-0">{filteredMeetings.length}</h4>
                   </div>
                   <div className="flex-shrink-0">
                     <div className="avatar-sm">
@@ -126,12 +333,7 @@ const Meetings: React.FC = () => {
                     <p className="text-uppercase fw-medium text-muted mb-1">
                       Completed
                     </p>
-                    <h4 className="mb-0">
-                      {
-                        meetings.filter((m: any) => m.status === "Completed")
-                          .length
-                      }
-                    </h4>
+                    <h4 className="mb-0">{completedMeetings.length}</h4>
                   </div>
                   <div className="flex-shrink-0">
                     <div className="avatar-sm">
@@ -175,22 +377,57 @@ const Meetings: React.FC = () => {
         <Row>
           <Col lg={12}>
             <Card>
-              <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">Upcoming Meetings</h5>
-                <Button
-                  color="primary"
-                  size="sm"
-                  onClick={() => navigate("/meetings/list")}
-                >
-                  View All
-                </Button>
+              <CardHeader>
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                  <h5 className="card-title mb-0">
+                    All Meetings
+                    {filteredMeetings.length > 0 && (
+                      <span className="text-muted ms-2 fs-14">
+                        ({filteredMeetings.length} {filteredMeetings.length === 1 ? "meeting" : "meetings"})
+                      </span>
+                    )}
+                  </h5>
+                  <div className="d-flex gap-2 flex-wrap" style={{ minWidth: "300px" }}>
+                    {/* Search Bar */}
+                    <InputGroup style={{ width: "250px" }}>
+                      <Input
+                        type="text"
+                        placeholder="Search meetings..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="form-control"
+                      />
+                      <Button color="light" disabled>
+                        <i className="ri-search-line"></i>
+                      </Button>
+                    </InputGroup>
+                    
+                    {/* Status Filter */}
+                    <div style={{ width: "200px" }}>
+                      <Select
+                        value={statusOptions.find(
+                          (opt: any) => opt.value === statusFilter
+                        )}
+                        onChange={(selectedOption: any) => {
+                          setStatusFilter(selectedOption?.value || "");
+                        }}
+                        options={statusOptions}
+                        placeholder="Filter by Status"
+                        classNamePrefix="select2-selection"
+                        isClearable
+                      />
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardBody>
-                {upcomingMeetings.length === 0 ? (
+                {filteredMeetings.length === 0 && !loading ? (
                   <div className="text-center py-5">
                     <i className="ri-calendar-line display-4 text-muted"></i>
-                    <h5 className="mt-3">No upcoming meetings</h5>
-                    <p className="text-muted">Schedule your first meeting</p>
+                    <h5 className="mt-3">No meetings found</h5>
+                    <p className="text-muted">
+                      {selectedClientId ? "No meetings for this client" : "Schedule your first meeting"}
+                    </p>
                     <Button
                       color="primary"
                       onClick={() => navigate("/meetings/create")}
@@ -200,24 +437,52 @@ const Meetings: React.FC = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Row>
-                    {upcomingMeetings.slice(0, 6).map((meeting: any) => (
-                      <Col key={meeting.id} xl={4} lg={6} md={6}>
-                        <MeetingCard
-                          meeting={meeting}
-                          onEdit={() =>
-                            navigate(`/meetings/edit/${meeting.id}`)
-                          }
-                        />
-                      </Col>
-                    ))}
-                  </Row>
+                  <>
+                    <Row className="g-3">
+                      {filteredMeetings.map((meeting: ClientMeeting) => (
+                        <Col key={meeting.id} xl={3} lg={3} md={6} sm={12}>
+                          <MeetingCard
+                            meeting={meeting}
+                            onView={() => navigate(`/meetings/view/${meeting.id}`)}
+                            onEdit={() => navigate(`/meetings/edit/${meeting.id}`)}
+                            onReschedule={() => navigate(`/meetings/reschedule/${meeting.id}`)}
+                            onDelete={() => onDelete(meeting.id)}
+                          />
+                        </Col>
+                      ))}
+                    </Row>
+                    
+                    {/* Infinite scroll trigger */}
+                    <div ref={observerTarget} className="text-center py-3">
+                      {isLoadingMore && (
+                        <div>
+                          <Spinner color="primary" className="me-2" />
+                          <span className="text-muted">Loading more meetings...</span>
+                        </div>
+                      )}
+                      {!hasMoreRef.current && filteredMeetings.length > 0 && (
+                        <p className="text-muted mb-0">
+                          <i className="ri-check-line align-middle me-1"></i>
+                          All meetings loaded
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
               </CardBody>
             </Card>
           </Col>
         </Row>
       </Container>
+      {/* Delete Modal */}
+      <DeleteModal
+        show={deleteModal}
+        onDeleteClick={confirmDelete}
+        onCloseClick={() => {
+          setDeleteModal(false);
+          setMeetingToDelete(null);
+        }}
+      />
     </div>
   );
 };

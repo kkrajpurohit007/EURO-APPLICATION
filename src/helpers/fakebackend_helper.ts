@@ -6,7 +6,7 @@ import { staffPositions } from "../common/data/staffPositions";
 import { tenantRentalConfigData } from "../common/data/tenantRentalConfig";
 import { clientRentalConfigData } from "../common/data/clientRentalConfig";
 import { meetingsData } from "../common/data/meetings";
-import { initialLeads, LeadItem } from "../slices/leads/lead.fakeData";
+import { LeadItem } from "../slices/leads/lead.fakeData";
 import {
   initialDepartments,
   DepartmentItem,
@@ -36,6 +36,14 @@ import {
   initialTenantRoles,
   TenantRoleItem,
 } from "../slices/tenantRoles/tenantRole.fakeData";
+import {
+  initialGlobalUsers,
+  GlobalUserItem,
+} from "../slices/globalUsers/globalUser.fakeData";
+import {
+  initialClientMeetings,
+  ClientMeeting,
+} from "../slices/clientMeetings/clientMeeting.fakeData";
 
 const api = new APIClient();
 
@@ -393,7 +401,15 @@ export const updateTenantRentalConfig = (id: string, data: any) => {
 export const getClientRentalConfigs = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(clientRentalConfigData);
+      // Map client names from actual client data
+      const mappedConfigs = clientRentalConfigData.map(config => {
+        const client = initialClients.find(c => parseInt(c.id) === config.clientId);
+        return {
+          ...config,
+          clientName: client ? client.name : config.clientName
+        };
+      });
+      resolve(mappedConfigs);
     }, 300);
   });
 };
@@ -404,7 +420,17 @@ export const getClientRentalConfigByClientId = (clientId: number) => {
       const config = clientRentalConfigData.find(
         (c) => c.clientId === clientId
       );
-      resolve(config);
+      
+      if (config) {
+        // Map client name from actual client data
+        const client = initialClients.find(c => parseInt(c.id) === clientId);
+        resolve({
+          ...config,
+          clientName: client ? client.name : config.clientName
+        });
+      } else {
+        resolve(null);
+      }
     }, 300);
   });
 };
@@ -416,12 +442,35 @@ export const updateClientRentalConfig = (clientId: number, data: any) => {
         (c) => c.clientId === clientId
       );
       if (index !== -1) {
+        // Update existing config
         clientRentalConfigData[index] = {
           ...clientRentalConfigData[index],
           ...data,
           updatedAt: new Date().toISOString().split("T")[0],
         };
         resolve(clientRentalConfigData[index]);
+      } else {
+        // Create new config
+        const newConfig: any = {
+          id: clientRentalConfigData.length + 1,
+          clientId: clientId,
+          clientName: data.clientName || "Unknown Client",
+          overrideGracePeriodDays: data.overrideGracePeriodDays ?? null,
+          overrideMinimumHireWeeks: data.overrideMinimumHireWeeks ?? null,
+          overrideInvoiceFrequency: data.overrideInvoiceFrequency ?? null,
+          overrideInvoiceDay: data.overrideInvoiceDay ?? null,
+          overrideIncludeWeekends: data.overrideIncludeWeekends ?? false,
+          overrideExcludePublicHolidays: data.overrideExcludePublicHolidays ?? false,
+          reason: data.reason || "",
+          effectiveFrom: data.effectiveFrom || "",
+          effectiveTo: data.effectiveTo || "",
+          approvedByUserId: data.approvedByUserId || "",
+          approvedDate: data.approvedDate || "",
+          tenantId: data.tenantId || 0,
+          updatedAt: new Date().toISOString().split("T")[0],
+        };
+        clientRentalConfigData.push(newConfig);
+        resolve(newConfig);
       }
     }, 300);
   });
@@ -493,7 +542,48 @@ export const deleteMeeting = (id: number) => {
 // LEADS API
 // ========================
 
-let leadsData = [...initialLeads];
+let leadsData: LeadItem[] = [
+  {
+    id: "1",
+    tenantId: "tenant-1",
+    tenantName: "Tenant One",
+    userId: "user-1",
+    userName: "John Doe",
+    title: "Premium Plan Lead",
+    contactPerson: "Jane Smith",
+    contactEmail: "jane.smith@example.com",
+    description: "Interested in premium plan",
+    leadStatus: 0,
+    tentativeWorkDays: 20,
+    notes: "Initial contact made",
+    tentativeProjectStartDate: null,
+    phoneNumber: null,
+    siteAddress: null,
+    tenantLocationId: null,
+    tenantLocationName: null,
+    isDeleted: false,
+  },
+  {
+    id: "2",
+    tenantId: "tenant-1",
+    tenantName: "Tenant One",
+    userId: "user-1",
+    userName: "John Doe",
+    title: "Consultation Lead",
+    contactPerson: "Alice Johnson",
+    contactEmail: "alice.j@example.com",
+    description: "Looking for consultation",
+    leadStatus: 1,
+    tentativeWorkDays: 10,
+    notes: "Scheduled a meeting",
+    tentativeProjectStartDate: null,
+    phoneNumber: null,
+    siteAddress: null,
+    tenantLocationId: null,
+    tenantLocationName: null,
+    isDeleted: false,
+  },
+];
 
 export const getLeads = (pageNumber: number = 1, pageSize: number = 50) => {
   return new Promise((resolve) => {
@@ -528,13 +618,33 @@ export const addNewLead = (lead: any) => {
   });
 };
 
-export const updateLead = (id: string, lead: any) => {
-  return new Promise((resolve) => {
+export const updateLead = (id: string, lead: Partial<LeadItem>) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const index = leadsData.findIndex((l) => l.id === id);
       if (index !== -1) {
-        leadsData[index] = { ...leadsData[index], ...lead };
+        leadsData[index] = { 
+          ...leadsData[index], 
+          ...lead,
+          id: leadsData[index].id, // Preserve the original ID
+          tenantId: lead.tenantId ?? leadsData[index].tenantId,
+          title: lead.title ?? leadsData[index].title,
+          contactPerson: lead.contactPerson ?? leadsData[index].contactPerson,
+          contactEmail: lead.contactEmail ?? leadsData[index].contactEmail,
+          description: lead.description ?? leadsData[index].description,
+          leadStatus: lead.leadStatus ?? leadsData[index].leadStatus,
+          tentativeWorkDays: lead.tentativeWorkDays ?? leadsData[index].tentativeWorkDays,
+          notes: lead.notes ?? leadsData[index].notes,
+          tentativeProjectStartDate: lead.tentativeProjectStartDate ?? leadsData[index].tentativeProjectStartDate,
+          phoneNumber: lead.phoneNumber ?? leadsData[index].phoneNumber,
+          siteAddress: lead.siteAddress ?? leadsData[index].siteAddress,
+          tenantLocationId: lead.tenantLocationId ?? leadsData[index].tenantLocationId,
+          tenantLocationName: lead.tenantLocationName ?? leadsData[index].tenantLocationName,
+        };
         resolve(leadsData[index]);
+      } else {
+        // Lead not found - reject the promise
+        reject(new Error(`Lead with id ${id} not found`));
       }
     }, 300);
   });
@@ -599,12 +709,27 @@ export const getClients = (pageNumber: number = 1, pageSize: number = 50) => {
   });
 };
 
-export const addNewClient = (client: any) => {
+export const addNewClient = (client: Partial<ClientItem> & { registeredNumber?: string }) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const newClient: ClientItem = {
-        ...client,
         id: (clientsData.length + 1).toString(),
+        tenantId: client.tenantId || "",
+        name: client.name || "",
+        ein: client.registeredNumber || client.ein || "",
+        abn: "",
+        gstNumber: client.gstNumber || "",
+        vatNumber: "",
+        address1: client.address1 || "",
+        address2: client.address2 || "",
+        countryId: client.countryId || "",
+        zipcode: client.zipcode || "",
+        managerFirstName: client.managerFirstName || "",
+        managerLastName: client.managerLastName || "",
+        managerEmailId: client.managerEmailId || "",
+        logoPath: "",
+        isPriority: client.isPriority || false,
+        priorityReason: client.priorityReason || "",
         isDeleted: false,
       };
       clientsData.unshift(newClient);
@@ -613,13 +738,36 @@ export const addNewClient = (client: any) => {
   });
 };
 
-export const updateClient = (id: string, client: any) => {
-  return new Promise((resolve) => {
+export const updateClient = (id: string, client: Partial<ClientItem> & { registeredNumber?: string }) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const index = clientsData.findIndex((c) => c.id === id);
       if (index !== -1) {
-        clientsData[index] = { ...clientsData[index], ...client };
+        clientsData[index] = { 
+          ...clientsData[index], 
+          ...client,
+          id: clientsData[index].id, // Preserve the original ID
+          tenantId: client.tenantId ?? clientsData[index].tenantId,
+          name: client.name ?? clientsData[index].name,
+          ein: client.registeredNumber ?? client.ein ?? clientsData[index].ein,
+          abn: "",
+          gstNumber: client.gstNumber ?? clientsData[index].gstNumber,
+          vatNumber: "",
+          address1: client.address1 ?? clientsData[index].address1,
+          address2: client.address2 ?? clientsData[index].address2,
+          countryId: client.countryId ?? clientsData[index].countryId,
+          zipcode: client.zipcode ?? clientsData[index].zipcode,
+          managerFirstName: client.managerFirstName ?? clientsData[index].managerFirstName,
+          managerLastName: client.managerLastName ?? clientsData[index].managerLastName,
+          managerEmailId: client.managerEmailId ?? clientsData[index].managerEmailId,
+          logoPath: "",
+          isPriority: client.isPriority ?? clientsData[index].isPriority,
+          priorityReason: client.priorityReason ?? clientsData[index].priorityReason,
+        };
         resolve(clientsData[index]);
+      } else {
+        // Client not found - reject the promise
+        reject(new Error(`Client with id ${id} not found`));
       }
     }, 300);
   });
@@ -758,6 +906,116 @@ export const deleteClientSite = (id: string) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       clientSitesData = clientSitesData.filter((s) => s.id !== id);
+      resolve({ success: true });
+    }, 300);
+  });
+};
+
+// ========================
+// CLIENT MEETINGS API
+// ========================
+
+let clientMeetingsData = [...initialClientMeetings];
+
+export const getClientMeetings = (
+  pageNumber: number = 1,
+  pageSize: number = 20,
+  clientId?: string
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      let filteredData = clientMeetingsData.filter((m) => !m.isDeleted);
+      
+      // Filter by clientId if provided
+      if (clientId) {
+        filteredData = filteredData.filter((m) => m.clientId === clientId);
+      }
+      
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = filteredData.slice(start, end);
+      
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: filteredData.length,
+        totalPages: Math.ceil(filteredData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < filteredData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewClientMeeting = (meeting: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newMeeting: ClientMeeting = {
+        ...meeting,
+        id: (clientMeetingsData.length + 1).toString(),
+        isDeleted: false,
+        created: new Date().toISOString(),
+        meetingStatus: meeting.meetingStatus || 1,
+      };
+      clientMeetingsData.unshift(newMeeting);
+      resolve(newMeeting);
+    }, 300);
+  });
+};
+
+export const updateClientMeeting = (id: string, meeting: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientMeetingsData.findIndex((m) => m.id === id);
+      if (index !== -1) {
+        clientMeetingsData[index] = {
+          ...clientMeetingsData[index],
+          ...meeting,
+          modified: new Date().toISOString(),
+        };
+        resolve(clientMeetingsData[index]);
+      } else {
+        resolve(null);
+      }
+    }, 300);
+  });
+};
+
+export const rescheduleClientMeeting = (
+  id: string,
+  newDate: string,
+  newStartTime: string,
+  newEndTime: string
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientMeetingsData.findIndex((m) => m.id === id);
+      if (index !== -1) {
+        clientMeetingsData[index] = {
+          ...clientMeetingsData[index],
+          meetingDate: newDate,
+          meetingStartTime: newStartTime,
+          meetingEndTime: newEndTime,
+          modified: new Date().toISOString(),
+        };
+        resolve(clientMeetingsData[index]);
+      } else {
+        resolve(null);
+      }
+    }, 300);
+  });
+};
+
+export const deleteClientMeeting = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = clientMeetingsData.findIndex((m) => m.id === id);
+      if (index !== -1) {
+        // Soft delete
+        clientMeetingsData[index].isDeleted = true;
+        clientMeetingsData[index].modified = new Date().toISOString();
+      }
       resolve({ success: true });
     }, 300);
   });
@@ -1055,6 +1313,95 @@ export const deleteTenantRole = (id: string) => {
     }, 300);
   });
 };
+
+// ========================
+// GLOBAL USERS API
+// ========================
+
+let globalUsersData = [...initialGlobalUsers];
+
+export const getGlobalUsers = (
+  pageNumber: number = 1,
+  pageSize: number = 20
+) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (pageNumber - 1) * pageSize;
+      const end = start + pageSize;
+      const items = globalUsersData.slice(start, end);
+      resolve({
+        items,
+        pageNumber,
+        pageSize,
+        totalCount: globalUsersData.length,
+        totalPages: Math.ceil(globalUsersData.length / pageSize),
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: end < globalUsersData.length,
+      });
+    }, 300);
+  });
+};
+
+export const addNewGlobalUser = (user: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newUser: GlobalUserItem = {
+        ...user,
+        id: (globalUsersData.length + 1).toString(),
+        emailVerified: false,
+        initialSetupDone: false,
+        disabled: false,
+        isDeleted: false,
+        appUserCode: `USR${String(globalUsersData.length + 1).padStart(3, '0')}`,
+      };
+      globalUsersData.unshift(newUser);
+      resolve(newUser);
+    }, 300);
+  });
+};
+
+export const updateGlobalUser = (id: string, user: any) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = globalUsersData.findIndex((u) => u.id === id);
+      if (index !== -1) {
+        globalUsersData[index] = {
+          ...globalUsersData[index],
+          ...user,
+        };
+        resolve(globalUsersData[index]);
+      } else {
+        // Global user not found - reject the promise
+        reject(new Error(`Global user with id ${id} not found`));
+      }
+    }, 300);
+  });
+};
+
+export const deleteGlobalUser = (id: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      globalUsersData = globalUsersData.filter((u) => u.id !== id);
+      resolve({ success: true });
+    }, 300);
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

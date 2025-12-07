@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Container,
@@ -43,11 +43,16 @@ const LeadList: React.FC = () => {
   const leads: LeadItem[] = useSelector(selectLeadList);
   const loading = useSelector(selectLeadLoading);
   const error = useSelector(selectLeadError);
+  const hasFetchedRef = useRef(false);
 
-  // Fetch leads on component mount
+  // Fetch leads on component mount - only once and if not already loading
   useEffect(() => {
-    dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-  }, [dispatch]);
+    // Prevent multiple calls: only fetch if not already loading and not fetched yet
+    if (!loading && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+    }
+  }, [dispatch, loading]);
 
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "">("");
   const [deleteModal, setDeleteModal] = useState(false);
@@ -65,16 +70,21 @@ const LeadList: React.FC = () => {
         showSuccess("Lead deleted successfully");
         setDeleteModal(false);
         setLeadToDelete(null);
+        // Refresh leads list only if delete was successful
+        if (!loading) {
+          dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+        }
       } catch (error) {
         showError("Failed to delete lead");
       }
     }
   };
 
-  // Filter leads based on status filter
+  // Filter leads based on status filter and remove any undefined/null items
   const filtered = useMemo(() => {
-    if (statusFilter === "") return leads;
-    return leads.filter((lead) => lead.leadStatus === statusFilter);
+    const validLeads = leads.filter((lead) => lead != null && lead !== undefined);
+    if (statusFilter === "") return validLeads;
+    return validLeads.filter((lead) => lead.leadStatus === statusFilter);
   }, [leads, statusFilter]);
 
   const columns = useMemo(
@@ -83,31 +93,34 @@ const LeadList: React.FC = () => {
         header: "Lead Name",
         accessorKey: "title",
         enableColumnFilter: false,
+        cell: (cell: any) => {
+          const value = cell.getValue();
+          return value || "-";
+        },
       },
       {
         header: "Contact Person",
         accessorKey: "contactPerson",
         enableColumnFilter: false,
+        cell: (cell: any) => {
+          const value = cell.getValue();
+          return value || "-";
+        },
       },
       {
         header: "Contact Email",
         accessorKey: "contactEmail",
         enableColumnFilter: false,
+        cell: (cell: any) => {
+          const value = cell.getValue();
+          return value || "-";
+        },
       },
       {
         header: "Phone Number",
         accessorKey: "phoneNumber",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
-        header: "Description",
-        accessorKey: "description",
-        enableColumnFilter: false,
-        cell: (cell: any) => {
-          const desc = cell.getValue() || "-";
-          return desc.length > 50 ? desc.substring(0, 50) + "..." : desc;
-        },
       },
       {
         header: "Status",
@@ -117,12 +130,12 @@ const LeadList: React.FC = () => {
           const status: LeadStatus = cell.getValue();
           const statusLabel = LeadStatusLabels[status];
           const colorMap: Record<LeadStatus, string> = {
-            0: "info",
-            1: "secondary",
-            2: "secondary",
-            3: "primary",
-            4: "warning",
-            5: "success",
+            0: "info", // New
+            1: "secondary", // Open
+            2: "secondary", // Approved
+            3: "primary", // Converted
+            4: "warning", // Cancelled
+            5: "success", // Churned
           };
           return (
             <Badge
@@ -135,10 +148,10 @@ const LeadList: React.FC = () => {
         },
       },
       {
-        header: "Tentative Work Days",
-        accessorKey: "tentativeWorkDays",
+        header: "Location",
+        accessorKey: "tenantLocationName",
         enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "0",
+        cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Action",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Container,
   Row,
@@ -11,90 +11,122 @@ import {
   Label,
   Input,
   Button,
-  FormFeedback,
+  Alert,
 } from "reactstrap";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Formik } from "formik";
-import * as Yup from "yup";
+import { useFormik } from "formik";
 import Select from "react-select";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { addNewMeeting } from "../../../slices/thunks";
-
+import {
+  createClientMeeting,
+  selectClientMeetingSaving,
+  selectClientMeetingError,
+} from "../../../slices/clientMeetings/clientMeeting.slice";
+import { selectClientList } from "../../../slices/clients/client.slice";
+import { selectClientContactList } from "../../../slices/clientContacts/clientContact.slice";
+import { selectGlobalUserList } from "../../../slices/globalUsers/globalUser.slice";
+import { fetchClients } from "../../../slices/clients/client.slice";
+import { fetchClientContacts } from "../../../slices/clientContacts/clientContact.slice";
+import { fetchGlobalUsers } from "../../../slices/globalUsers/globalUser.slice";
+import { getLoggedinUser } from "../../../helpers/api_helper";
 import { PAGE_TITLES } from "../../../common/branding";
+import { useFlash } from "../../../hooks/useFlash";
+import {
+  formatDateToISO,
+  formatTimeWithSeconds,
+  getMeetingTypeOptions,
+} from "./utils/meetingUtils";
+import { createMeetingSchema } from "./utils/validationSchemas";
 
 const MeetingCreate: React.FC = () => {
   document.title = PAGE_TITLES.MEETING_CREATE;
-
-  const dispatch: any = useDispatch();
+  const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
+  const saving = useSelector(selectClientMeetingSaving);
+  const error = useSelector(selectClientMeetingError);
+  const clients = useSelector(selectClientList);
+  const clientContacts = useSelector(selectClientContactList);
+  const globalUsers = useSelector(selectGlobalUserList);
 
-  const clientOptions = [
-    { value: 1, label: "Skyline Construction" },
-    { value: 2, label: "John Smith" },
-    { value: 3, label: "Tech Solutions Inc" },
-    { value: 4, label: "ABC Construction Ltd" },
-    { value: 5, label: "Metro Infrastructure" },
-  ];
+  const authUser = getLoggedinUser();
 
-  const validationSchema = Yup.object({
-    title: Yup.string().required("Title is required"),
-    clientName: Yup.string().required("Client is required"),
-    meetingDate: Yup.date().required("Meeting date is required"),
-    meetingTime: Yup.string().required("Meeting time is required"),
-    duration: Yup.number()
-      .required("Duration is required")
-      .min(15, "Duration must be at least 15 minutes"),
-    location: Yup.string().required("Location is required"),
-    locationType: Yup.string().required("Location type is required"),
-    meetingLink: Yup.string().when("locationType", {
-      is: (val: string) => val === "Virtual" || val === "Hybrid",
-      then: (schema) =>
-        schema.required("Meeting link is required for virtual meetings"),
-    }),
-    organizer: Yup.string().required("Organizer is required"),
-    agenda: Yup.string().required("Agenda is required"),
-    meetingType: Yup.string().required("Meeting type is required"),
-    priority: Yup.string().required("Priority is required"),
+  // Fetch dropdown data if not already loaded
+  useEffect(() => {
+    if (!clients || clients.length === 0) {
+      dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!clientContacts || clientContacts.length === 0) {
+      dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!globalUsers || globalUsers.length === 0) {
+      dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, clients, clientContacts, globalUsers]);
+
+  const clientOptions = clients
+    .filter((c: any) => !c.isDeleted)
+    .map((client: any) => ({
+      value: client.id,
+      label: client.name,
+    }));
+
+  const globalUserOptions = globalUsers
+    .filter((u: any) => !u.isDeleted)
+    .map((user: any) => ({
+      value: user.id,
+      label: `${user.firstName} ${user.lastName} (${user.email})`,
+    }));
+
+  const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
+
+  const validation = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      tenantId: authUser?.tenantId || "",
+      clientId: "",
+      meetingTitle: "",
+      meetingDescription: "",
+      meetingDate: "",
+      meetingStartTime: "",
+      meetingEndTime: "",
+      meetingLocation: "",
+      meetingType: 1,
+      organizerUserId: authUser?.userId || "",
+      tenantUserIds: [] as string[],
+      clientContactIds: [] as string[],
+      externalAttendees: "",
+    },
+    validationSchema: createMeetingSchema,
+    onSubmit: async (values) => {
+      const payload = {
+        tenantId: values.tenantId,
+        clientId: values.clientId,
+        meetingTitle: values.meetingTitle,
+        meetingDescription: values.meetingDescription,
+        meetingDate: formatDateToISO(values.meetingDate),
+        meetingStartTime: formatTimeWithSeconds(values.meetingStartTime),
+        meetingEndTime: formatTimeWithSeconds(values.meetingEndTime),
+        meetingLocation: values.meetingLocation,
+        meetingType: values.meetingType,
+        organizerUserId: values.organizerUserId,
+        tenantUserIds: values.tenantUserIds,
+        clientContactIds: values.clientContactIds,
+        externalAttendees: values.externalAttendees,
+      };
+
+      const result = await dispatch(createClientMeeting(payload));
+      if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Meeting created successfully");
+        setTimeout(() => {
+          navigate("/clients/meetings");
+        }, 500);
+      } else {
+        showError("Failed to create meeting");
+      }
+    },
   });
-
-  const initialValues = {
-    title: "",
-    clientId: undefined,
-    clientName: "",
-    meetingDate: "",
-    meetingTime: "",
-    endTime: "",
-    duration: 60,
-    location: "",
-    locationType: "In-Person",
-    meetingLink: "",
-    attendees: [],
-    organizer: "Anna Super",
-    agenda: "",
-    notes: "",
-    status: "Scheduled",
-    meetingType: "Client Meeting",
-    priority: "Medium",
-    reminders: true,
-  };
-
-  const handleSubmit = (values: any) => {
-    const attendeesList = values.attendees
-      .split(",")
-      .map((a: string) => a.trim())
-      .filter((a: string) => a);
-
-    const meetingData = {
-      ...values,
-      attendees: attendeesList,
-    };
-
-    dispatch(addNewMeeting(meetingData));
-    setTimeout(() => {
-      navigate("/meetings/list");
-    }, 1000);
-  };
 
   return (
     <div className="page-content">
@@ -109,95 +141,111 @@ const MeetingCreate: React.FC = () => {
                   <h5 className="card-title mb-0">New Meeting Details</h5>
                   <Button
                     color="light"
-                    onClick={() => navigate("/meetings/list")}
+                    onClick={() => navigate("/clients/meetings")}
                   >
                     <i className="ri-arrow-left-line align-bottom me-1"></i>
-                    Back to List
+                    Back to Meetings
                   </Button>
                 </div>
               </CardHeader>
               <CardBody>
-                <Formik
-                  initialValues={initialValues}
-                  validationSchema={validationSchema}
-                  onSubmit={handleSubmit}
+                {error && (
+                  <Alert color="danger" className="mb-3">
+                    {error}
+                  </Alert>
+                )}
+
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    validation.handleSubmit();
+                  }}
                 >
-                  {({
-                    values,
-                    errors,
-                    touched,
-                    handleChange,
-                    handleBlur,
-                    handleSubmit,
-                    setFieldValue,
-                  }) => (
-                    <Form onSubmit={handleSubmit}>
-                      <Row>
-                        <Col md={8}>
+                  {/* Group 1 - Meeting Details */}
+                  <div className="mb-4">
+                    <h6 className="text-muted mb-3">Meeting Details</h6>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <FormGroup>
+                          <Label className="form-label">
+                            Client <span className="text-danger">*</span>
+                          </Label>
+                          <Select
+                            value={clientOptions.find(
+                              (opt: any) => opt.value === validation.values.clientId
+                            )}
+                            onChange={(selectedOption: any) => {
+                              validation.setFieldValue(
+                                "clientId",
+                                selectedOption?.value || ""
+                              );
+                              // Clear client contacts when client changes
+                              validation.setFieldValue("clientContactIds", []);
+                            }}
+                            options={clientOptions}
+                            placeholder="Select Client"
+                            classNamePrefix="select2-selection"
+                          />
+                          {validation.touched.clientId &&
+                            validation.errors.clientId && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.clientId)}
+                              </div>
+                            )}
+                        </FormGroup>
+                      </Col>
+
+                      <Col md={6}>
                           <FormGroup>
-                            <Label for="title">
+                          <Label className="form-label">
                               Meeting Title{" "}
                               <span className="text-danger">*</span>
                             </Label>
                             <Input
                               type="text"
-                              id="title"
-                              name="title"
-                              value={values.title}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              invalid={!!(touched.title && errors.title)}
-                            />
-                            {touched.title && errors.title && (
-                              <FormFeedback>
-                                {String(errors.title)}
-                              </FormFeedback>
+                            name="meetingTitle"
+                            value={validation.values.meetingTitle}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              !!(
+                                validation.touched.meetingTitle &&
+                                validation.errors.meetingTitle
+                              )
+                            }
+                            maxLength={200}
+                          />
+                          {validation.touched.meetingTitle &&
+                            validation.errors.meetingTitle && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingTitle)}
+                              </div>
                             )}
                           </FormGroup>
                         </Col>
 
-                        <Col md={4}>
+                      <Col md={12}>
                           <FormGroup>
-                            <Label for="priority">
-                              Priority <span className="text-danger">*</span>
-                            </Label>
+                          <Label className="form-label">Description</Label>
                             <Input
-                              type="select"
-                              id="priority"
-                              name="priority"
-                              value={values.priority}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                            >
-                              <option value="High">High</option>
-                              <option value="Medium">Medium</option>
-                              <option value="Low">Low</option>
-                            </Input>
-                          </FormGroup>
-                        </Col>
-                      </Row>
-
-                      <Row>
-                        <Col md={6}>
-                          <FormGroup>
-                            <Label>
-                              Client <span className="text-danger">*</span>
-                            </Label>
-                            <Select
-                              options={clientOptions}
-                              onChange={(option: any) => {
-                                setFieldValue("clientId", option?.value);
-                                setFieldValue(
-                                  "clientName",
-                                  option?.label || ""
-                                );
-                              }}
-                              placeholder="Select Client"
-                              isClearable
-                            />
-                            {touched.clientName && errors.clientName && (
-                              <div className="text-danger mt-1 fs-12">
-                                {String(errors.clientName)}
+                            type="textarea"
+                            name="meetingDescription"
+                            rows={3}
+                            value={validation.values.meetingDescription}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              !!(
+                                validation.touched.meetingDescription &&
+                                validation.errors.meetingDescription
+                              )
+                            }
+                            maxLength={1000}
+                          />
+                          {validation.touched.meetingDescription &&
+                            validation.errors.meetingDescription && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingDescription)}
                               </div>
                             )}
                           </FormGroup>
@@ -205,278 +253,320 @@ const MeetingCreate: React.FC = () => {
 
                         <Col md={6}>
                           <FormGroup>
-                            <Label for="meetingType">
+                          <Label className="form-label">
                               Meeting Type{" "}
                               <span className="text-danger">*</span>
                             </Label>
-                            <Input
-                              type="select"
-                              id="meetingType"
-                              name="meetingType"
-                              value={values.meetingType}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                            >
-                              <option value="Client Meeting">
-                                Client Meeting
-                              </option>
-                              <option value="Site Visit">Site Visit</option>
-                              <option value="Review">Review</option>
-                              <option value="Consultation">Consultation</option>
-                              <option value="Internal">Internal</option>
-                              <option value="Other">Other</option>
-                            </Input>
+                          <Select
+                            value={meetingTypeOptions.find(
+                              (opt) => opt.value === validation.values.meetingType
+                            )}
+                            onChange={(selectedOption: any) => {
+                              validation.setFieldValue(
+                                "meetingType",
+                                selectedOption?.value || 1
+                              );
+                            }}
+                            options={meetingTypeOptions}
+                            placeholder="Select Meeting Type"
+                            classNamePrefix="select2-selection"
+                          />
+                          {validation.touched.meetingType &&
+                            validation.errors.meetingType && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingType)}
+                              </div>
+                            )}
                           </FormGroup>
                         </Col>
                       </Row>
+                  </div>
 
-                      <Row>
+                  {/* Group 2 - Schedule */}
+                  <div className="mb-4">
+                    <h6 className="text-muted mb-3">Schedule</h6>
+                    <Row className="g-3">
                         <Col md={4}>
                           <FormGroup>
-                            <Label for="meetingDate">
+                          <Label className="form-label">
                               Meeting Date{" "}
                               <span className="text-danger">*</span>
                             </Label>
                             <Input
                               type="date"
-                              id="meetingDate"
                               name="meetingDate"
-                              value={values.meetingDate}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
+                            value={validation.values.meetingDate}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
                               invalid={
-                                !!(touched.meetingDate && errors.meetingDate)
-                              }
-                            />
-                            {touched.meetingDate && errors.meetingDate && (
-                              <FormFeedback>
-                                {String(errors.meetingDate)}
-                              </FormFeedback>
+                              !!(
+                                validation.touched.meetingDate &&
+                                validation.errors.meetingDate
+                              )
+                            }
+                          />
+                          {validation.touched.meetingDate &&
+                            validation.errors.meetingDate && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingDate)}
+                              </div>
                             )}
                           </FormGroup>
                         </Col>
 
                         <Col md={4}>
                           <FormGroup>
-                            <Label for="meetingTime">
-                              Start Time <span className="text-danger">*</span>
+                          <Label className="form-label">
+                            Start Time{" "}
+                            <span className="text-danger">*</span>
                             </Label>
                             <Input
                               type="time"
-                              id="meetingTime"
-                              name="meetingTime"
-                              value={values.meetingTime}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
+                            name="meetingStartTime"
+                            value={validation.values.meetingStartTime}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
                               invalid={
-                                !!(touched.meetingTime && errors.meetingTime)
-                              }
-                            />
-                            {touched.meetingTime && errors.meetingTime && (
-                              <FormFeedback>
-                                {String(errors.meetingTime)}
-                              </FormFeedback>
+                              !!(
+                                validation.touched.meetingStartTime &&
+                                validation.errors.meetingStartTime
+                              )
+                            }
+                          />
+                          {validation.touched.meetingStartTime &&
+                            validation.errors.meetingStartTime && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingStartTime)}
+                              </div>
                             )}
                           </FormGroup>
                         </Col>
 
                         <Col md={4}>
                           <FormGroup>
-                            <Label for="duration">
-                              Duration (minutes){" "}
+                          <Label className="form-label">
+                            End Time{" "}
                               <span className="text-danger">*</span>
                             </Label>
                             <Input
-                              type="number"
-                              id="duration"
-                              name="duration"
-                              value={values.duration}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              invalid={!!(touched.duration && errors.duration)}
-                            />
-                            {touched.duration && errors.duration && (
-                              <FormFeedback>
-                                {String(errors.duration)}
-                              </FormFeedback>
+                            type="time"
+                            name="meetingEndTime"
+                            value={validation.values.meetingEndTime}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              !!(
+                                validation.touched.meetingEndTime &&
+                                validation.errors.meetingEndTime
+                              )
+                            }
+                          />
+                          {validation.touched.meetingEndTime &&
+                            validation.errors.meetingEndTime && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingEndTime)}
+                              </div>
                             )}
                           </FormGroup>
                         </Col>
-                      </Row>
 
-                      <Row>
-                        <Col md={6}>
+                      <Col md={12}>
                           <FormGroup>
-                            <Label for="locationType">
-                              Location Type{" "}
-                              <span className="text-danger">*</span>
-                            </Label>
-                            <Input
-                              type="select"
-                              id="locationType"
-                              name="locationType"
-                              value={values.locationType}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                            >
-                              <option value="In-Person">In-Person</option>
-                              <option value="Virtual">Virtual</option>
-                              <option value="Hybrid">Hybrid</option>
-                            </Input>
-                          </FormGroup>
-                        </Col>
-
-                        <Col md={6}>
-                          <FormGroup>
-                            <Label for="location">
-                              Location <span className="text-danger">*</span>
-                            </Label>
+                          <Label className="form-label">Location</Label>
                             <Input
                               type="text"
-                              id="location"
-                              name="location"
+                            name="meetingLocation"
+                            value={validation.values.meetingLocation}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              !!(
+                                validation.touched.meetingLocation &&
+                                validation.errors.meetingLocation
+                              )
+                            }
+                            maxLength={500}
                               placeholder="Office address, Zoom, Teams, etc."
-                              value={values.location}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              invalid={!!(touched.location && errors.location)}
-                            />
-                            {touched.location && errors.location && (
-                              <FormFeedback>
-                                {String(errors.location)}
-                              </FormFeedback>
+                          />
+                          {validation.touched.meetingLocation &&
+                            validation.errors.meetingLocation && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.meetingLocation)}
+                              </div>
                             )}
                           </FormGroup>
                         </Col>
                       </Row>
+                  </div>
 
-                      {(values.locationType === "Virtual" ||
-                        values.locationType === "Hybrid") && (
+                  {/* Group 3 - Participants */}
+                  <div className="mb-4">
+                    <h6 className="text-muted mb-3">Participants</h6>
+                    <Row className="g-3">
+                      <Col md={6}>
                           <FormGroup>
-                            <Label for="meetingLink">
-                              Meeting Link <span className="text-danger">*</span>
+                          <Label className="form-label">
+                            Organizer{" "}
+                            <span className="text-danger">*</span>
                             </Label>
-                            <Input
-                              type="url"
-                              id="meetingLink"
-                              name="meetingLink"
-                              placeholder="https://zoom.us/j/123456789"
-                              value={values.meetingLink}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              invalid={
-                                !!(touched.meetingLink && errors.meetingLink)
-                              }
-                            />
-                            {touched.meetingLink && errors.meetingLink && (
-                              <FormFeedback>
-                                {String(errors.meetingLink)}
-                              </FormFeedback>
+                          <Select
+                            value={globalUserOptions.find(
+                              (opt: any) =>
+                                opt.value === validation.values.organizerUserId
+                            )}
+                            onChange={(selectedOption: any) => {
+                              validation.setFieldValue(
+                                "organizerUserId",
+                                selectedOption?.value || ""
+                              );
+                            }}
+                            options={globalUserOptions}
+                            placeholder="Select Organizer"
+                            classNamePrefix="select2-selection"
+                          />
+                          {validation.touched.organizerUserId &&
+                            validation.errors.organizerUserId && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.organizerUserId)}
+                              </div>
                             )}
                           </FormGroup>
-                        )}
+                      </Col>
 
-                      <Row>
                         <Col md={6}>
                           <FormGroup>
-                            <Label for="organizer">
-                              Organizer <span className="text-danger">*</span>
+                          <Label className="form-label">
+                            Internal Users (Tenant Users)
                             </Label>
-                            <Input
-                              type="text"
-                              id="organizer"
-                              name="organizer"
-                              value={values.organizer}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              invalid={
-                                !!(touched.organizer && errors.organizer)
-                              }
-                            />
-                            {touched.organizer && errors.organizer && (
-                              <FormFeedback>
-                                {String(errors.organizer)}
-                              </FormFeedback>
+                          <Select
+                            isMulti
+                            value={globalUserOptions.filter((opt: any) =>
+                              validation.values.tenantUserIds.includes(opt.value)
                             )}
+                            onChange={(selectedOptions: any) => {
+                              validation.setFieldValue(
+                                "tenantUserIds",
+                                selectedOptions
+                                  ? selectedOptions.map((opt: any) => opt.value)
+                                  : []
+                              );
+                            }}
+                            options={globalUserOptions}
+                            placeholder="Select internal users"
+                            classNamePrefix="select2-selection"
+                          />
                           </FormGroup>
                         </Col>
 
                         <Col md={6}>
                           <FormGroup>
-                            <Label for="attendees">Attendees</Label>
-                            <Input
-                              type="text"
-                              id="attendees"
-                              name="attendees"
-                              placeholder="Comma-separated names"
-                              value={values.attendees}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
+                          <Label className="form-label">Client Contacts</Label>
+                          <Select
+                            isMulti
+                            value={clientContacts
+                              .filter(
+                                (c: any) =>
+                                  !c.isDeleted &&
+                                  c.clientId === validation.values.clientId &&
+                                  validation.values.clientContactIds.includes(c.id)
+                              )
+                              .map((contact: any) => ({
+                                value: contact.id,
+                                label: `${contact.contactFirstName} ${contact.contactLastName} (${contact.email})`,
+                              }))}
+                            onChange={(selectedOptions: any) => {
+                              validation.setFieldValue(
+                                "clientContactIds",
+                                selectedOptions
+                                  ? selectedOptions.map((opt: any) => opt.value)
+                                  : []
+                              );
+                            }}
+                            options={clientContacts
+                              .filter(
+                                (c: any) =>
+                                  !c.isDeleted &&
+                                  c.clientId === validation.values.clientId
+                              )
+                              .map((contact: any) => ({
+                                value: contact.id,
+                                label: `${contact.contactFirstName} ${contact.contactLastName} (${contact.email})`,
+                              }))}
+                            placeholder={
+                              validation.values.clientId
+                                ? "Select client contacts"
+                                : "Select a client first"
+                            }
+                            isDisabled={!validation.values.clientId}
+                            classNamePrefix="select2-selection"
                             />
                           </FormGroup>
                         </Col>
-                      </Row>
 
+                      <Col md={6}>
                       <FormGroup>
-                        <Label for="agenda">
-                          Meeting Agenda <span className="text-danger">*</span>
+                          <Label className="form-label">
+                            External Attendees (Emails)
                         </Label>
                         <Input
                           type="textarea"
-                          id="agenda"
-                          name="agenda"
+                            name="externalAttendees"
                           rows={3}
-                          value={values.agenda}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          invalid={!!(touched.agenda && errors.agenda)}
-                        />
-                        {touched.agenda && errors.agenda && (
-                          <FormFeedback>{String(errors.agenda)}</FormFeedback>
+                            value={validation.values.externalAttendees}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              !!(
+                                validation.touched.externalAttendees &&
+                                validation.errors.externalAttendees
+                              )
+                            }
+                            placeholder="email1@example.com; email2@example.com"
+                          />
+                          <small className="text-muted">
+                            Separate multiple emails with semicolons (;)
+                          </small>
+                          {validation.touched.externalAttendees &&
+                            validation.errors.externalAttendees && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.externalAttendees)}
+                              </div>
                         )}
                       </FormGroup>
-
-                      <FormGroup>
-                        <Label for="notes">Notes</Label>
-                        <Input
-                          type="textarea"
-                          id="notes"
-                          name="notes"
-                          rows={2}
-                          value={values.notes}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                        />
-                      </FormGroup>
-
-                      <FormGroup check>
-                        <Input
-                          type="checkbox"
-                          id="reminders"
-                          name="reminders"
-                          checked={values.reminders}
-                          onChange={handleChange}
-                        />
-                        <Label check for="reminders">
-                          Send reminder notifications
-                        </Label>
-                      </FormGroup>
+                      </Col>
+                    </Row>
+                  </div>
 
                       <div className="d-flex gap-2 justify-content-end mt-4">
                         <Button
                           color="light"
-                          onClick={() => navigate("/meetings/list")}
+                      onClick={() => navigate("/clients/meetings")}
                         >
                           Cancel
                         </Button>
-                        <Button color="success" type="submit">
+                    <Button
+                      color="success"
+                      type="submit"
+                      disabled={saving}
+                    >
+                      {saving ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm me-1"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Creating...
+                        </>
+                      ) : (
+                        <>
                           <i className="ri-save-line align-bottom me-1"></i>
                           Schedule Meeting
+                        </>
+                      )}
                         </Button>
                       </div>
                     </Form>
-                  )}
-                </Formik>
               </CardBody>
             </Card>
           </Col>

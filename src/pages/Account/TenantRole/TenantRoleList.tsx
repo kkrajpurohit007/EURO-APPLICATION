@@ -156,7 +156,7 @@ const TenantRoleList = () => {
     [navigate]
   );
 
-  document.title = PAGE_TITLES.TENANT_ROLES_LIST || "Tenant Roles | ESRM";
+  document.title = PAGE_TITLES.TENANT_ROLES_LIST || "User Roles | ESRM";
 
   // Filter out deleted roles
   const filtered = useMemo(() => {
@@ -168,7 +168,7 @@ const TenantRoleList = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Tenant Roles" pageTitle="Account" />
+          <BreadCrumb title="User Roles" pageTitle="Account" />
           <Row>
             <Col lg={12}>
               <Card id="tenantRolesList">
@@ -176,7 +176,7 @@ const TenantRoleList = () => {
                   <Row className="g-4 align-items-center">
                     <Col sm={3}>
                       <div>
-                        <h5 className="card-title mb-0">Tenant Role List</h5>
+                        <h5 className="card-title mb-0">User Role List</h5>
                       </div>
                     </Col>
                     <Col sm={9}>
@@ -204,7 +204,7 @@ const TenantRoleList = () => {
                         customPageSize={10}
                         divClass="table-responsive table-card mb-3"
                         tableClass="align-middle table-nowrap mb-0"
-                        SearchPlaceholder="Search for tenant roles..."
+                        SearchPlaceholder="Search for user roles..."
                       />
                     )}
                   </div>

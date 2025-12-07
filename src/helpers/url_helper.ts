@@ -13,7 +13,7 @@ export const POST_OTP_VERIFY = "/auth/verify-otp";
 export const POST_OTP_RESEND = "/auth/resend-otp";
 
 // ROLES (using Profile endpoint)
-export const GET_ROLES = "/api/v1/Profile";
+export const GET_ROLES = "/Profile";
 export const POST_ROLE = "/Role";
 export const PUT_ROLE = "/Role";
 export const DELETE_ROLE = "/Role";
@@ -35,6 +35,7 @@ export const DELETE_DEPARTMENT = "/Department";
 // LEADS
 export const GET_LEADS = "/Lead";
 export const ADD_NEW_LEAD = "/Lead";
+export const ADD_NEW_LEAD_WITH_ATTACHMENTS = "/Lead/WithAttachments";
 export const UPDATE_LEAD = "/Lead";
 export const DELETE_LEAD = "/Lead";
 
@@ -79,3 +80,20 @@ export const GET_TENANT_ROLES = "/Role";
 export const POST_TENANT_ROLE = "/Role";
 export const PUT_TENANT_ROLE = "/Role";
 export const DELETE_TENANT_ROLE = "/Role";
+
+// CLIENT RENTAL CONFIGURATION
+export const CLIENT_RENTAL_CONFIG = "/ClientRentalConfiguration";
+
+// GLOBAL USERS (User Management)
+export const GET_GLOBAL_USERS = "/User/TenantUser";
+export const ADD_NEW_GLOBAL_USER = "/User/TenantUser";
+export const UPDATE_GLOBAL_USER = "/User/TenantUser";
+export const DELETE_GLOBAL_USER = "/User/TenantUser";
+
+// CLIENT MEETINGS
+export const GET_CLIENT_MEETINGS = "/ClientMeeting";
+export const GET_CLIENT_MEETING_BY_ID = "/ClientMeeting";
+export const ADD_NEW_CLIENT_MEETING = "/ClientMeeting";
+export const UPDATE_CLIENT_MEETING = "/ClientMeeting";
+export const RESCHEDULE_CLIENT_MEETING = "/ClientMeeting";
+export const DELETE_CLIENT_MEETING = "/ClientMeeting";

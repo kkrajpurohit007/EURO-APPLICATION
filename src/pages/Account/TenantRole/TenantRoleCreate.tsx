@@ -61,14 +61,14 @@ const TenantRoleCreate = () => {
 
   useEffect(() => {
     if (isTenantRoleCreated) {
-      showSuccess("Tenant role created successfully");
+      showSuccess("User role created successfully");
       navigate("/account/tenant-roles");
     }
   }, [isTenantRoleCreated, navigate, showSuccess]);
 
   useEffect(() => {
     if (error) {
-      showError("Failed to create tenant role");
+      showError("Failed to create user role");
     }
   }, [error, showError]);
 
@@ -111,15 +111,15 @@ const TenantRoleCreate = () => {
     navigate("/account/tenant-roles");
   };
 
-  document.title = PAGE_TITLES.TENANT_ROLE_CREATE || "Create Tenant Role | ESRM";
+  document.title = PAGE_TITLES.TENANT_ROLE_CREATE || "Create User Role | ESRM";
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
           <BreadCrumb
-            title="Create Tenant Role"
-            pageTitle="Tenant Roles"
+            title="Create User Role"
+            pageTitle="User Roles"
           />
           <Row>
             <Col lg={12}>
@@ -132,7 +132,7 @@ const TenantRoleCreate = () => {
               >
                 <Card>
                   <CardHeader>
-                    <h5 className="card-title mb-0">Add New Tenant Role</h5>
+                    <h5 className="card-title mb-0">Add New User Role</h5>
                   </CardHeader>
                   <CardBody>
                     <Row>

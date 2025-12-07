@@ -20,7 +20,7 @@ import TenantRolesReducer from "./tenantRoles/tenantRole.slice";
 import TenantRentalConfigReducer from "./tenantRentalConfig/tenantRentalConfig.slice";
 
 // Client Rental Config
-import ClientRentalConfigReducer from "./clientRentalConfig/reducer";
+import ClientRentalConfigReducer from "./clientRentalConfig/clientRentalConfig.slice";
 
 // Meetings
 import MeetingsReducer from "./meetings/reducer";
@@ -52,6 +52,12 @@ import UserProfilesReducer from "./userProfiles/profile.slice";
 // Roles
 import RolesReducer from "./roles/role.slice";
 
+// Global Users
+import GlobalUsersReducer from "./globalUsers/globalUser.slice";
+
+// Client Meetings
+import ClientMeetingsReducer from "./clientMeetings/clientMeeting.slice";
+
 // Notifications
 import NotificationReducer from "./notifications/notificationSlice";
 
@@ -76,6 +82,8 @@ const rootReducer = combineReducers({
   TenantLocations: TenantLocationsReducer,
   UserProfiles: UserProfilesReducer,
   Roles: RolesReducer,
+  GlobalUsers: GlobalUsersReducer,
+  ClientMeetings: ClientMeetingsReducer,
   Notifications: NotificationReducer,
 });
 

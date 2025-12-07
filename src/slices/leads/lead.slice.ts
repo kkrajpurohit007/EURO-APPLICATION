@@ -11,6 +11,7 @@ interface LeadState {
   pageSize: number;
   totalCount: number;
   totalPages: number;
+  lastFetchTime: number | null; // Track last successful fetch time
 }
 
 const initialState: LeadState = {
@@ -22,6 +23,7 @@ const initialState: LeadState = {
   pageSize: 500,
   totalCount: 0,
   totalPages: 0,
+  lastFetchTime: null,
 };
 
 // Async thunk to fetch leads from API
@@ -85,20 +87,27 @@ const leadSlice = createSlice({
     builder
       // Fetch leads
       .addCase(fetchLeads.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        // Prevent concurrent requests - if already loading, don't set loading again
+        if (!state.loading) {
+          state.loading = true;
+          state.error = null;
+        }
       })
       .addCase(fetchLeads.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.items;
+        state.error = null; // Clear any previous errors on success
+        // Filter out any undefined/null items
+        state.items = (action.payload.items || []).filter((item: LeadItem) => item != null && item !== undefined);
         state.pageNumber = action.payload.pageNumber;
         state.pageSize = action.payload.pageSize;
         state.totalCount = action.payload.totalCount;
         state.totalPages = action.payload.totalPages;
+        state.lastFetchTime = Date.now(); // Track successful fetch time
       })
       .addCase(fetchLeads.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch leads";
+        // Don't update lastFetchTime on error to prevent stale data
       })
       // Create lead
       .addCase(createLead.pending, (state) => {
@@ -107,8 +116,11 @@ const leadSlice = createSlice({
       })
       .addCase(createLead.fulfilled, (state, action) => {
         state.loading = false;
-        state.items.unshift(action.payload);
-        state.totalCount += 1;
+        // Only add if payload is valid
+        if (action.payload && action.payload.id) {
+          state.items.unshift(action.payload);
+          state.totalCount += 1;
+        }
       })
       .addCase(createLead.rejected, (state, action) => {
         state.loading = false;
@@ -151,10 +163,12 @@ export const { selectLead, clearError } = leadSlice.actions;
 export default leadSlice.reducer;
 
 // selectors
-export const selectLeadList = (state: any) => state.Leads.items;
-export const selectSelectedLead = (state: any) => state.Leads.selectedLead;
+export const selectLeadList = (state: any) => state.Leads?.items || [];
+export const selectSelectedLead = (state: any) =>
+  state.Leads?.selectedLead || null;
 export const selectLeadById = (state: any, id: string) =>
-  state.Leads.items.find((l: LeadItem) => l.id === id);
-export const selectLeadLoading = (state: any) => state.Leads.loading;
-export const selectLeadError = (state: any) => state.Leads.error;
-export const selectLeadTotalCount = (state: any) => state.Leads.totalCount;
+  state.Leads?.items?.find((l: LeadItem) => l.id === id) || null;
+export const selectLeadLoading = (state: any) => state.Leads?.loading || false;
+export const selectLeadError = (state: any) => state.Leads?.error || null;
+export const selectLeadTotalCount = (state: any) =>
+  state.Leads?.totalCount || 0;

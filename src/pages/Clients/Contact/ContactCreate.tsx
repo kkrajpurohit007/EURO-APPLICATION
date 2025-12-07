@@ -1,6 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Container,
   Row,
@@ -35,12 +35,14 @@ const ClientContactCreate: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_CONTACT_CREATE;
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectClientContactLoading);
   const error = useSelector(selectClientContactError);
   const clients = useSelector(selectClientList);
 
   const authUser = getLoggedinUser();
+  const clientIdFromUrl = searchParams.get("clientId") || "";
 
   const clientOptions = clients
     .filter((c: any) => !c.isDeleted)
@@ -52,7 +54,7 @@ const ClientContactCreate: React.FC = () => {
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
-      clientId: "",
+      clientId: clientIdFromUrl,
       title: "Mr.",
       contactFirstName: "",
       contactLastName: "",
@@ -83,7 +85,12 @@ const ClientContactCreate: React.FC = () => {
         dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
         // Delay navigation to show notification
         setTimeout(() => {
-          navigate("/clients/contacts");
+          // If created from client view, navigate back to client view
+          if (clientIdFromUrl) {
+            navigate(`/clients/view/${clientIdFromUrl}`);
+          } else {
+            navigate("/clients/contacts");
+          }
         }, 500);
       } else {
         showError("Failed to create contact");
@@ -103,13 +110,25 @@ const ClientContactCreate: React.FC = () => {
                 <div className="d-flex gap-2">
                   <Button
                     color="light"
-                    onClick={() => navigate("/clients/contacts")}
+                    onClick={() => {
+                      if (clientIdFromUrl) {
+                        navigate(`/clients/view/${clientIdFromUrl}`);
+                      } else {
+                        navigate("/clients/contacts");
+                      }
+                    }}
                   >
                     Close
                   </Button>
                   <Button
                     color="secondary"
-                    onClick={() => navigate("/clients/contacts")}
+                    onClick={() => {
+                      if (clientIdFromUrl) {
+                        navigate(`/clients/view/${clientIdFromUrl}`);
+                      } else {
+                        navigate("/clients/contacts");
+                      }
+                    }}
                   >
                     Cancel
                   </Button>

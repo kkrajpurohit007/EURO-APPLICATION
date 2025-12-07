@@ -6,6 +6,7 @@ import { fetchClientContacts } from "../slices/clientContacts/clientContact.slic
 import { fetchClientSites } from "../slices/clientSites/clientSite.slice";
 import { fetchProfiles } from "../slices/userProfiles/profile.slice";
 import { fetchRoles } from "../slices/roles/role.slice";
+import { fetchClientRentalConfigs } from "../slices/clientRentalConfig/clientRentalConfig.slice";
 
 /**
  * Centralized App Initialization Service
@@ -46,6 +47,9 @@ class AppInitService {
 
             // Load Client Sites
             await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
+
+            // Load Client Rental Configs
+            await dispatch(fetchClientRentalConfigs({ pageNumber: 1, pageSize: 50 }));
 
             // Load User Profiles
             await dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
@@ -111,6 +115,14 @@ class AppInitService {
      */
     async forceRefreshClientSites(dispatch: any) {
         await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
+    }
+
+    /**
+     * Force refresh client rental configs data
+     * Used after CRUD operations
+     */
+    async forceRefreshClientRentalConfigs(dispatch: any) {
+        await dispatch(fetchClientRentalConfigs({ pageNumber: 1, pageSize: 50 }));
     }
 
     /**

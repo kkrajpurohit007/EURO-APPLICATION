@@ -10,33 +10,33 @@ import {
 
 export const getClientRentalConfigs = createAsyncThunk(
   "clientRentalConfig/getClientRentalConfigs",
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = getClientRentalConfigsApi();
+      const response = await getClientRentalConfigsApi();
       return response;
     } catch (error) {
-      return error;
+      return rejectWithValue(error);
     }
   }
 );
 
 export const getClientRentalConfigByClientId = createAsyncThunk(
   "clientRentalConfig/getClientRentalConfigByClientId",
-  async (clientId: number) => {
+  async (clientId: number, { rejectWithValue }) => {
     try {
-      const response = getClientRentalConfigByClientIdApi(clientId);
+      const response = await getClientRentalConfigByClientIdApi(clientId);
       return response;
     } catch (error) {
-      return error;
+      return rejectWithValue(error);
     }
   }
 );
 
 export const updateClientRentalConfig = createAsyncThunk(
   "clientRentalConfig/updateClientRentalConfig",
-  async (config: any) => {
+  async (config: any, { rejectWithValue }) => {
     try {
-      const response = updateClientRentalConfigApi(config.clientId, config);
+      const response = await updateClientRentalConfigApi(config.clientId, config);
       const data = await response;
       toast.success("Client Rental Configuration Updated Successfully", {
         autoClose: 3000,
@@ -46,7 +46,7 @@ export const updateClientRentalConfig = createAsyncThunk(
       toast.error("Client Rental Configuration Update Failed", {
         autoClose: 3000,
       });
-      return error;
+      return rejectWithValue(error);
     }
   }
 );

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Container,
   Row,
@@ -37,11 +37,16 @@ const ContactEdit: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { showSuccess, showError } = useFlash();
   const contact = useSelector((state: any) => selectClientContactById(state, id || ""));
   const loading = useSelector(selectClientContactLoading);
   const error = useSelector(selectClientContactError);
   const clients = useSelector(selectClientList);
+
+  // Get clientId from URL params or from contact object
+  const clientIdFromUrl = searchParams.get("clientId") || "";
+  const clientId = clientIdFromUrl || contact?.clientId || "";
 
   const clientOptions = clients
     .filter((c: any) => !c.isDeleted)
@@ -87,7 +92,12 @@ const ContactEdit: React.FC = () => {
         dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
         // Delay navigation to show notification
         setTimeout(() => {
-          navigate("/clients/contacts");
+          // If edited from client view, navigate back to client view
+          if (clientId) {
+            navigate(`/clients/view/${clientId}`);
+          } else {
+            navigate("/clients/contacts");
+          }
         }, 500);
       } else {
         showError("Failed to update contact");
@@ -115,12 +125,27 @@ const ContactEdit: React.FC = () => {
               <CardHeader className="d-flex justify-content-between align-items-center">
                 <h5 className="card-title mb-0">Edit Client Contact</h5>
                 <div className="d-flex gap-2">
-                  <Button color="light" onClick={() => navigate("/clients/contacts")}>
+                  <Button
+                    color="light"
+                    onClick={() => {
+                      if (clientId) {
+                        navigate(`/clients/view/${clientId}`);
+                      } else {
+                        navigate("/clients/contacts");
+                      }
+                    }}
+                  >
                     Close
                   </Button>
                   <Button
                     color="secondary"
-                    onClick={() => navigate("/clients/contacts")}
+                    onClick={() => {
+                      if (clientId) {
+                        navigate(`/clients/view/${clientId}`);
+                      } else {
+                        navigate("/clients/contacts");
+                      }
+                    }}
                   >
                     Cancel
                   </Button>

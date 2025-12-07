@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Container } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import { fetchLeads } from "../../slices/leads/lead.slice";
@@ -8,11 +8,17 @@ import { PAGE_TITLES } from "../../common/branding";
 const Dashboard = () => {
   document.title = PAGE_TITLES.dashboard;
   const dispatch = useDispatch<any>();
+  const loading = useSelector((state: any) => state.Leads?.loading || false);
+  const hasFetchedRef = useRef(false);
 
-  // Load leads on dashboard mount (after login)
+  // Load leads on dashboard mount (after login) - only once and if not already loading
   useEffect(() => {
-    dispatch(fetchLeads({}));
-  }, [dispatch]);
+    // Prevent multiple calls: only fetch if not already loading and not fetched yet
+    if (!loading && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+    }
+  }, [dispatch, loading]);
 
   return (
     <React.Fragment>

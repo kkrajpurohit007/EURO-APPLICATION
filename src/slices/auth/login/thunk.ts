@@ -32,6 +32,9 @@ export const loginUser = (user: any, history: any) => async (dispatch: any) => {
 
     if (data) {
       sessionStorage.setItem("authUser", JSON.stringify(data));
+      localStorage.setItem("authUser", JSON.stringify(data));
+      // Dispatch custom event to notify useProfile hook of storage update
+      window.dispatchEvent(new Event("authStorageUpdate"));
       if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
         var finallogin: any = JSON.stringify(data);
         finallogin = JSON.parse(finallogin);
@@ -58,6 +61,9 @@ export const logoutUser = () => async (dispatch: any) => {
   try {
     sessionStorage.removeItem("authUser");
     localStorage.removeItem("authUser");
+    
+    // Dispatch custom event to notify useProfile hook of storage update
+    window.dispatchEvent(new Event("authStorageUpdate"));
 
     // Reset AppInitService state
     appInitService.reset();

@@ -21,7 +21,7 @@ import Loader from "../../../Components/Common/Loader";
 import { PAGE_TITLES } from "../../../common/branding";
 
 const TenantRoleView: React.FC = () => {
-  document.title = PAGE_TITLES.TENANT_ROLE_VIEW || "View Tenant Role | ESRM";
+  document.title = PAGE_TITLES.TENANT_ROLE_VIEW || "View User Role | ESRM";
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch<any>();
@@ -52,7 +52,7 @@ const TenantRoleView: React.FC = () => {
     return (
       <div className="page-content">
         <Container fluid>
-          <Alert color="danger">Tenant role not found</Alert>
+          <Alert color="danger">User role not found</Alert>
         </Container>
       </div>
     );
@@ -61,12 +61,12 @@ const TenantRoleView: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="View Tenant Role" pageTitle="Tenant Roles" />
+        <BreadCrumb title="View User Role" pageTitle="User Roles" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">View Tenant Role Details</h5>
+                <h5 className="card-title mb-0">View User Role Details</h5>
                 <div className="d-flex gap-2">
                   <Button color="light" onClick={() => navigate("/account/tenant-roles")}>
                     Close

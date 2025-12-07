@@ -85,13 +85,28 @@ export const verifyOtp =
         sessionStorage.setItem("authUser", JSON.stringify(userData));
         localStorage.setItem("authUser", JSON.stringify(userData));
 
+        // Dispatch custom event to notify useProfile hook of storage update
+        window.dispatchEvent(new Event("authStorageUpdate"));
+
+        // IMPORTANT: Set authorization header immediately before any other operations
+        const { setAuthorization } = await import("../../../helpers/api_helper");
+        setAuthorization(userData.token);
+
+        // Update Redux state
         dispatch(otpVerifiedSuccess());
         dispatch(clearOtpData());
         dispatch(loginSuccess(userData));
 
+        // Small delay to ensure state is propagated
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         // Initialize app data after successful login
         await appInitService.initialize(dispatch);
 
+        // Additional delay to ensure app initialization completes
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Navigate to dashboard
         history("/dashboard");
       } else {
         dispatch(otpError("OTP verification failed. Please try again."));

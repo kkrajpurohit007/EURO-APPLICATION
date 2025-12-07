@@ -65,15 +65,15 @@ const TenantLocationEdit: React.FC = () => {
       const payload = { id: id as string, data: values };
       const result = await dispatch(updateTenantLocation(payload));
       if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Tenant location updated successfully");
-        // Refresh tenant locations list after successful update
+        showSuccess("Global location updated successfully");
+        // Refresh global locations list after successful update
         dispatch(fetchTenantLocations({ pageNumber: 1, pageSize: 20 }));
         // Delay navigation to show notification
         setTimeout(() => {
           navigate("/tenant-locations/list");
         }, 500);
       } else {
-        showError("Failed to update tenant location");
+        showError("Failed to update global location");
       }
     },
   });
@@ -82,7 +82,7 @@ const TenantLocationEdit: React.FC = () => {
     return (
       <div className="page-content">
         <Container fluid>
-          <Alert color="danger">Tenant location not found</Alert>
+          <Alert color="danger">Global location not found</Alert>
         </Container>
       </div>
     );
@@ -91,12 +91,12 @@ const TenantLocationEdit: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Edit Tenant Location" pageTitle="Tenant Locations" />
+        <BreadCrumb title="Edit Global Location" pageTitle="Global Locations" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">Edit Tenant Location</h5>
+                <h5 className="card-title mb-0">Edit Global Location</h5>
                 <div className="d-flex gap-2">
                   <Button color="light" onClick={() => navigate("/tenant-locations/list")}>
                     Close
