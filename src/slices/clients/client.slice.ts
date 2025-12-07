@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
-    initialClients,
     ClientItem,
     ClientsResponse,
 } from "./client.fakeData";
@@ -18,7 +17,7 @@ interface ClientState {
 }
 
 const initialState: ClientState = {
-    items: initialClients,
+    items: [], // Start with empty array instead of fake data
     selectedClient: null,
     loading: false,
     error: null,

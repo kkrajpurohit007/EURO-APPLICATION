@@ -48,8 +48,7 @@ import { selectGlobalUserList } from "../../../slices/globalUsers/globalUser.sli
 import { fetchClientContacts } from "../../../slices/clientContacts/clientContact.slice";
 import { fetchGlobalUsers } from "../../../slices/globalUsers/globalUser.slice";
 import { getLoggedinUser } from "../../../helpers/api_helper";
-import { selectClientList } from "../../../slices/clients/client.slice";
-import { fetchClients } from "../../../slices/clients/client.slice";
+import { selectClientList, selectClientLoading, fetchClients } from "../../../slices/clients/client.slice";
 import {
   ClientMeeting,
   MEETING_TYPE_MAP,
@@ -75,6 +74,7 @@ const MeetingCalendar: React.FC = () => {
   const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingLoading);
   const clients = useSelector(selectClientList);
+  const clientsLoading = useSelector(selectClientLoading);
   const clientContacts = useSelector(selectClientContactList);
   const globalUsers = useSelector(selectGlobalUserList);
   const authUser = getLoggedinUser();
@@ -84,11 +84,24 @@ const MeetingCalendar: React.FC = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState<any>(0);
   const [isEdit, setIsEdit] = useState(false);
-  // Load selected client from localStorage on mount
-  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(() => {
-    const saved = localStorage.getItem("meetingSelectedClientId");
-    return saved || undefined;
-  });
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  
+  // Validate and set selectedClientId from localStorage only after clients are loaded
+  useEffect(() => {
+    if (!clientsLoading && clients && clients.length > 0) {
+      const saved = localStorage.getItem("meetingSelectedClientId");
+      if (saved) {
+        // Validate that the saved clientId exists in the loaded clients
+        const clientExists = clients.some((c: any) => c.id === saved && !c.isDeleted);
+        if (clientExists) {
+          setSelectedClientId(saved);
+        } else {
+          // Clear invalid saved clientId
+          localStorage.removeItem("meetingSelectedClientId");
+        }
+      }
+    }
+  }, [clientsLoading, clients]);
   const [dayMeetingsModal, setDayMeetingsModal] = useState(false);
   const [selectedDayMeetings, setSelectedDayMeetings] = useState<ClientMeeting[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -169,14 +182,19 @@ const MeetingCalendar: React.FC = () => {
     }
   }, []);
 
+  // Only show client options when clients are loaded (not fake/initial data)
   const clientOptions = useMemo(() => {
+    // Don't show options if clients are loading or if clients array is empty/initial
+    if (clientsLoading || !clients || clients.length === 0) {
+      return [];
+    }
     return clients
       .filter((c: any) => !c.isDeleted)
       .map((client: any) => ({
         value: client.id,
         label: client.name,
       }));
-  }, [clients]);
+  }, [clients, clientsLoading]);
 
   // Filter meetings by selected client
   const filteredMeetings = useMemo(() => {
@@ -660,9 +678,11 @@ const MeetingCalendar: React.FC = () => {
                   }
                 }}
                 options={clientOptions}
-                placeholder="Select Client (Required)"
+                placeholder={clientsLoading ? "Loading clients..." : "Select Client (Required)"}
                 classNamePrefix="select2-selection"
                 isClearable={false}
+                isLoading={clientsLoading}
+                isDisabled={clientsLoading || clientOptions.length === 0}
               />
               {!selectedClientId && (
                 <small className="text-danger d-block mt-1">

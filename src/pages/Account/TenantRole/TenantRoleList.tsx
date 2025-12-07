@@ -12,10 +12,8 @@ import {
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import TableContainer from "../../../Components/Common/TableContainer";
-import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
   getTenantRoles,
-  deleteTenantRole,
 } from "../../../slices/tenantRoles/tenantRole.slice";
 import { createSelector } from "reselect";
 import Loader from "../../../Components/Common/Loader";
@@ -37,28 +35,11 @@ const TenantRoleList = () => {
 
   const { tenantRoles, error, loading } = useSelector(selectTenantRoleProperties);
 
-  const [deleteModal, setDeleteModal] = useState<boolean>(false);
-  const [tenantRole, setTenantRole] = useState<any>(null);
-
   useEffect(() => {
     if (!tenantRoles || tenantRoles.length === 0) {
       dispatch(getTenantRoles({ pageNumber: 1, pageSize: 20 }));
     }
   }, [dispatch, tenantRoles]);
-
-  const onClickDelete = (role: any) => {
-    setTenantRole(role);
-    setDeleteModal(true);
-  };
-
-  const handleDeleteTenantRole = () => {
-    if (tenantRole) {
-      dispatch(deleteTenantRole(tenantRole.id));
-      setDeleteModal(false);
-      // Refresh list after deletion
-      dispatch(getTenantRoles({ pageNumber: 1, pageSize: 20 }));
-    }
-  };
 
   const columns = useMemo(
     () => [
@@ -138,16 +119,6 @@ const TenantRoleList = () => {
               >
                 <i className="ri-pencil-line"></i>
               </Button>
-              <Button
-                size="sm"
-                color="soft-danger"
-                onClick={() => {
-                  const roleData = cellProps.row.original;
-                  onClickDelete(roleData);
-                }}
-              >
-                <i className="ri-delete-bin-line"></i>
-              </Button>
             </div>
           );
         },
@@ -214,12 +185,6 @@ const TenantRoleList = () => {
           </Row>
         </Container>
       </div>
-
-      <DeleteModal
-        show={deleteModal}
-        onDeleteClick={handleDeleteTenantRole}
-        onCloseClick={() => setDeleteModal(false)}
-      />
     </React.Fragment>
   );
 };

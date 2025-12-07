@@ -26,8 +26,7 @@ import {
   deleteClientMeeting,
   selectClientMeetingLoading,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
-import { selectClientList } from "../../../slices/clients/client.slice";
-import { fetchClients } from "../../../slices/clients/client.slice";
+import { selectClientList, selectClientLoading, fetchClients } from "../../../slices/clients/client.slice";
 import {
   ClientMeeting,
 } from "../../../slices/clientMeetings/clientMeeting.fakeData";
@@ -45,12 +44,27 @@ const Meetings: React.FC = () => {
   const pagination = useSelector(selectClientMeetingPagination);
   const loading = useSelector(selectClientMeetingLoading);
   const clients = useSelector(selectClientList);
+  const clientsLoading = useSelector(selectClientLoading);
 
-  // Load selected client from localStorage on mount
-  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(() => {
-    const saved = localStorage.getItem("meetingSelectedClientId");
-    return saved || undefined;
-  });
+  // Load selected client from localStorage on mount, but validate it exists in loaded clients
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  
+  // Validate and set selectedClientId from localStorage only after clients are loaded
+  useEffect(() => {
+    if (!clientsLoading && clients && clients.length > 0) {
+      const saved = localStorage.getItem("meetingSelectedClientId");
+      if (saved) {
+        // Validate that the saved clientId exists in the loaded clients
+        const clientExists = clients.some((c: any) => c.id === saved && !c.isDeleted);
+        if (clientExists) {
+          setSelectedClientId(saved);
+        } else {
+          // Clear invalid saved clientId
+          localStorage.removeItem("meetingSelectedClientId");
+        }
+      }
+    }
+  }, [clientsLoading, clients]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<number | "">("");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -123,14 +137,19 @@ const Meetings: React.FC = () => {
     hasMoreRef.current = pagination.pageNumber < pagination.totalPages;
   }, [pagination.pageNumber, pagination.totalPages]);
 
+  // Only show client options when clients are loaded (not fake/initial data)
   const clientOptions = useMemo(() => {
+    // Don't show options if clients are loading or if clients array is empty/initial
+    if (clientsLoading || !clients || clients.length === 0) {
+      return [];
+    }
     return clients
       .filter((c: any) => !c.isDeleted)
       .map((client: any) => ({
         value: client.id,
         label: client.name,
       }));
-  }, [clients]);
+  }, [clients, clientsLoading]);
 
   // Status filter options
   const statusOptions = useMemo(() => getMeetingStatusOptions(), []);
@@ -249,9 +268,11 @@ const Meetings: React.FC = () => {
                 }
               }}
               options={clientOptions}
-              placeholder="Select Client (Required)"
+              placeholder={clientsLoading ? "Loading clients..." : "Select Client (Required)"}
               classNamePrefix="select2-selection"
               isClearable={false}
+              isLoading={clientsLoading}
+              isDisabled={clientsLoading || clientOptions.length === 0}
             />
             {!selectedClientId && (
               <small className="text-danger d-block mt-1">
