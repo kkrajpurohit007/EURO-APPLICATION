@@ -46,7 +46,11 @@ const Meetings: React.FC = () => {
   const loading = useSelector(selectClientMeetingLoading);
   const clients = useSelector(selectClientList);
 
-  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  // Load selected client from localStorage on mount
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(() => {
+    const saved = localStorage.getItem("meetingSelectedClientId");
+    return saved || undefined;
+  });
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<number | "">("");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -235,7 +239,14 @@ const Meetings: React.FC = () => {
                 (opt: any) => opt.value === selectedClientId
               )}
               onChange={(selectedOption: any) => {
-                setSelectedClientId(selectedOption?.value || undefined);
+                const clientId = selectedOption?.value || undefined;
+                setSelectedClientId(clientId);
+                // Save to localStorage
+                if (clientId) {
+                  localStorage.setItem("meetingSelectedClientId", clientId);
+                } else {
+                  localStorage.removeItem("meetingSelectedClientId");
+                }
               }}
               options={clientOptions}
               placeholder="Select Client (Required)"

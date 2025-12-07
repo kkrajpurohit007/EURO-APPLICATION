@@ -84,7 +84,11 @@ const MeetingCalendar: React.FC = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState<any>(0);
   const [isEdit, setIsEdit] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  // Load selected client from localStorage on mount
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(() => {
+    const saved = localStorage.getItem("meetingSelectedClientId");
+    return saved || undefined;
+  });
   const [dayMeetingsModal, setDayMeetingsModal] = useState(false);
   const [selectedDayMeetings, setSelectedDayMeetings] = useState<ClientMeeting[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -646,7 +650,14 @@ const MeetingCalendar: React.FC = () => {
                   (opt: any) => opt.value === selectedClientId
                 )}
                 onChange={(selectedOption: any) => {
-                  setSelectedClientId(selectedOption?.value || undefined);
+                  const clientId = selectedOption?.value || undefined;
+                  setSelectedClientId(clientId);
+                  // Save to localStorage
+                  if (clientId) {
+                    localStorage.setItem("meetingSelectedClientId", clientId);
+                  } else {
+                    localStorage.removeItem("meetingSelectedClientId");
+                  }
                 }}
                 options={clientOptions}
                 placeholder="Select Client (Required)"
