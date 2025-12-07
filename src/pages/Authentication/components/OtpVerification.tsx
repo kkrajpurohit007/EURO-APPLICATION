@@ -27,6 +27,8 @@ const OtpVerification = () => {
   const dispatch: any = useDispatch();
   const navigate = useNavigate();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const isVerifyingRef = useRef(false); // Track if verification is in progress
+  const hasNavigatedRef = useRef(false); // Track if navigation has been initiated
 
   const selectOtpState = (state: any) => state;
   const otpPageData = createSelector(selectOtpState, (state) => ({
@@ -45,6 +47,7 @@ const OtpVerification = () => {
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [canResend, setCanResend] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false); // Local state to persist loading
 
   // Timer for OTP expiry
   useEffect(() => {
@@ -66,46 +69,50 @@ const OtpVerification = () => {
     return () => clearInterval(timer);
   }, [otpExpiry]);
 
-  // Redirect if no userId (user didn't complete Step 1)
+  // Track verification state to persist loading UI
   useEffect(() => {
-    if (!userId && !otpSent) {
+    if (otpLoading) {
+      setIsVerifying(true);
+      isVerifyingRef.current = true;
+    }
+  }, [otpLoading]);
+
+  // Redirect if no userId (user didn't complete Step 1)
+  // But don't redirect if OTP is currently being verified or has been verified
+  useEffect(() => {
+    if (!userId && !otpSent && !otpLoading && !isVerifying && !hasNavigatedRef.current) {
       navigate("/login");
     }
-  }, [userId, otpSent, navigate]);
+  }, [userId, otpSent, otpLoading, isVerifying, navigate]);
 
   // Redirect to dashboard if already verified
-  // Note: Navigation is handled in verifyOtp thunk, but this is a backup
+  // Only navigate once and check authentication
   useEffect(() => {
-    if (!otpVerified || otpLoading) {
-      return; // Early return - no cleanup needed
+    if (hasNavigatedRef.current) {
+      return; // Already navigating, don't do anything
+    }
+
+    if (!otpVerified || isVerifying) {
+      return; // Not verified yet or still verifying
     }
 
     // Check if user is actually authenticated before redirecting
     const authUser = localStorage.getItem("authUser") || sessionStorage.getItem("authUser");
     if (!authUser) {
-      return; // No auth user - no cleanup needed
+      return; // No auth user yet
     }
 
-    let timer: NodeJS.Timeout | null = null;
     try {
       const user = JSON.parse(authUser);
       if (user && (user.token || user.jwt)) {
-        // Small delay to ensure state is properly set and propagated
-        timer = setTimeout(() => {
-          navigate("/dashboard");
-        }, 300);
+        hasNavigatedRef.current = true;
+        // Navigate immediately without delay for better UX
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Error parsing auth user:", error);
     }
-
-    // Always return a cleanup function
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-  }, [otpVerified, otpLoading, navigate]);
+  }, [otpVerified, isVerifying, navigate]);
 
   const handleVerifyOtp = () => {
     const otp = otpDigits.join("");
@@ -115,6 +122,10 @@ const OtpVerification = () => {
 
     if (!userId) return;
 
+    // Set verifying state immediately to prevent form from showing again
+    setIsVerifying(true);
+    isVerifyingRef.current = true;
+    
     dispatch(verifyOtp(userId, otp, navigate));
   };
 
@@ -171,8 +182,9 @@ const OtpVerification = () => {
 
   document.title = PAGE_TITLES.OTP_VERIFICATION;
 
-  // Show loading state when OTP is being verified
-  if (otpVerified && otpLoading) {
+  // Show loading state when OTP is being verified or has been verified
+  // Keep showing loading until navigation completes to prevent flash of OTP form
+  if (isVerifying || otpLoading || (otpVerified && !hasNavigatedRef.current)) {
     return (
       <React.Fragment>
         <ParticlesAuth>
@@ -186,10 +198,19 @@ const OtpVerification = () => {
                         <div className="mb-4">
                           <Spinner color="primary" style={{ width: '3rem', height: '3rem' }} />
                         </div>
-                        <h5 className="text-primary mb-2">Verifying OTP</h5>
+                        <h5 className="text-primary mb-2">
+                          {otpVerified ? "Authentication Successful!" : "Verifying OTP"}
+                        </h5>
                         <p className="text-muted">
-                          Please wait while we authenticate your account...
+                          {otpVerified 
+                            ? "Redirecting to dashboard..." 
+                            : "Please wait while we authenticate your account..."}
                         </p>
+                        {otpVerified && (
+                          <div className="mt-3">
+                            <i className="ri-checkbox-circle-fill text-success" style={{ fontSize: '2rem' }}></i>
+                          </div>
+                        )}
                       </div>
                     </CardBody>
                   </Card>

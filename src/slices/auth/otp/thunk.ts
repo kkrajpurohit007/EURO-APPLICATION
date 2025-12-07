@@ -92,22 +92,28 @@ export const verifyOtp =
         const { setAuthorization } = await import("../../../helpers/api_helper");
         setAuthorization(userData.token);
 
-        // Update Redux state
+        // Update Redux state - mark as verified first (this keeps loading state visible)
         dispatch(otpVerifiedSuccess());
-        dispatch(clearOtpData());
         dispatch(loginSuccess(userData));
 
-        // Small delay to ensure state is propagated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Small delay to ensure state is propagated and UI updates
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         // Initialize app data after successful login
         await appInitService.initialize(dispatch);
 
-        // Additional delay to ensure app initialization completes
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Brief delay to show success state before navigation
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Navigate to dashboard
+        // Navigate to dashboard first (before clearing OTP data)
+        // This ensures navigation happens while loading state is still visible
         history("/dashboard");
+
+        // Clear OTP data after navigation is initiated
+        // Use a small delay to ensure navigation has started
+        setTimeout(() => {
+          dispatch(clearOtpData());
+        }, 100);
       } else {
         dispatch(otpError("OTP verification failed. Please try again."));
       }
