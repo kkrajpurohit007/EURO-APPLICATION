@@ -172,10 +172,10 @@ export const canRescheduleMeeting = (meeting: ClientMeeting): boolean => {
 };
 
 /**
- * Check if meeting can be deleted (not completed or cancelled)
+ * Check if meeting can be deleted (not completed, cancelled meetings can be deleted)
  */
 export const canDeleteMeeting = (meeting: ClientMeeting): boolean => {
-  return meeting.meetingStatus !== 3 && meeting.meetingStatus !== 4;
+  return meeting.meetingStatus !== 3; // Allow deletion of cancelled meetings (status 4)
 };
 
 /**

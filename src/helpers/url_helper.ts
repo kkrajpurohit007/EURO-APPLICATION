@@ -93,7 +93,9 @@ export const DELETE_GLOBAL_USER = "/User/TenantUser";
 // CLIENT MEETINGS
 export const GET_CLIENT_MEETINGS = "/ClientMeeting";
 export const GET_CLIENT_MEETING_BY_ID = "/ClientMeeting";
+export const GET_CLIENT_MEETING_FOR_EDIT = "/ClientMeeting";
 export const ADD_NEW_CLIENT_MEETING = "/ClientMeeting";
 export const UPDATE_CLIENT_MEETING = "/ClientMeeting";
+export const UPDATE_CLIENT_MEETING_FOR_EDIT = "/ClientMeeting";
 export const RESCHEDULE_CLIENT_MEETING = "/ClientMeeting";
 export const DELETE_CLIENT_MEETING = "/ClientMeeting";

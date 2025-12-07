@@ -33,15 +33,22 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
   selectClientMeetingsList,
   fetchClientMeetings,
-  updateClientMeeting,
+  updateClientMeetingForEdit,
+  createClientMeeting,
+  rescheduleClientMeeting,
   deleteClientMeeting,
   selectClientMeetingLoading,
-  fetchClientMeetingById,
+  fetchClientMeetingForEdit,
   selectClientMeetingById,
   selectClientMeetingDetailLoading,
   selectClientMeetingSaving,
   selectClientMeetingError,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
+import { selectClientContactList } from "../../../slices/clientContacts/clientContact.slice";
+import { selectGlobalUserList } from "../../../slices/globalUsers/globalUser.slice";
+import { fetchClientContacts } from "../../../slices/clientContacts/clientContact.slice";
+import { fetchGlobalUsers } from "../../../slices/globalUsers/globalUser.slice";
+import { getLoggedinUser } from "../../../helpers/api_helper";
 import { selectClientList } from "../../../slices/clients/client.slice";
 import { fetchClients } from "../../../slices/clients/client.slice";
 import {
@@ -57,8 +64,9 @@ import {
   formatTimeWithSeconds,
   parseExternalAttendees,
   getMeetingTypeOptions,
+  getStatusColor,
 } from "./utils/meetingUtils";
-import { meetingFormSchema } from "./utils/validationSchemas";
+import { createMeetingSchema, editMeetingSchema } from "./utils/validationSchemas";
 import { useFlash } from "../../../hooks/useFlash";
 
 const MeetingCalendar: React.FC = () => {
@@ -70,6 +78,9 @@ const MeetingCalendar: React.FC = () => {
   const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingLoading);
   const clients = useSelector(selectClientList);
+  const clientContacts = useSelector(selectClientContactList);
+  const globalUsers = useSelector(selectGlobalUserList);
+  const authUser = getLoggedinUser();
   const { showSuccess, showError } = useFlash();
 
   const [modal, setModal] = useState(false);
@@ -90,12 +101,35 @@ const MeetingCalendar: React.FC = () => {
   const saving = useSelector(selectClientMeetingSaving);
   const error = useSelector(selectClientMeetingError);
 
-  // Fetch meeting detail when editing
+  // Get clientId for editing meeting - REQUIRED for ForEdit endpoint
+  const editingClientId = React.useMemo(() => {
+    if (!editingMeetingId) return "";
+    // Priority: meetingDetail > meetings list
+    if (meetingDetail?.clientId) return meetingDetail.clientId;
+    const meetingFromList = meetings.find((m: any) => m.id === editingMeetingId);
+    return meetingFromList?.clientId || "";
+  }, [editingMeetingId, meetingDetail, meetings]);
+
+  // Fetch meeting detail when editing - use ForEdit endpoint (REQUIRES clientId)
+  // ALWAYS fetch fresh data from API when editing a meeting
   useEffect(() => {
-    if (editingMeetingId && !meetingDetail) {
-      dispatch(fetchClientMeetingById(editingMeetingId));
+    if (editingMeetingId && editingClientId) {
+      // Always fetch when we have both id and clientId (even if meetingDetail exists)
+      dispatch(fetchClientMeetingForEdit({ id: editingMeetingId, clientId: editingClientId }));
     }
-  }, [dispatch, editingMeetingId, meetingDetail]);
+    // If clientId is not available yet, wait for meetings list to load
+    // The effect will re-run when meetings list updates
+  }, [dispatch, editingMeetingId, editingClientId]);
+
+  // Fetch dropdown data if not already loaded
+  useEffect(() => {
+    if (!clientContacts || clientContacts.length === 0) {
+      dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!globalUsers || globalUsers.length === 0) {
+      dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, clientContacts, globalUsers]);
 
   // Fetch clients if not loaded
   useEffect(() => {
@@ -259,6 +293,7 @@ const MeetingCalendar: React.FC = () => {
 
     setSelectedDay(modifiedDate);
     setIsEdit(false);
+    setEditingMeetingId(null); // Reset editing meeting ID for create mode
     setModal(true);
   };
 
@@ -371,13 +406,11 @@ const MeetingCalendar: React.FC = () => {
         : meeting.meetingEndTime || newStartTime;
 
       dispatch(
-        updateClientMeeting({
+        rescheduleClientMeeting({
           id: meeting.id,
-          data: {
-            meetingDate: newDate.split("T")[0],
-            meetingStartTime: newStartTime,
-            meetingEndTime: newEndTime,
-          },
+          newDate: formatDateToISO(newDate.split("T")[0]),
+          newStartTime: formatTimeWithSeconds(newStartTime),
+          newEndTime: formatTimeWithSeconds(newEndTime),
         })
       );
     }
@@ -397,31 +430,20 @@ const MeetingCalendar: React.FC = () => {
   // Get meeting type options
   const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
 
-  // Get selected client contacts for display (when editing)
-  const selectedClientContacts = useMemo(() => {
-    if (!meetingDetail || !meetingDetail.attendees) return [];
-    return meetingDetail.attendees
-      .filter((a: any) => a.clientContactName)
-      .map((a: any) => ({
-        id: a.clientContactId,
-        name: a.clientContactName,
+  // Get global user options for dropdowns
+  const globalUserOptions = useMemo(() => {
+    return globalUsers
+      .filter((u: any) => !u.isDeleted && !u.isDisabled)
+      .map((user: any) => ({
+        value: user.id,
+        label: `${user.firstName} ${user.lastName} (${user.email})`,
       }));
-  }, [meetingDetail]);
+  }, [globalUsers]);
 
-  // Get selected tenant users for display (when editing)
-  const selectedTenantUsers = useMemo(() => {
-    if (!meetingDetail || !meetingDetail.attendees) return [];
-    return meetingDetail.attendees
-      .filter((a: any) => a.userName)
-      .map((a: any) => ({
-        id: a.userId,
-        name: a.userName,
-      }));
-  }, [meetingDetail]);
-
-  const getExternalAttendees = (): string[] => {
-    return parseExternalAttendees(meetingDetail?.externalAttendees);
-  };
+  // Get current clientId for filtering contacts (same pattern as MeetingEdit)
+  const currentClientId = useMemo(() => {
+    return isEdit ? editingClientId : selectedClientId;
+  }, [isEdit, editingClientId, selectedClientId]);
 
   // Initial values for form - matching MeetingEdit exactly
   const initialValues = useMemo(() => {
@@ -434,11 +456,16 @@ const MeetingCalendar: React.FC = () => {
         meetingEndTime: formatTimeForInput(meetingDetail.meetingEndTime || ""),
         meetingLocation: meetingDetail.meetingLocation || "",
         meetingType: meetingDetail.meetingType || 1,
+        organizerUserId: meetingDetail.organizerUserId || authUser?.userId || "",
+        tenantUserIds: meetingDetail.tenantUserIds || [],
+        clientContactIds: meetingDetail.clientContactIds || [],
+        externalAttendees: meetingDetail.externalAttendees || "",
       };
     }
     // For new meetings, use selected day or current date
     const defaultDate = selectedDay || new Date();
     return {
+      clientId: selectedClientId || "",
       meetingTitle: "",
       meetingDescription: "",
       meetingDate: formatDateForInput(defaultDate.toISOString()),
@@ -446,17 +473,28 @@ const MeetingCalendar: React.FC = () => {
       meetingEndTime: "",
       meetingLocation: "",
       meetingType: 1,
+      organizerUserId: authUser?.userId || "",
+      tenantUserIds: [],
+      clientContactIds: [],
+      externalAttendees: "",
     };
-  }, [isEdit, meetingDetail, selectedDay]);
+  }, [isEdit, meetingDetail, selectedDay, authUser, selectedClientId]);
 
-  // Formik validation schema - matching MeetingEdit exactly
+  // Formik validation schema - use editMeetingSchema for edit mode, createMeetingSchema for create mode
   const validation = useFormik({
     enableReinitialize: true,
     initialValues,
-    validationSchema: meetingFormSchema,
+    validationSchema: isEdit ? editMeetingSchema : createMeetingSchema,
     onSubmit: async (values) => {
-      if (isEdit && editingMeetingId) {
+      if (isEdit && editingMeetingId && editingClientId) {
+        if (!meetingDetail?.tenantId) {
+          showError("ID is required");
+          return;
+        }
+
         const payload = {
+          tenantId: meetingDetail.tenantId,
+          clientId: editingClientId,
           meetingTitle: values.meetingTitle,
           meetingDescription: values.meetingDescription,
           meetingDate: formatDateToISO(values.meetingDate),
@@ -464,9 +502,13 @@ const MeetingCalendar: React.FC = () => {
           meetingEndTime: formatTimeWithSeconds(values.meetingEndTime),
           meetingLocation: values.meetingLocation,
           meetingType: values.meetingType,
+          organizerUserId: values.organizerUserId || meetingDetail?.organizerUserId || authUser?.userId || "",
+          tenantUserIds: values.tenantUserIds || [],
+          clientContactIds: values.clientContactIds && values.clientContactIds.length > 0 ? values.clientContactIds : null,
+          externalAttendees: values.externalAttendees || "",
         };
 
-        const result = await dispatch(updateClientMeeting({ id: editingMeetingId, data: payload }));
+        const result = await dispatch(updateClientMeetingForEdit({ id: editingMeetingId, clientId: editingClientId, data: payload }));
         if (result.meta.requestStatus === "fulfilled") {
           showSuccess("Meeting updated successfully");
           toggle();
@@ -483,9 +525,51 @@ const MeetingCalendar: React.FC = () => {
           showError(errorMessage);
         }
       } else {
-        // Navigate to create meeting page for new meetings
-        toggle();
-        navigate("/meetings/create");
+        // Create new meeting
+        if (!selectedClientId) {
+          showError("Please select a client first");
+          return;
+        }
+        if (!authUser?.tenantId) {
+          showError("Tenant ID is required");
+          return;
+        }
+
+        const payload = {
+          tenantId: authUser.tenantId,
+          clientId: selectedClientId,
+          meetingTitle: values.meetingTitle,
+          meetingDescription: values.meetingDescription,
+          meetingDate: formatDateToISO(values.meetingDate),
+          meetingStartTime: formatTimeWithSeconds(values.meetingStartTime),
+          meetingEndTime: formatTimeWithSeconds(values.meetingEndTime),
+          meetingLocation: values.meetingLocation,
+          meetingType: values.meetingType,
+          organizerUserId: values.organizerUserId || authUser?.userId || "",
+          tenantUserIds: values.tenantUserIds || [],
+          clientContactIds: values.clientContactIds && values.clientContactIds.length > 0 ? values.clientContactIds : null,
+          externalAttendees: values.externalAttendees || "",
+        };
+
+        const result = await dispatch(createClientMeeting(payload));
+        if (result.meta.requestStatus === "fulfilled") {
+          showSuccess("Meeting created successfully");
+          toggle();
+          // Reset form state
+          setIsEdit(false);
+          setEditingMeetingId(null);
+          // Refresh meetings list
+          dispatch(
+            fetchClientMeetings({
+              clientId: selectedClientId,
+              pageNumber: 1,
+              pageSize: 100,
+            })
+          );
+        } else {
+          const errorMessage = result.payload?.message || "Failed to create meeting";
+          showError(errorMessage);
+        }
       }
     },
   });
@@ -749,6 +833,9 @@ const MeetingCalendar: React.FC = () => {
                         }}
                         eventDrop={handleEventDrop}
                         initialView="dayGridMonth"
+                        eventDisplay="block"
+                        eventMaxStack={3}
+                        eventTextColor="#000"
                         eventContent={(arg) => {
                           const extendedProps = arg.event.extendedProps || {};
                           if (extendedProps.isMoreEvent) {
@@ -759,7 +846,24 @@ const MeetingCalendar: React.FC = () => {
                               </div>`,
                             };
                           }
-                          return null; // Use default rendering
+                          // Custom rendering for individual events - show only title, strikethrough for canceled meetings
+                          const meeting = extendedProps.meeting;
+                          const status = meeting?.meetingStatus || 1;
+                          const fullTitle = arg.event.title || "Untitled Meeting";
+                          // Truncate title to max 20 characters for calendar display
+                          const shortTitle = fullTitle.length > 20 ? fullTitle.substring(0, 17) + "..." : fullTitle;
+                          
+                          // Add strikethrough for canceled meetings (status 4)
+                          const isCanceled = status === 4;
+                          const titleStyle = isCanceled 
+                            ? "font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-decoration: line-through; opacity: 0.7;"
+                            : "font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;";
+                          
+                          return {
+                            html: `<div class="d-flex align-items-center" style="padding: 2px 4px; overflow: hidden; width: 100%; box-sizing: border-box;">
+                              <span class="fw-semibold" style="${titleStyle}" title="${fullTitle}">${shortTitle}</span>
+                            </div>`,
+                          };
                         }}
                       />
                     </CardBody>
@@ -784,9 +888,21 @@ const MeetingCalendar: React.FC = () => {
                           {error}
                         </Alert>
                       )}
+                      {!isEdit && !selectedClientId && (
+                        <Alert color="warning" className="mb-3">
+                          <i className="ri-alert-line align-middle me-1"></i>
+                          Please select a client from the dropdown above before creating a meeting.
+                        </Alert>
+                      )}
                       <Form
                         onSubmit={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
+                          // Check if client is selected for create mode
+                          if (!isEdit && !selectedClientId) {
+                            showError("Please select a client from the dropdown above before creating a meeting");
+                            return;
+                          }
                           validation.handleSubmit();
                         }}
                       >
@@ -1008,145 +1124,186 @@ const MeetingCalendar: React.FC = () => {
                           </Row>
                         </div>
 
-                        {/* Group 3 - Participants (Read-only) - Only show when editing */}
-                        {isEdit && meetingDetail && (
-                          <div className="mb-4">
-                            <h6 className="text-muted mb-3">
-                              <i className="ri-group-line align-middle me-1"></i>
-                              Participants
-                              <Badge color="light" className="ms-2 fs-12">
-                                Read-only
-                              </Badge>
-                            </h6>
-                            <Row className="g-3">
-                              <Col md={6}>
-                                <FormGroup>
-                                  <Label className="form-label">
-                                    <i className="ri-building-line align-middle me-1"></i>
-                                    Client
-                                  </Label>
-                                  <Input
-                                    type="text"
-                                    value={meetingDetail?.clientName || "-"}
-                                    readOnly
-                                    plaintext
-                                    className="form-control-plaintext bg-light px-3 py-2 rounded"
-                                  />
-                                </FormGroup>
-                              </Col>
-
-                              <Col md={6}>
-                                <FormGroup>
-                                  <Label className="form-label">
-                                    <i className="ri-user-line align-middle me-1"></i>
-                                    Organizer
-                                  </Label>
-                                  <Input
-                                    type="text"
-                                    value={meetingDetail?.organizerUserName || "-"}
-                                    readOnly
-                                    plaintext
-                                    className="form-control-plaintext bg-light px-3 py-2 rounded"
-                                  />
-                                </FormGroup>
-                              </Col>
-
-                              <Col md={6}>
-                                <FormGroup>
-                                  <Label className="form-label">
-                                    <i className="ri-user-3-line align-middle me-1"></i>
-                                    Internal Users (Tenant Users)
-                                  </Label>
-                                  {selectedTenantUsers.length > 0 ? (
-                                    <div className="bg-light px-3 py-2 rounded">
-                                      {selectedTenantUsers.map((user: any, index: number) => (
-                                        <Badge
-                                          key={`user-${index}`}
-                                          color="primary"
-                                          className="me-1 mb-1"
-                                        >
-                                          {user.name}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <Input
-                                      type="text"
-                                      value="No internal users selected"
-                                      readOnly
-                                      plaintext
-                                      className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
-                                    />
+                        {/* Group 3 - Participants */}
+                        <div className="mb-4">
+                          <h6 className="text-muted mb-3">
+                            <i className="ri-group-line align-middle me-1"></i>
+                            Participants
+                          </h6>
+                          <Row className="g-3">
+                            <Col md={6}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  Organizer{" "}
+                                  <span className="text-danger">*</span>
+                                </Label>
+                                <Select
+                                  value={globalUserOptions.find(
+                                    (opt: any) =>
+                                      opt.value === validation.values.organizerUserId
                                   )}
-                                </FormGroup>
-                              </Col>
-
-                              <Col md={6}>
-                                <FormGroup>
-                                  <Label className="form-label">
-                                    <i className="ri-contacts-line align-middle me-1"></i>
-                                    Client Contacts
-                                  </Label>
-                                  {selectedClientContacts.length > 0 ? (
-                                    <div className="bg-light px-3 py-2 rounded">
-                                      {selectedClientContacts.map((contact: any, index: number) => (
-                                        <Badge
-                                          key={`contact-${index}`}
-                                          color="success"
-                                          className="me-1 mb-1"
-                                        >
-                                          {contact.name}
-                                        </Badge>
-                                      ))}
+                                  onChange={(selectedOption: any) => {
+                                    validation.setFieldValue(
+                                      "organizerUserId",
+                                      selectedOption?.value || ""
+                                    );
+                                  }}
+                                  options={globalUserOptions}
+                                  placeholder="Select Organizer"
+                                  classNamePrefix="select2-selection"
+                                />
+                                {validation.touched.organizerUserId &&
+                                  validation.errors.organizerUserId && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.organizerUserId)}
                                     </div>
-                                  ) : (
-                                    <Input
-                                      type="text"
-                                      value="No client contacts selected"
-                                      readOnly
-                                      plaintext
-                                      className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
-                                    />
                                   )}
-                                </FormGroup>
-                              </Col>
+                              </FormGroup>
+                            </Col>
 
-                              <Col md={12}>
-                                <FormGroup>
-                                  <Label className="form-label">
-                                    <i className="ri-mail-line align-middle me-1"></i>
-                                    External Attendees (Emails)
-                                  </Label>
-                                  {getExternalAttendees().length > 0 ? (
-                                    <div className="bg-light px-3 py-2 rounded">
-                                      {getExternalAttendees().map((email: string, index: number) => (
-                                        <Badge
-                                          key={`external-${index}`}
-                                          color="info"
-                                          className="me-1 mb-1"
-                                        >
-                                          {email}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <Input
-                                      type="text"
-                                      value="No external attendees"
-                                      readOnly
-                                      plaintext
-                                      className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
-                                    />
+                            <Col md={6}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  Internal Users
+                                </Label>
+                                <Select
+                                  isMulti
+                                  value={globalUserOptions.filter((opt: any) =>
+                                    validation.values.tenantUserIds.includes(opt.value)
                                   )}
-                                </FormGroup>
-                              </Col>
-                            </Row>
-                            <Alert color="info" className="mt-2 mb-0">
-                              <i className="ri-information-line align-middle me-1"></i>
-                              Participants cannot be modified here. To change participants, please delete and recreate the meeting.
-                            </Alert>
-                          </div>
-                        )}
+                                  onChange={(selectedOptions: any) => {
+                                    validation.setFieldValue(
+                                      "tenantUserIds",
+                                      selectedOptions
+                                        ? selectedOptions.map((opt: any) => opt.value)
+                                        : []
+                                    );
+                                  }}
+                                  options={globalUserOptions}
+                                  placeholder="Select internal users"
+                                  classNamePrefix="select2-selection"
+                                  styles={{
+                                    multiValue: (base: any) => ({
+                                      ...base,
+                                      backgroundColor: '#e7f3ff',
+                                      border: '1px solid #0d6efd',
+                                    }),
+                                    multiValueLabel: (base: any) => ({
+                                      ...base,
+                                      color: '#0d6efd',
+                                      fontWeight: 500,
+                                    }),
+                                    multiValueRemove: (base: any) => ({
+                                      ...base,
+                                      color: '#0d6efd',
+                                      ':hover': {
+                                        backgroundColor: '#0d6efd',
+                                        color: '#fff',
+                                      },
+                                    }),
+                                  }}
+                                />
+                              </FormGroup>
+                            </Col>
+
+                            <Col md={6}>
+                              <FormGroup>
+                                <Label className="form-label">Client Contacts</Label>
+                                <Select
+                                  isMulti
+                                  value={clientContacts
+                                    .filter(
+                                      (c: any) =>
+                                        !c.isDeleted &&
+                                        c.clientId === currentClientId &&
+                                        validation.values.clientContactIds.includes(c.id)
+                                    )
+                                    .map((contact: any) => ({
+                                      value: contact.id,
+                                      label: `${contact.contactFirstName} ${contact.contactLastName} (${contact.email})`,
+                                    }))}
+                                  onChange={(selectedOptions: any) => {
+                                    validation.setFieldValue(
+                                      "clientContactIds",
+                                      selectedOptions
+                                        ? selectedOptions.map((opt: any) => opt.value)
+                                        : []
+                                    );
+                                  }}
+                                  options={clientContacts
+                                    .filter(
+                                      (c: any) =>
+                                        !c.isDeleted &&
+                                        c.clientId === currentClientId
+                                    )
+                                    .map((contact: any) => ({
+                                      value: contact.id,
+                                      label: `${contact.contactFirstName} ${contact.contactLastName} (${contact.email})`,
+                                    }))}
+                                  placeholder={
+                                    currentClientId
+                                      ? "Select client contacts"
+                                      : isEdit ? "Client ID required" : "Please select a client first"
+                                  }
+                                  isDisabled={!currentClientId}
+                                  classNamePrefix="select2-selection"
+                                  styles={{
+                                    multiValue: (base: any) => ({
+                                      ...base,
+                                      backgroundColor: '#d1e7dd',
+                                      border: '1px solid #198754',
+                                    }),
+                                    multiValueLabel: (base: any) => ({
+                                      ...base,
+                                      color: '#198754',
+                                      fontWeight: 500,
+                                    }),
+                                    multiValueRemove: (base: any) => ({
+                                      ...base,
+                                      color: '#198754',
+                                      ':hover': {
+                                        backgroundColor: '#198754',
+                                        color: '#fff',
+                                      },
+                                    }),
+                                  }}
+                                />
+                              </FormGroup>
+                            </Col>
+
+                            <Col md={6}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  External Attendees (Emails)
+                                </Label>
+                                <Input
+                                  type="textarea"
+                                  name="externalAttendees"
+                                  rows={3}
+                                  value={validation.values.externalAttendees}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.externalAttendees &&
+                                      validation.errors.externalAttendees
+                                    )
+                                  }
+                                  placeholder="email1@example.com; email2@example.com"
+                                />
+                                <small className="text-muted">
+                                  Separate multiple emails with semicolons (;)
+                                </small>
+                                {validation.touched.externalAttendees &&
+                                  validation.errors.externalAttendees && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.externalAttendees)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
+                          </Row>
+                        </div>
 
                         <div className="d-flex gap-2 justify-content-end mt-4 pt-3 border-top">
                           {isEdit && (
@@ -1165,7 +1322,12 @@ const MeetingCalendar: React.FC = () => {
                             <i className="ri-close-line align-bottom me-1"></i>
                             Cancel
                           </Button>
-                          <Button color="primary" type="submit" disabled={saving}>
+                          <Button 
+                            color="primary" 
+                            type="submit" 
+                            disabled={saving || (!isEdit && !selectedClientId)}
+                            title={!isEdit && !selectedClientId ? "Please select a client first" : ""}
+                          >
                             {saving ? (
                               <>
                                 <span
@@ -1173,7 +1335,7 @@ const MeetingCalendar: React.FC = () => {
                                   role="status"
                                   aria-hidden="true"
                                 ></span>
-                                Updating...
+                                {isEdit ? "Updating..." : "Creating..."}
                               </>
                             ) : (
                               <>

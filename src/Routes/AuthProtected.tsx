@@ -46,8 +46,16 @@ const AuthProtected = (props: any) => {
     const currentToken = tokenRef.current;
     const currentLoading = loadingRef.current;
     
-    // Initial auth check - only run once when loading completes
+    // Initial auth check - only run once when loading completes OR if Redux has auth
     if (!hasCheckedAuthRef.current) {
+      // If Redux has auth, we can immediately proceed (after OTP verification)
+      if (hasReduxAuth && reduxToken) {
+        setAuthorization(reduxToken);
+        setIsCheckingAuth(false);
+        hasCheckedAuthRef.current = true;
+        return;
+      }
+      
       if (currentLoading) {
         // Still loading, wait
         return;
@@ -95,7 +103,7 @@ const AuthProtected = (props: any) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, reduxToken, hasReduxAuth]); // Only depend on loading and stable redux values
+  }, [loading, reduxToken, hasReduxAuth, reduxUser]); // Depend on Redux auth state to detect login
 
   // Separate effect to trigger initialization when isCheckingAuth becomes false
   useEffect(() => {
@@ -138,16 +146,6 @@ const AuthProtected = (props: any) => {
     );
   }
 
-  // Show loading state during initial check
-  if (isCheckingAuth && !hasReduxAuth && !userProfile) {
-    return (
-      <React.Fragment>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <div>Loading...</div>
-        </div>
-      </React.Fragment>
-    );
-  }
 
   return <>{props.children}</>;
 };

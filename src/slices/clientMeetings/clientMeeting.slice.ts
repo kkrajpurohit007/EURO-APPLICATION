@@ -71,6 +71,15 @@ export const fetchClientMeetingById = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch meeting for edit (includes participants)
+export const fetchClientMeetingForEdit = createAsyncThunk(
+  "clientMeetings/fetchClientMeetingForEdit",
+  async ({ id, clientId }: { id: string; clientId: string }) => {
+    const response = await clientMeetingService.getClientMeetingForEdit(id, clientId);
+    return response;
+  }
+);
+
 // Async thunk to create a new client meeting
 export const createClientMeeting = createAsyncThunk(
   "clientMeetings/createClientMeeting",
@@ -85,6 +94,23 @@ export const updateClientMeeting = createAsyncThunk(
   "clientMeetings/updateClientMeeting",
   async ({ id, data }: { id: string; data: Partial<ClientMeeting> }) => {
     const response = await clientMeetingService.updateClientMeeting(id, data);
+    return response;
+  }
+);
+
+// Async thunk to update meeting for edit (includes participants)
+export const updateClientMeetingForEdit = createAsyncThunk(
+  "clientMeetings/updateClientMeetingForEdit",
+  async ({ 
+    id, 
+    clientId, 
+    data 
+  }: { 
+    id: string; 
+    clientId: string; 
+    data: import("./clientMeeting.fakeData").ClientMeetingPayload 
+  }) => {
+    const response = await clientMeetingService.updateClientMeetingForEdit(id, clientId, data);
     return response;
   }
 );
@@ -180,6 +206,19 @@ const clientMeetingSlice = createSlice({
         state.detail.loading = false;
         state.error = action.error.message || "Failed to fetch client meeting";
       })
+      // Fetch client meeting for edit
+      .addCase(fetchClientMeetingForEdit.pending, (state) => {
+        state.detail.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchClientMeetingForEdit.fulfilled, (state, action) => {
+        state.detail.loading = false;
+        state.detail.data = action.payload;
+      })
+      .addCase(fetchClientMeetingForEdit.rejected, (state, action) => {
+        state.detail.loading = false;
+        state.error = action.error.message || "Failed to fetch client meeting for edit";
+      })
       // Create client meeting
       .addCase(createClientMeeting.pending, (state) => {
         state.saving = true;
@@ -218,6 +257,31 @@ const clientMeetingSlice = createSlice({
       .addCase(updateClientMeeting.rejected, (state, action) => {
         state.saving = false;
         state.error = action.error.message || "Failed to update client meeting";
+      })
+      // Update client meeting for edit
+      .addCase(updateClientMeetingForEdit.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(updateClientMeetingForEdit.fulfilled, (state, action) => {
+        state.saving = false;
+        // Handle API response wrapper - response.result contains the meeting
+        // action.payload might be ClientMeeting directly or wrapped in { result: ClientMeeting }
+        const payload = action.payload as any;
+        const meetingData = payload?.result || payload;
+        if (meetingData && meetingData.id) {
+          // Update in detail store
+          state.detail.data = meetingData as ClientMeeting;
+          // Update in list store if exists
+          const index = state.list.items.findIndex((m) => m.id === meetingData.id);
+          if (index !== -1) {
+            state.list.items[index] = meetingData as ClientMeeting;
+          }
+        }
+      })
+      .addCase(updateClientMeetingForEdit.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.error.message || "Failed to update client meeting for edit";
       })
       // Reschedule client meeting
       .addCase(rescheduleClientMeeting.pending, (state) => {

@@ -17,11 +17,13 @@ import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import Loader from "../../../Components/Common/Loader";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
-  fetchClientMeetingById,
+  fetchClientMeetings,
+  fetchClientMeetingForEdit,
   deleteClientMeeting,
   selectClientMeetingById,
   selectClientMeetingDetailLoading,
   selectClientMeetingError,
+  selectClientMeetingsList,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
 import {
   ClientMeeting,
@@ -45,18 +47,34 @@ const MeetingView: React.FC = () => {
   const meeting: ClientMeeting | null = useSelector((state: any) =>
     selectClientMeetingById(state, id || "")
   );
+  const meetingsList = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingDetailLoading);
   const error = useSelector(selectClientMeetingError);
   const [deleteModal, setDeleteModal] = useState(false);
 
+  // Get clientId from meeting or list store - REQUIRED for ForEdit endpoint
+  const clientId = React.useMemo(() => {
+    // Priority: 1) Current meeting detail, 2) Meetings list
+    if (meeting?.clientId) return meeting.clientId;
+    const meetingFromList = meetingsList.find((m: any) => m.id === id);
+    return meetingFromList?.clientId || "";
+  }, [meeting, meetingsList, id]);
+
+  // Fetch meetings list if empty (to get clientId)
   useEffect(() => {
-    if (id) {
-      // Only fetch if not already in store
-      if (!meeting) {
-        dispatch(fetchClientMeetingById(id));
-      }
+    if (id && meetingsList.length === 0) {
+      // Fetch meetings list to get clientId for the meeting
+      dispatch(fetchClientMeetings({ pageNumber: 1, pageSize: 100 }));
     }
-  }, [dispatch, id, meeting]);
+  }, [dispatch, id, meetingsList.length]);
+
+  // ALWAYS fetch fresh data from API when component mounts or id/clientId changes
+  useEffect(() => {
+    if (id && clientId) {
+      // Always fetch fresh data using ForEdit endpoint with id and clientId
+      dispatch(fetchClientMeetingForEdit({ id, clientId }));
+    }
+  }, [dispatch, id, clientId]);
 
   const handleDelete = () => {
     setDeleteModal(true);
@@ -74,8 +92,26 @@ const MeetingView: React.FC = () => {
     setDeleteModal(false);
   };
 
-  if (loading) {
+  // Show loading if fetching or waiting for clientId
+  if (loading || (!meeting && id && !clientId)) {
     return <Loader />;
+  }
+
+  // Show error if clientId is required but not available
+  if (id && !clientId && !meeting && !loading) {
+    return (
+      <div className="page-content">
+        <Container fluid>
+          <Alert color="warning">
+            Client ID is required to load meeting details. Please try again from the meetings list.
+          </Alert>
+          <Button color="primary" onClick={() => navigate("/clients/meetings")} className="mt-3">
+            <i className="ri-arrow-left-line align-bottom me-1"></i>
+            Back to Meetings
+          </Button>
+        </Container>
+      </div>
+    );
   }
 
   if (error || !meeting) {
@@ -85,6 +121,10 @@ const MeetingView: React.FC = () => {
           <Alert color="danger">
             {error || "Meeting not found"}
           </Alert>
+          <Button color="primary" onClick={() => navigate("/clients/meetings")} className="mt-3">
+            <i className="ri-arrow-left-line align-bottom me-1"></i>
+            Back to Meetings
+          </Button>
         </Container>
       </div>
     );
@@ -135,16 +175,16 @@ const MeetingView: React.FC = () => {
                         <i className="ri-building-line align-middle me-1"></i>
                         Client Name
                       </Label>
-                      <p className="mb-0">{meeting.clientName || "-"}</p>
+                      <p className="mb-0 fw-semibold">{meeting.clientName || "-"}</p>
                     </div>
                   </Col>
                   <Col md={6}>
                     <div className="mb-3">
                       <Label className="form-label text-muted mb-1">
-                        <i className="ri-building-2-line align-middle me-1"></i>
-                        Tenant Name
+                        <i className="ri-user-line align-middle me-1"></i>
+                        Organizer Name
                       </Label>
-                      <p className="mb-0">{meeting.tenantName || "-"}</p>
+                      <p className="mb-0 fw-semibold">{meeting.organizerName || meeting.organizerUserName || "-"}</p>
                     </div>
                   </Col>
                 </Row>
@@ -225,7 +265,7 @@ const MeetingView: React.FC = () => {
                         <i className="ri-user-line align-middle me-1"></i>
                         Organizer Name
                       </Label>
-                      <p className="mb-0">{meeting.organizerUserName || "-"}</p>
+                      <p className="mb-0">{meeting.organizerName || meeting.organizerUserName || "-"}</p>
                     </div>
                   </Col>
                   <Col md={6}>
@@ -240,15 +280,6 @@ const MeetingView: React.FC = () => {
                     </Badge>
                   </div>
                 </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="mb-3">
-                      <Label className="form-label text-muted mb-1">
-                        <i className="ri-time-line align-middle me-1"></i>
-                        Created
-                      </Label>
-                      <p className="mb-0">{formatMeetingDate(meeting.created)}</p>
-                    </div>
                   </Col>
                   {meeting.modified && (
                     <Col md={6}>
@@ -364,32 +395,6 @@ const MeetingView: React.FC = () => {
                   )}
               </CardBody>
             </Card>
-
-                <div className="d-flex gap-2 mt-4">
-              <Button color="light" onClick={() => navigate("/clients/meetings")}>
-                    <i className="ri-arrow-left-line align-bottom me-1"></i>
-                Back to Meetings
-                  </Button>
-              {meeting.meetingStatus !== 3 && meeting.meetingStatus !== 4 && (
-                      <>
-                        <Button
-                          color="primary"
-                    onClick={() => navigate(`/meetings/edit/${meeting.id}`)}
-                        >
-                          <i className="ri-pencil-line align-bottom me-1"></i>
-                          Edit
-                        </Button>
-                  <Button color="warning" onClick={() => navigate(`/meetings/reschedule/${meeting.id}`)}>
-                    <i className="ri-calendar-event-line align-bottom me-1"></i>
-                    Reschedule
-                        </Button>
-                        <Button color="danger" outline onClick={handleDelete}>
-                          <i className="ri-delete-bin-line align-bottom me-1"></i>
-                          Delete
-                        </Button>
-                      </>
-                    )}
-                </div>
           </Col>
 
           <Col lg={4}>
@@ -415,13 +420,6 @@ const MeetingView: React.FC = () => {
                   </Badge>
                 </div>
 
-                {meeting.created && (
-                  <div className="mb-3">
-                    <p className="text-muted mb-1 fs-13">Created</p>
-                    <p className="mb-0 fs-13">{formatMeetingDate(meeting.created)}</p>
-                  </div>
-                )}
-
                 {meeting.modified && (
                   <div className="mb-3">
                     <p className="text-muted mb-1 fs-13">Last Updated</p>
@@ -430,6 +428,54 @@ const MeetingView: React.FC = () => {
                 )}
               </CardBody>
             </Card>
+          </Col>
+        </Row>
+
+        {/* Action Buttons - Fixed at bottom after all content, responsive for all devices */}
+        <Row className="mt-4">
+          <Col xs={12}>
+            <div className="d-flex flex-wrap gap-2 justify-content-start">
+              <Button color="light" onClick={() => navigate("/clients/meetings")}>
+                <i className="ri-arrow-left-line align-bottom me-1"></i>
+                Back to Meetings
+              </Button>
+              {meeting.meetingStatus !== 3 && meeting.meetingStatus !== 4 && (
+                <>
+                  <Button
+                    color="primary"
+                    onClick={() => navigate(`/meetings/edit/${id}`)}
+                    title="Edit Meeting"
+                  >
+                    <i className="ri-pencil-line align-bottom"></i>
+                  </Button>
+                  <Button 
+                    color="warning" 
+                    onClick={() => navigate(`/meetings/reschedule/${id}`)}
+                    title="Reschedule Meeting"
+                  >
+                    <i className="ri-calendar-event-line align-bottom"></i>
+                  </Button>
+                  <Button 
+                    color="danger" 
+                    outline 
+                    onClick={handleDelete}
+                    title="Delete Meeting"
+                  >
+                    <i className="ri-delete-bin-line align-bottom"></i>
+                  </Button>
+                </>
+              )}
+              {meeting.meetingStatus === 4 && (
+                <Button 
+                  color="danger" 
+                  outline 
+                  onClick={handleDelete}
+                  title="Delete Meeting"
+                >
+                  <i className="ri-delete-bin-line align-bottom"></i>
+                </Button>
+              )}
+            </div>
           </Col>
         </Row>
       </Container>

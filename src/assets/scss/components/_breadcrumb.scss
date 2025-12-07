@@ -6,12 +6,33 @@
 .breadcrumb-item {
   > a {
     color: var(--#{$prefix}body-color);
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    
+    &:hover {
+      color: var(--#{$prefix}primary);
+    }
+    
+    i {
+      font-size: 16px;
+      line-height: 1;
+      vertical-align: middle;
+    }
   }
+  
+  &.active {
+    color: var(--#{$prefix}secondary-color);
+  }
+  
   + .breadcrumb-item {
     &::before {
-      font-family: "Material Design Icons";
-      font-size: 15px;
-      line-height: 20px;
+      content: "\ea6c"; // RemixIcon chevron-right
+      font-family: "remixicon";
+      font-size: 14px;
+      color: var(--#{$prefix}secondary-color);
+      padding: 0 0.5rem;
+      display: inline-block;
     }
   }
 }

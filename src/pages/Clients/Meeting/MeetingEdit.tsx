@@ -21,13 +21,23 @@ import Select from "react-select";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import Loader from "../../../Components/Common/Loader";
 import {
-  fetchClientMeetingById,
-  updateClientMeeting,
+  fetchClientMeetings,
+  fetchClientMeetingForEdit,
+  updateClientMeetingForEdit,
   selectClientMeetingById,
   selectClientMeetingDetailLoading,
   selectClientMeetingSaving,
   selectClientMeetingError,
+  selectClientMeetingsList,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
+import { selectClientList } from "../../../slices/clients/client.slice";
+import { selectClientContactList } from "../../../slices/clientContacts/clientContact.slice";
+import { selectGlobalUserList } from "../../../slices/globalUsers/globalUser.slice";
+import { fetchClients } from "../../../slices/clients/client.slice";
+import { fetchClientContacts } from "../../../slices/clientContacts/clientContact.slice";
+import { fetchGlobalUsers } from "../../../slices/globalUsers/globalUser.slice";
+import { getLoggedinUser } from "../../../helpers/api_helper";
+import { editMeetingSchema } from "./utils/validationSchemas";
 import { PAGE_TITLES } from "../../../common/branding";
 import { useFlash } from "../../../hooks/useFlash";
 import {
@@ -50,15 +60,79 @@ const MeetingEdit: React.FC = () => {
   const meeting = useSelector((state: any) =>
     selectClientMeetingById(state, id || "")
   );
+  const meetingsList = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingDetailLoading);
   const saving = useSelector(selectClientMeetingSaving);
   const error = useSelector(selectClientMeetingError);
+  const clients = useSelector(selectClientList);
+  const clientContacts = useSelector(selectClientContactList);
+  const globalUsers = useSelector(selectGlobalUserList);
+  const authUser = getLoggedinUser();
 
+  // Get clientId from meeting or list store - REQUIRED for ForEdit endpoint
+  const clientId = useMemo(() => {
+    // Priority: 1) Current meeting detail, 2) Meetings list
+    if (meeting?.clientId) return meeting.clientId;
+    const meetingFromList = meetingsList.find((m: any) => m.id === id);
+    return meetingFromList?.clientId || "";
+  }, [meeting, meetingsList, id]);
+
+  // Fetch meetings list if empty (to get clientId)
   useEffect(() => {
-    if (id && !meeting) {
-      dispatch(fetchClientMeetingById(id));
+    if (id && meetingsList.length === 0) {
+      // Fetch meetings list to get clientId for the meeting
+      dispatch(fetchClientMeetings({ pageNumber: 1, pageSize: 100 }));
     }
-  }, [dispatch, id, meeting]);
+  }, [dispatch, id, meetingsList.length]);
+
+  // ALWAYS fetch fresh data from API when component mounts or id/clientId changes
+  useEffect(() => {
+    if (id && clientId) {
+      // Always fetch fresh data using ForEdit endpoint with id and clientId
+      dispatch(fetchClientMeetingForEdit({ id, clientId }));
+    }
+  }, [dispatch, id, clientId]);
+
+  // Fetch dropdown data if not already loaded
+  useEffect(() => {
+    if (!clients || clients.length === 0) {
+      dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!clientContacts || clientContacts.length === 0) {
+      dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!globalUsers || globalUsers.length === 0) {
+      dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, clients, clientContacts, globalUsers]);
+
+  const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
+
+  const clientOptions = clients
+    .filter((c: any) => !c.isDeleted)
+    .map((client: any) => ({
+      value: client.id,
+      label: client.name,
+    }));
+
+  const globalUserOptions = globalUsers
+    .filter((u: any) => !u.isDeleted)
+    .map((user: any) => ({
+      value: user.id,
+      label: `${user.firstName} ${user.lastName} (${user.email})`,
+    }));
+
+  // Get selected internal users from API response (tenantUserIds array)
+  const selectedTenantUserIds = useMemo(() => {
+    if (!meeting || !meeting.tenantUserIds) return [];
+    return Array.isArray(meeting.tenantUserIds) ? meeting.tenantUserIds : [];
+  }, [meeting]);
+
+  // Get selected client contacts from API response (clientContactIds array or null)
+  const selectedClientContactIds = useMemo(() => {
+    if (!meeting || !meeting.clientContactIds) return [];
+    return Array.isArray(meeting.clientContactIds) ? meeting.clientContactIds : [];
+  }, [meeting]);
 
   const initialValues = useMemo(
     () => ({
@@ -69,70 +143,98 @@ const MeetingEdit: React.FC = () => {
       meetingEndTime: formatTimeForInput(meeting?.meetingEndTime || ""),
       meetingLocation: meeting?.meetingLocation || "",
       meetingType: meeting?.meetingType || 1,
+      organizerUserId: meeting?.organizerUserId || authUser?.userId || "",
+      tenantUserIds: selectedTenantUserIds,
+      clientContactIds: selectedClientContactIds,
+      externalAttendees: meeting?.externalAttendees || "",
     }),
-    [meeting]
+    [meeting, selectedTenantUserIds, selectedClientContactIds, authUser]
   );
-
-  const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
-
-  // Get selected client contacts for display
-  const selectedClientContacts = useMemo(() => {
-    if (!meeting || !meeting.attendees) return [];
-    return meeting.attendees
-      .filter((a: any) => a.clientContactName)
-      .map((a: any) => ({
-        id: a.clientContactId,
-        name: a.clientContactName,
-      }));
-  }, [meeting]);
-
-  // Get selected tenant users for display
-  const selectedTenantUsers = useMemo(() => {
-    if (!meeting || !meeting.attendees) return [];
-    return meeting.attendees
-      .filter((a: any) => a.userName)
-      .map((a: any) => ({
-        id: a.userId,
-        name: a.userName,
-      }));
-  }, [meeting]);
-
-  const getExternalAttendees = (): string[] => {
-    return parseExternalAttendees(meeting?.externalAttendees);
-  };
 
   const validation = useFormik({
     enableReinitialize: true,
     initialValues,
-    validationSchema: meetingFormSchema,
+    validationSchema: editMeetingSchema,
     onSubmit: async (values) => {
-      if (!id) return;
+      try {
+        if (!id) {
+          showError("Meeting ID is required");
+          return;
+        }
 
-      const payload = {
-        meetingTitle: values.meetingTitle,
-        meetingDescription: values.meetingDescription,
-        meetingDate: formatDateToISO(values.meetingDate),
-        meetingStartTime: formatTimeWithSeconds(values.meetingStartTime),
-        meetingEndTime: formatTimeWithSeconds(values.meetingEndTime),
-        meetingLocation: values.meetingLocation,
-        meetingType: values.meetingType,
-      };
+        if (!clientId) {
+          showError("Client ID is required. Please wait for the meeting to load.");
+          return;
+        }
 
-      const result = await dispatch(updateClientMeeting({ id, data: payload }));
-      if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Meeting updated successfully");
-    setTimeout(() => {
-      navigate(`/meetings/view/${id}`);
-        }, 500);
-      } else {
-        const errorMessage = result.payload?.message || "Failed to update meeting";
-        showError(errorMessage);
+        if (!meeting?.tenantId) {
+          showError("ID is required");
+          return;
+        }
+
+        const payload = {
+          tenantId: meeting.tenantId,
+          clientId: clientId,
+          meetingTitle: values.meetingTitle,
+          meetingDescription: values.meetingDescription,
+          meetingDate: formatDateToISO(values.meetingDate),
+          meetingStartTime: formatTimeWithSeconds(values.meetingStartTime),
+          meetingEndTime: formatTimeWithSeconds(values.meetingEndTime),
+          meetingLocation: values.meetingLocation,
+          meetingType: values.meetingType,
+          organizerUserId: values.organizerUserId || meeting?.organizerUserId || authUser?.userId || "",
+          tenantUserIds: values.tenantUserIds || [],
+          clientContactIds: values.clientContactIds && values.clientContactIds.length > 0 ? values.clientContactIds : null,
+          externalAttendees: values.externalAttendees || "",
+        };
+
+        console.log("Submitting meeting update:", { id, clientId, payload });
+        
+        const result = await dispatch(updateClientMeetingForEdit({ id, clientId, data: payload }));
+        
+        console.log("Update result:", result);
+        
+        if (result.meta.requestStatus === "fulfilled") {
+          // Check if the API returned success message
+          const responseMessage = result.payload?.message || "Meeting updated successfully";
+          showSuccess(responseMessage);
+          setTimeout(() => {
+            navigate(`/meetings/view/${id}`);
+          }, 500);
+        } else {
+          // Handle rejected case
+          const errorPayload = result.payload as any;
+          const errorMessage = errorPayload?.message || errorPayload?.error || result.error?.message || "Failed to update meeting";
+          console.error("Update meeting error:", result);
+          showError(errorMessage);
+        }
+      } catch (error: any) {
+        console.error("Error updating meeting:", error);
+        showError(error?.message || "An error occurred while updating the meeting");
       }
     },
   });
 
-  if (loading) {
+  // Show loading if fetching or waiting for clientId
+  if (loading || (!meeting && id && !clientId)) {
     return <Loader />;
+  }
+
+  // Show error if clientId is required but not available
+  if (id && !clientId && !meeting && !loading) {
+    return (
+      <div className="page-content">
+        <Container fluid>
+          <Alert color="warning">
+            Client ID is required to load meeting details. Please try again from the meetings list.
+          </Alert>
+          <Button color="primary" onClick={() => navigate("/clients/meetings")} className="mt-3">
+            <i className="ri-arrow-left-line align-bottom me-1"></i>
+            Back to Meetings
+          </Button>
+        </Container>
+      </div>
+    );
   }
 
   if (!meeting) {
@@ -140,6 +242,10 @@ const MeetingEdit: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Alert color="danger">Meeting not found</Alert>
+          <Button color="primary" onClick={() => navigate("/clients/meetings")} className="mt-3">
+            <i className="ri-arrow-left-line align-bottom me-1"></i>
+            Back to Meetings
+          </Button>
         </Container>
       </div>
     );
@@ -175,6 +281,8 @@ const MeetingEdit: React.FC = () => {
                 <Form
                   onSubmit={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
+                    // Submit form - Formik will handle validation
                     validation.handleSubmit();
                   }}
                 >
@@ -396,142 +504,185 @@ const MeetingEdit: React.FC = () => {
                       </Row>
                   </div>
 
-                  {/* Group 3 - Participants (Read-only) */}
+                  {/* Group 3 - Participants */}
                   <div className="mb-4">
                     <h6 className="text-muted mb-3">
                       <i className="ri-group-line align-middle me-1"></i>
                       Participants
-                      <Badge color="light" className="ms-2 fs-12">
-                        Read-only
-                      </Badge>
                     </h6>
                     <Row className="g-3">
                       <Col md={6}>
                         <FormGroup>
                           <Label className="form-label">
-                            <i className="ri-building-line align-middle me-1"></i>
-                            Client
+                            Organizer{" "}
+                            <span className="text-danger">*</span>
                           </Label>
-                          <Input
-                            type="text"
-                            value={meeting?.clientName || "-"}
-                            readOnly
-                            plaintext
-                            className="form-control-plaintext bg-light px-3 py-2 rounded"
+                          <Select
+                            value={globalUserOptions.find(
+                              (opt: any) =>
+                                opt.value === validation.values.organizerUserId
+                            )}
+                            onChange={(selectedOption: any) => {
+                              validation.setFieldValue(
+                                "organizerUserId",
+                                selectedOption?.value || ""
+                              );
+                            }}
+                            options={globalUserOptions}
+                            placeholder="Select Organizer"
+                            classNamePrefix="select2-selection"
+                          />
+                          {validation.touched.organizerUserId &&
+                            validation.errors.organizerUserId && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.organizerUserId)}
+                              </div>
+                            )}
+                        </FormGroup>
+                      </Col>
+
+                      <Col md={6}>
+                        <FormGroup>
+                          <Label className="form-label">
+                            Internal Users
+                          </Label>
+                          <Select
+                            isMulti
+                            value={globalUserOptions.filter((opt: any) =>
+                              validation.values.tenantUserIds.includes(opt.value)
+                            )}
+                            onChange={(selectedOptions: any) => {
+                              validation.setFieldValue(
+                                "tenantUserIds",
+                                selectedOptions
+                                  ? selectedOptions.map((opt: any) => opt.value)
+                                  : []
+                              );
+                            }}
+                            options={globalUserOptions}
+                            placeholder="Select internal users"
+                            classNamePrefix="select2-selection"
+                            styles={{
+                              multiValue: (base: any) => ({
+                                ...base,
+                                backgroundColor: '#e7f3ff',
+                                border: '1px solid #0d6efd',
+                              }),
+                              multiValueLabel: (base: any) => ({
+                                ...base,
+                                color: '#0d6efd',
+                                fontWeight: 500,
+                              }),
+                              multiValueRemove: (base: any) => ({
+                                ...base,
+                                color: '#0d6efd',
+                                ':hover': {
+                                  backgroundColor: '#0d6efd',
+                                  color: '#fff',
+                                },
+                              }),
+                            }}
                           />
                         </FormGroup>
                       </Col>
 
                       <Col md={6}>
-                          <FormGroup>
-                          <Label className="form-label">
-                            <i className="ri-user-line align-middle me-1"></i>
-                            Organizer
-                            </Label>
-                            <Input
-                            type="text"
-                            value={meeting?.organizerUserName || "-"}
-                            readOnly
-                            plaintext
-                            className="form-control-plaintext bg-light px-3 py-2 rounded"
+                        <FormGroup>
+                          <Label className="form-label">Client Contacts</Label>
+                          <Select
+                            isMulti
+                            value={clientContacts
+                              .filter(
+                                (c: any) =>
+                                  !c.isDeleted &&
+                                  c.clientId === clientId &&
+                                  validation.values.clientContactIds.includes(c.id)
+                              )
+                              .map((contact: any) => ({
+                                value: contact.id,
+                                label: `${contact.contactFirstName} ${contact.contactLastName} (${contact.email})`,
+                              }))}
+                            onChange={(selectedOptions: any) => {
+                              validation.setFieldValue(
+                                "clientContactIds",
+                                selectedOptions
+                                  ? selectedOptions.map((opt: any) => opt.value)
+                                  : []
+                              );
+                            }}
+                            options={clientContacts
+                              .filter(
+                                (c: any) =>
+                                  !c.isDeleted &&
+                                  c.clientId === clientId
+                              )
+                              .map((contact: any) => ({
+                                value: contact.id,
+                                label: `${contact.contactFirstName} ${contact.contactLastName} (${contact.email})`,
+                              }))}
+                            placeholder={
+                              clientId
+                                ? "Select client contacts"
+                                : "Client ID required"
+                            }
+                            isDisabled={!clientId}
+                            classNamePrefix="select2-selection"
+                            styles={{
+                              multiValue: (base: any) => ({
+                                ...base,
+                                backgroundColor: '#d1e7dd',
+                                border: '1px solid #198754',
+                              }),
+                              multiValueLabel: (base: any) => ({
+                                ...base,
+                                color: '#198754',
+                                fontWeight: 500,
+                              }),
+                              multiValueRemove: (base: any) => ({
+                                ...base,
+                                color: '#198754',
+                                ':hover': {
+                                  backgroundColor: '#198754',
+                                  color: '#fff',
+                                },
+                              }),
+                            }}
                           />
-                          </FormGroup>
+                        </FormGroup>
                       </Col>
 
-                        <Col md={6}>
-                          <FormGroup>
+                      <Col md={6}>
+                        <FormGroup>
                           <Label className="form-label">
-                            <i className="ri-user-3-line align-middle me-1"></i>
-                            Internal Users (Tenant Users)
-                            </Label>
-                          {selectedTenantUsers.length > 0 ? (
-                            <div className="bg-light px-3 py-2 rounded">
-                              {selectedTenantUsers.map((user: any, index: number) => (
-                                <Badge
-                                  key={`user-${index}`}
-                                  color="primary"
-                                  className="me-1 mb-1"
-                                >
-                                  {user.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <Input
-                              type="text"
-                              value="No internal users selected"
-                              readOnly
-                              plaintext
-                              className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
-                            />
-                            )}
-                          </FormGroup>
-                        </Col>
-
-                        <Col md={6}>
-                          <FormGroup>
-                          <Label className="form-label">
-                            <i className="ri-contacts-line align-middle me-1"></i>
-                            Client Contacts
-                          </Label>
-                          {selectedClientContacts.length > 0 ? (
-                            <div className="bg-light px-3 py-2 rounded">
-                              {selectedClientContacts.map((contact: any, index: number) => (
-                                <Badge
-                                  key={`contact-${index}`}
-                                  color="success"
-                                  className="me-1 mb-1"
-                                >
-                                  {contact.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <Input
-                              type="text"
-                              value="No client contacts selected"
-                              readOnly
-                              plaintext
-                              className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
-                            />
-                          )}
-                          </FormGroup>
-                        </Col>
-
-                      <Col md={12}>
-                      <FormGroup>
-                          <Label className="form-label">
-                            <i className="ri-mail-line align-middle me-1"></i>
                             External Attendees (Emails)
-                        </Label>
-                          {getExternalAttendees().length > 0 ? (
-                            <div className="bg-light px-3 py-2 rounded">
-                              {getExternalAttendees().map((email: string, index: number) => (
-                                <Badge
-                                  key={`external-${index}`}
-                                  color="info"
-                                  className="me-1 mb-1"
-                                >
-                                  {email}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                        <Input
-                              type="text"
-                              value="No external attendees"
-                              readOnly
-                              plaintext
-                              className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
-                            />
-                        )}
-                      </FormGroup>
+                          </Label>
+                          <Input
+                            type="textarea"
+                            name="externalAttendees"
+                            rows={3}
+                            value={validation.values.externalAttendees}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              !!(
+                                validation.touched.externalAttendees &&
+                                validation.errors.externalAttendees
+                              )
+                            }
+                            placeholder="email1@example.com; email2@example.com"
+                          />
+                          <small className="text-muted">
+                            Separate multiple emails with semicolons (;)
+                          </small>
+                          {validation.touched.externalAttendees &&
+                            validation.errors.externalAttendees && (
+                              <div className="invalid-feedback d-block">
+                                {String(validation.errors.externalAttendees)}
+                              </div>
+                            )}
+                        </FormGroup>
                       </Col>
                     </Row>
-                    <Alert color="info" className="mt-2 mb-0">
-                      <i className="ri-information-line align-middle me-1"></i>
-                      Participants cannot be modified here. To change participants, please delete and recreate the meeting.
-                    </Alert>
                   </div>
 
                   <div className="d-flex gap-2 justify-content-end mt-4 pt-3 border-top">

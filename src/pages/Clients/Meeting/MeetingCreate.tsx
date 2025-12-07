@@ -436,7 +436,7 @@ const MeetingCreate: React.FC = () => {
                         <Col md={6}>
                           <FormGroup>
                           <Label className="form-label">
-                            Internal Users (Tenant Users)
+                            Internal Users
                             </Label>
                           <Select
                             isMulti

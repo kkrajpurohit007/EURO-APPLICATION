@@ -29,7 +29,6 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
 }) => {
   const navigate = useNavigate();
   
-  const attendeeCount = meeting.attendees?.length || 0;
   const duration = calculateDuration(meeting.meetingStartTime, meeting.meetingEndTime);
   const statusLabel = MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown";
   const typeLabel = MEETING_TYPE_MAP[meeting.meetingType] || "Unknown";
@@ -139,11 +138,6 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
           </div>
 
           <div className="mb-2">
-            <Badge color="light" className="text-muted me-1 mb-1" style={{ fontSize: "11px" }}>
-              <i className="ri-group-line align-middle me-1"></i>
-              {attendeeCount} Attendee
-              {attendeeCount !== 1 ? "s" : ""}
-            </Badge>
             <Badge color="light" className="text-muted mb-1" style={{ fontSize: "11px" }}>
               <i className="ri-calendar-event-line align-middle me-1"></i>
               {typeLabel}
@@ -158,22 +152,20 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
               size="sm"
               color="soft-primary"
               onClick={handleView}
-              className="flex-fill"
-              style={{ minWidth: "60px" }}
+              style={{ width: "36px", padding: "0.25rem 0.5rem" }}
+              title="View Meeting"
             >
-              <i className="ri-eye-line align-bottom me-1"></i>
-              View
+              <i className="ri-eye-line align-bottom"></i>
             </Button>
             {canEdit && (
               <Button
                 size="sm"
                 color="soft-secondary"
                 onClick={handleEdit}
-                className="flex-fill"
-                style={{ minWidth: "60px" }}
+                style={{ width: "36px", padding: "0.25rem 0.5rem" }}
+                title="Edit Meeting"
               >
-                <i className="ri-pencil-line align-bottom me-1"></i>
-                Edit
+                <i className="ri-pencil-line align-bottom"></i>
               </Button>
             )}
             {canReschedule && (
@@ -181,11 +173,10 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
                 size="sm"
                 color="soft-warning"
                 onClick={handleReschedule}
-                className="flex-fill"
-                style={{ minWidth: "60px" }}
+                style={{ width: "36px", padding: "0.25rem 0.5rem" }}
+                title="Reschedule Meeting"
               >
-                <i className="ri-calendar-event-line align-bottom me-1"></i>
-                Reschedule
+                <i className="ri-calendar-event-line align-bottom"></i>
               </Button>
             )}
             {canDelete && (
@@ -193,11 +184,10 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
                 size="sm"
                 color="soft-danger"
                 onClick={handleDelete}
-                className="flex-fill"
-                style={{ minWidth: "60px" }}
+                style={{ width: "36px", padding: "0.25rem 0.5rem" }}
+                title="Delete Meeting"
               >
-                <i className="ri-delete-bin-line align-bottom me-1"></i>
-                Delete
+                <i className="ri-delete-bin-line align-bottom"></i>
               </Button>
             )}
           </div>

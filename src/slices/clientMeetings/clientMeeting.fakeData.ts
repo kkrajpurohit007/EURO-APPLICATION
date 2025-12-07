@@ -29,6 +29,7 @@ export interface ClientMeeting {
   meetingType: number; // 1..4
   organizerUserId: string;
   organizerUserName?: string;
+  organizerName?: string; // API returns organizerName
   meetingStatus: number;
   isDeleted: boolean;
   created: string; // date-time

@@ -42,6 +42,25 @@ export const meetingFormSchema = Yup.object({
 export const createMeetingSchema = meetingFormSchema.shape({
   clientId: Yup.string().required("Client is required"),
   organizerUserId: Yup.string().required("Organizer is required"),
+  tenantUserIds: Yup.array().of(Yup.string()),
+  clientContactIds: Yup.array().nullable().of(Yup.string()),
+  externalAttendees: Yup.string().test(
+    "valid-emails",
+    "Invalid email format. Use semicolon to separate emails",
+    function (value) {
+      if (!value) return true;
+      return validateEmails(value);
+    }
+  ),
+});
+
+/**
+ * Edit meeting validation schema (clientId not in form, only used for API)
+ */
+export const editMeetingSchema = meetingFormSchema.shape({
+  organizerUserId: Yup.string().required("Organizer is required"),
+  tenantUserIds: Yup.array().of(Yup.string()),
+  clientContactIds: Yup.array().nullable().of(Yup.string()),
   externalAttendees: Yup.string().test(
     "valid-emails",
     "Invalid email format. Use semicolon to separate emails",

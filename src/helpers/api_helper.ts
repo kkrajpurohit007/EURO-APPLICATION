@@ -99,9 +99,10 @@ class APIClient {
   get = (url: any, params: any) => {
     let response;
 
-    let paramKeys: any = [];
+    // Check if params exists and has keys (not empty object)
+    if (params && Object.keys(params).length > 0) {
+      let paramKeys: any = [];
 
-    if (params) {
       Object.keys(params).map((key) => {
         paramKeys.push(key + "=" + params[key]);
         return paramKeys;
@@ -109,11 +110,14 @@ class APIClient {
 
       const queryString =
         paramKeys && paramKeys.length ? paramKeys.join("&") : "";
-      response = axios.get(`${url}?${queryString}`, { 
-        ...params,
+      
+      // Check if URL already has query parameters
+      const separator = url.includes("?") ? "&" : "?";
+      response = axios.get(`${url}${separator}${queryString}`, { 
         timeout: 10000 // 10 second timeout
       });
     } else {
+      // No params or empty object - use URL as-is
       response = axios.get(`${url}`, { 
         timeout: 10000 // 10 second timeout
       });
