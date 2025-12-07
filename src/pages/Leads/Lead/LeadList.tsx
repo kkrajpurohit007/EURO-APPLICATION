@@ -232,7 +232,7 @@ const LeadList: React.FC = () => {
                         onClick={() => navigate("/leads/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Lead
+                        Add Lead
                       </Button>
                     </div>
                   </Col>

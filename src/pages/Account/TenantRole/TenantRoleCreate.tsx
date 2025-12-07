@@ -111,14 +111,14 @@ const TenantRoleCreate = () => {
     navigate("/account/tenant-roles");
   };
 
-  document.title = PAGE_TITLES.TENANT_ROLE_CREATE || "Create User Role | ESRM";
+  document.title = PAGE_TITLES.TENANT_ROLE_CREATE || "Add User Role | ESRM";
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
           <BreadCrumb
-            title="Create User Role"
+            title="Add User Role"
             pageTitle="User Roles"
           />
           <Row>
@@ -257,7 +257,7 @@ const TenantRoleCreate = () => {
                     <div className="text-end">
                       <Button type="submit" color="success" className="me-2">
                         <i className="ri-save-line align-middle me-1"></i>
-                        Create Role
+                        Add Role
                       </Button>
                       <Button
                         type="button"

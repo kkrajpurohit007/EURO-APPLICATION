@@ -29,6 +29,7 @@ import {
 import { getLoggedinUser } from "../../helpers/api_helper";
 import { useFlash } from "../../hooks/useFlash";
 import AttachmentCard from "./AttachmentCard";
+import DeleteModal from "./DeleteModal";
 import { formatFileSize } from "../../common/attachmentUtils";
 import { isImageFile, isPdfFile } from "../../common/attachmentUtils";
 
@@ -56,6 +57,8 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [previewAttachment, setPreviewAttachment] = useState<LeadAttachmentItem | null>(null);
   const [previewModal, setPreviewModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
@@ -159,10 +162,15 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
     }
   };
 
-  const handleDelete = async (attachmentId: string) => {
-    if (window.confirm("Are you sure you want to delete this attachment?")) {
+  const handleDelete = (attachmentId: string) => {
+    setAttachmentToDelete(attachmentId);
+    setDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (attachmentToDelete) {
       try {
-        const result = await dispatch(deleteLeadAttachment(attachmentId));
+        const result = await dispatch(deleteLeadAttachment(attachmentToDelete));
         if (result.meta.requestStatus === "fulfilled") {
           showSuccess("Attachment deleted successfully");
           // Refresh attachments list
@@ -174,6 +182,8 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
         showError("Failed to delete attachment");
       }
     }
+    setDeleteModal(false);
+    setAttachmentToDelete(null);
   };
 
   const handlePreview = (attachment: LeadAttachmentItem) => {
@@ -429,6 +439,16 @@ const LeadAttachmentManager: React.FC<LeadAttachmentManagerProps> = ({
           )}
         </ModalBody>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        show={deleteModal}
+        onDeleteClick={confirmDelete}
+        onCloseClick={() => {
+          setDeleteModal(false);
+          setAttachmentToDelete(null);
+        }}
+      />
     </>
   );
 };

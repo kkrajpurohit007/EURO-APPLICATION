@@ -57,7 +57,7 @@ const ContactEdit: React.FC = () => {
 
   const initialValues = useMemo(
     () => ({
-      title: contact?.title || "Mr.",
+      title: contact?.title || "",
       contactFirstName: contact?.contactFirstName || "",
       contactLastName: contact?.contactLastName || "",
       email: contact?.email || "",
@@ -187,16 +187,12 @@ const ContactEdit: React.FC = () => {
                     <Col md={6}>
                       <Label className="form-label">Title</Label>
                       <Input
-                        type="select"
+                        type="text"
                         name="title"
                         value={validation.values.title}
                         onChange={validation.handleChange}
-                      >
-                        <option value="Mr.">Mr.</option>
-                        <option value="Ms.">Ms.</option>
-                        <option value="Mrs.">Mrs.</option>
-                        <option value="Dr.">Dr.</option>
-                      </Input>
+                        placeholder="Enter title (e.g., Mr., Ms., Mrs., Dr.)"
+                      />
                     </Col>
 
                     <Col md={6}>

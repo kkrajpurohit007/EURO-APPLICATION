@@ -178,7 +178,7 @@ const GlobalUserList: React.FC = () => {
                         onClick={() => navigate("/account/global-users/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create User
+                        Add User
                       </Button>
                     </div>
                   </Col>

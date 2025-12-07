@@ -167,7 +167,7 @@ const LeadCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Lead" pageTitle="Leads" />
+        <BreadCrumb title="Add Lead" pageTitle="Leads" />
         <Row>
           <Col lg={12}>
             <Card>

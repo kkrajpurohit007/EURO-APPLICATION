@@ -30,6 +30,8 @@ export interface ClientMeeting {
   organizerUserId: string;
   organizerUserName?: string;
   organizerName?: string; // API returns organizerName
+  tenantUserIds?: string[]; // Array of user IDs for internal users
+  clientContactIds?: string[]; // Array of client contact IDs
   meetingStatus: number;
   isDeleted: boolean;
   created: string; // date-time

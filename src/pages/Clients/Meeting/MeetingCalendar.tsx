@@ -1093,19 +1093,36 @@ const MeetingCalendar: React.FC = () => {
                                   Start Time{" "}
                                   <span className="text-danger">*</span>
                                 </Label>
-                                <Input
-                                  type="time"
-                                  name="meetingStartTime"
-                                  value={validation.values.meetingStartTime}
-                                  onChange={validation.handleChange}
-                                  onBlur={validation.handleBlur}
-                                  invalid={
-                                    !!(
-                                      validation.touched.meetingStartTime &&
-                                      validation.errors.meetingStartTime
-                                    )
-                                  }
-                                />
+                                <div className="position-relative">
+                                  <Input
+                                    type="time"
+                                    name="meetingStartTime"
+                                    value={validation.values.meetingStartTime}
+                                    onChange={validation.handleChange}
+                                    onBlur={validation.handleBlur}
+                                    invalid={
+                                      !!(
+                                        validation.touched.meetingStartTime &&
+                                        validation.errors.meetingStartTime
+                                      )
+                                    }
+                                    style={{ paddingRight: "40px", cursor: "pointer" }}
+                                    onClick={(e) => {
+                                      e.currentTarget.showPicker?.();
+                                    }}
+                                  />
+                                  <i
+                                    className="ri-time-line position-absolute"
+                                    style={{
+                                      right: "12px",
+                                      top: "50%",
+                                      transform: "translateY(-50%)",
+                                      pointerEvents: "none",
+                                      color: "#6c757d",
+                                      fontSize: "18px",
+                                    }}
+                                  />
+                                </div>
                                 {validation.touched.meetingStartTime &&
                                   validation.errors.meetingStartTime && (
                                     <div className="invalid-feedback d-block">
@@ -1121,19 +1138,36 @@ const MeetingCalendar: React.FC = () => {
                                   End Time{" "}
                                   <span className="text-danger">*</span>
                                 </Label>
-                                <Input
-                                  type="time"
-                                  name="meetingEndTime"
-                                  value={validation.values.meetingEndTime}
-                                  onChange={validation.handleChange}
-                                  onBlur={validation.handleBlur}
-                                  invalid={
-                                    !!(
-                                      validation.touched.meetingEndTime &&
-                                      validation.errors.meetingEndTime
-                                    )
-                                  }
-                                />
+                                <div className="position-relative">
+                                  <Input
+                                    type="time"
+                                    name="meetingEndTime"
+                                    value={validation.values.meetingEndTime}
+                                    onChange={validation.handleChange}
+                                    onBlur={validation.handleBlur}
+                                    invalid={
+                                      !!(
+                                        validation.touched.meetingEndTime &&
+                                        validation.errors.meetingEndTime
+                                      )
+                                    }
+                                    style={{ paddingRight: "40px", cursor: "pointer" }}
+                                    onClick={(e) => {
+                                      e.currentTarget.showPicker?.();
+                                    }}
+                                  />
+                                  <i
+                                    className="ri-time-line position-absolute"
+                                    style={{
+                                      right: "12px",
+                                      top: "50%",
+                                      transform: "translateY(-50%)",
+                                      pointerEvents: "none",
+                                      color: "#6c757d",
+                                      fontSize: "18px",
+                                    }}
+                                  />
+                                </div>
                                 {validation.touched.meetingEndTime &&
                                   validation.errors.meetingEndTime && (
                                     <div className="invalid-feedback d-block">
@@ -1388,7 +1422,7 @@ const MeetingCalendar: React.FC = () => {
                             ) : (
                               <>
                                 <i className="ri-save-line align-bottom me-1"></i>
-                                {isEdit ? "Update Meeting" : "Create Meeting"}
+                                {isEdit ? "Update Meeting" : "Add Meeting"}
                               </>
                             )}
                           </Button>

@@ -74,7 +74,7 @@ const TenantLocationCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Global Location" pageTitle="Global Locations" />
+        <BreadCrumb title="Add Global Location" pageTitle="Global Locations" />
         <Row>
           <Col lg={12}>
             <Card>

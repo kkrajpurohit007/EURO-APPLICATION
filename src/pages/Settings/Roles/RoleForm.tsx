@@ -87,7 +87,7 @@ const RoleForm = ({ role, onCancel, onSave }: any) => {
 
   return React.createElement("div", { className: "page-content" },
     React.createElement(BreadCrumb, { 
-      title: role ? "Edit Role" : "Create Role", 
+      title: role ? "Edit Role" : "Add Role", 
       pageTitle: "Settings" 
     }),
     React.createElement(Container, { fluid: true },
@@ -193,7 +193,7 @@ const RoleForm = ({ role, onCancel, onSave }: any) => {
                     color: "primary",
                     disabled: loading
                   }, 
-                    loading ? "Saving..." : (role ? "Update Role" : "Create Role")
+                    loading ? "Saving..." : (role ? "Update Role" : "Add Role")
                   )
                 )
               )

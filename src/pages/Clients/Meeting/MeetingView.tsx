@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Container,
   Row,
@@ -23,6 +23,10 @@ import {
   selectClientMeetingError,
   selectClientMeetingsList,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
+import { selectGlobalUserList } from "../../../slices/globalUsers/globalUser.slice";
+import { selectClientContactList } from "../../../slices/clientContacts/clientContact.slice";
+import { fetchGlobalUsers } from "../../../slices/globalUsers/globalUser.slice";
+import { fetchClientContacts } from "../../../slices/clientContacts/clientContact.slice";
 import {
   ClientMeeting,
   MEETING_TYPE_MAP,
@@ -48,6 +52,8 @@ const MeetingView: React.FC = () => {
   const meetingsList = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingDetailLoading);
   const error = useSelector(selectClientMeetingError);
+  const globalUsers = useSelector(selectGlobalUserList);
+  const clientContacts = useSelector(selectClientContactList);
 
   // Get clientId from meeting or list store - REQUIRED for ForEdit endpoint
   const clientId = React.useMemo(() => {
@@ -73,6 +79,54 @@ const MeetingView: React.FC = () => {
     }
   }, [dispatch, id, clientId]);
 
+  // Fetch dropdown data if not already loaded
+  useEffect(() => {
+    if (!globalUsers || globalUsers.length === 0) {
+      dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 50 }));
+    }
+    if (!clientContacts || clientContacts.length === 0) {
+      dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
+    }
+  }, [dispatch, globalUsers, clientContacts]);
+
+  // Get organizer name from global users
+  const organizerName = useMemo(() => {
+    if (meeting?.organizerName || meeting?.organizerUserName) {
+      return meeting.organizerName || meeting.organizerUserName;
+    }
+    if (meeting?.organizerUserId && globalUsers.length > 0) {
+      const organizer = globalUsers.find((u: any) => u.id === meeting.organizerUserId);
+      if (organizer) {
+        return `${organizer.firstName} ${organizer.lastName}`;
+      }
+    }
+    return "-";
+  }, [meeting, globalUsers]);
+
+  // Get internal users (tenantUserIds)
+  const internalUsers = useMemo(() => {
+    if (!meeting?.tenantUserIds || !Array.isArray(meeting.tenantUserIds) || meeting.tenantUserIds.length === 0) {
+      return [];
+    }
+    return globalUsers
+      .filter((u: any) => !u.isDeleted && meeting.tenantUserIds?.includes(u.id))
+      .map((u: any) => `${u.firstName} ${u.lastName}`);
+  }, [meeting, globalUsers]);
+
+  // Get client contacts (clientContactIds)
+  const clientContactNames = useMemo(() => {
+    if (!meeting?.clientContactIds || !Array.isArray(meeting.clientContactIds) || meeting.clientContactIds.length === 0) {
+      return [];
+    }
+    return clientContacts
+      .filter((c: any) => !c.isDeleted && meeting.clientContactIds?.includes(c.id))
+      .map((c: any) => `${c.contactFirstName} ${c.contactLastName}`);
+  }, [meeting, clientContacts]);
+
+  const getExternalAttendees = (): string[] => {
+    if (!meeting) return [];
+    return parseExternalAttendees(meeting.externalAttendees);
+  };
 
   // Show loading if fetching or waiting for clientId
   if (loading || (!meeting && id && !clientId)) {
@@ -114,10 +168,6 @@ const MeetingView: React.FC = () => {
 
   document.title = `${meeting.meetingTitle || "Meeting"} | ${PAGE_TITLES.MEETING_VIEW}`;
 
-  const getExternalAttendees = (): string[] => {
-    return parseExternalAttendees(meeting.externalAttendees);
-  };
-
   return (
     <div className="page-content">
       <Container fluid>
@@ -158,15 +208,6 @@ const MeetingView: React.FC = () => {
                         Client Name
                       </Label>
                       <p className="mb-0 fw-semibold">{meeting.clientName || "-"}</p>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="mb-3">
-                      <Label className="form-label text-muted mb-1">
-                        <i className="ri-user-line align-middle me-1"></i>
-                        Organizer Name
-                      </Label>
-                      <p className="mb-0 fw-semibold">{meeting.organizerName || meeting.organizerUserName || "-"}</p>
                     </div>
                   </Col>
                 </Row>
@@ -231,25 +272,114 @@ const MeetingView: React.FC = () => {
               </CardBody>
             </Card>
 
-            {/* Section C - Organizer & Status */}
+            {/* Section C - Participants */}
             <Card className="mb-3">
               <CardHeader>
                 <h5 className="card-title mb-0">
-                  <i className="ri-user-line align-middle me-2"></i>
-                  Organizer & Status
+                  <i className="ri-group-line align-middle me-2"></i>
+                  Participants
                 </h5>
               </CardHeader>
               <CardBody>
                 <Row className="g-3">
-                  <Col md={6}>
+                  <Col md={12}>
                     <div className="mb-3">
                       <Label className="form-label text-muted mb-1">
                         <i className="ri-user-line align-middle me-1"></i>
-                        Organizer Name
+                        Organizer <span className="text-danger">*</span>
                       </Label>
-                      <p className="mb-0">{meeting.organizerName || meeting.organizerUserName || "-"}</p>
+                      <p className="mb-0 fw-semibold">{organizerName}</p>
                     </div>
                   </Col>
+
+                  <Col md={12}>
+                    <div className="mb-3">
+                      <Label className="form-label text-muted mb-2">
+                        <i className="ri-user-3-line align-middle me-1"></i>
+                        Internal Users
+                      </Label>
+                      {internalUsers.length > 0 ? (
+                        <div>
+                          {internalUsers.map((name: string, index: number) => (
+                            <Badge
+                              key={`internal-${index}`}
+                              color="primary"
+                              className="fs-13 px-3 py-2 me-2 mb-2"
+                            >
+                              <i className="ri-user-3-line align-middle me-1"></i>
+                              {name}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted mb-0 fst-italic">No internal users added</p>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col md={12}>
+                    <div className="mb-3">
+                      <Label className="form-label text-muted mb-2">
+                        <i className="ri-contacts-line align-middle me-1"></i>
+                        Client Contacts
+                      </Label>
+                      {clientContactNames.length > 0 ? (
+                        <div>
+                          {clientContactNames.map((name: string, index: number) => (
+                            <Badge
+                              key={`contact-${index}`}
+                              color="success"
+                              className="fs-13 px-3 py-2 me-2 mb-2"
+                            >
+                              <i className="ri-contacts-line align-middle me-1"></i>
+                              {name}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted mb-0 fst-italic">No client contacts added</p>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col md={12}>
+                    <div className="mb-3">
+                      <Label className="form-label text-muted mb-2">
+                        <i className="ri-mail-line align-middle me-1"></i>
+                        External Attendees (Emails)
+                      </Label>
+                      {getExternalAttendees().length > 0 ? (
+                        <div>
+                          {getExternalAttendees().map((email, index) => (
+                            <Badge
+                              key={`external-${index}`}
+                              color="info"
+                              className="fs-13 px-3 py-2 me-2 mb-2"
+                            >
+                              <i className="ri-mail-line align-middle me-1"></i>
+                              {email}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted mb-0 fst-italic">No external attendees added</p>
+                      )}
+                    </div>
+                  </Col>
+                </Row>
+              </CardBody>
+            </Card>
+
+            {/* Section D - Status */}
+            <Card className="mb-3">
+              <CardHeader>
+                <h5 className="card-title mb-0">
+                  <i className="ri-checkbox-circle-line align-middle me-2"></i>
+                  Status & Details
+                </h5>
+              </CardHeader>
+              <CardBody>
+                <Row className="g-3">
                   <Col md={6}>
                     <div className="mb-3">
                       <Label className="form-label text-muted mb-1">
@@ -259,9 +389,9 @@ const MeetingView: React.FC = () => {
                       <div>
                         <Badge color={getStatusColor(meeting.meetingStatus)} className="fs-12">
                           {MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown"}
-                    </Badge>
-                  </div>
-                </div>
+                        </Badge>
+                      </div>
+                    </div>
                   </Col>
                   {meeting.modified && (
                     <Col md={6}>
@@ -275,106 +405,6 @@ const MeetingView: React.FC = () => {
                     </Col>
                   )}
                 </Row>
-              </CardBody>
-            </Card>
-
-            {/* Section D - Attendees */}
-            <Card className="mb-3">
-              <CardHeader>
-                <h5 className="card-title mb-0">
-                  <i className="ri-group-line align-middle me-2"></i>
-                  Attendees
-                  {(meeting.attendees && meeting.attendees.length > 0) ||
-                  getExternalAttendees().length > 0 ? (
-                    <span className="ms-2 text-muted fs-14">
-                      (
-                      {(meeting.attendees?.length || 0) +
-                        getExternalAttendees().length}
-                      )
-                    </span>
-                  ) : null}
-                </h5>
-              </CardHeader>
-              <CardBody>
-                {/* Internal Users */}
-                {meeting.attendees &&
-                  meeting.attendees.filter((a) => a.userName).length > 0 && (
-                    <div className="mb-3">
-                      <Label className="form-label text-muted mb-2">
-                        <i className="ri-user-3-line align-middle me-1"></i>
-                        Internal Users
-                      </Label>
-                      <div>
-                        {meeting.attendees
-                          .filter((a) => a.userName)
-                          .map((attendee, index) => (
-                            <Badge
-                              key={`user-${index}`}
-                              color="primary"
-                              className="fs-13 px-3 py-2 me-2 mb-2"
-                            >
-                              <i className="ri-user-3-line align-middle me-1"></i>
-                              {attendee.userName}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Client Contacts */}
-                {meeting.attendees &&
-                  meeting.attendees.filter((a) => a.clientContactName).length >
-                    0 && (
-                    <div className="mb-3">
-                      <Label className="form-label text-muted mb-2">
-                        <i className="ri-contacts-line align-middle me-1"></i>
-                        Client Contacts
-                      </Label>
-                      <div>
-                        {meeting.attendees
-                          .filter((a) => a.clientContactName)
-                          .map((attendee, index) => (
-                          <Badge
-                              key={`contact-${index}`}
-                              color="success"
-                              className="fs-13 px-3 py-2 me-2 mb-2"
-                            >
-                              <i className="ri-contacts-line align-middle me-1"></i>
-                              {attendee.clientContactName}
-                          </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* External Attendees */}
-                {getExternalAttendees().length > 0 && (
-                  <div className="mb-3">
-                    <Label className="form-label text-muted mb-2">
-                      <i className="ri-mail-line align-middle me-1"></i>
-                      External Attendees
-                    </Label>
-                    <div>
-                      {getExternalAttendees().map((email, index) => (
-                        <Badge
-                          key={`external-${index}`}
-                          color="info"
-                          className="fs-13 px-3 py-2 me-2 mb-2"
-                        >
-                          <i className="ri-mail-line align-middle me-1"></i>
-                          {email}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {(!meeting.attendees || meeting.attendees.length === 0) &&
-                  getExternalAttendees().length === 0 && (
-                    <p className="text-muted mb-0 fst-italic">
-                      No attendees listed
-                    </p>
-                  )}
               </CardBody>
             </Card>
           </Col>

@@ -203,7 +203,7 @@ const ClientList: React.FC = () => {
                         onClick={() => navigate("/clients/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Client
+                        Add Client
                       </Button>
                     </div>
                   </Col>

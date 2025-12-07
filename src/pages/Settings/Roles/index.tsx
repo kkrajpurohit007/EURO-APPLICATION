@@ -135,7 +135,7 @@ const RolesManagement = () => {
       backdrop: "static"
     },
       React.createElement(ModalHeader, { toggle: toggleModal },
-        selectedRole ? "Edit Role" : "Create Role"
+        selectedRole ? "Edit Role" : "Add Role"
       ),
       React.createElement(ModalBody, null,
         React.createElement(RoleForm, {

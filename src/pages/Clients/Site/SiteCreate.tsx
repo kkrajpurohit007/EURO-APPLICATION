@@ -100,7 +100,7 @@ const SiteCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Site" pageTitle="Sites" />
+        <BreadCrumb title="Add Site" pageTitle="Sites" />
         <Row>
           <Col lg={12}>
             <Card>

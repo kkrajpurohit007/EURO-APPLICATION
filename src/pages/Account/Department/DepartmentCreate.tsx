@@ -74,7 +74,7 @@ const DepartmentCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Department" pageTitle="Departments" />
+        <BreadCrumb title="Add Department" pageTitle="Departments" />
         <Row>
           <Col lg={12}>
             <Card>

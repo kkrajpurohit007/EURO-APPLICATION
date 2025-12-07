@@ -147,7 +147,7 @@ const DepartmentList: React.FC = () => {
                         onClick={() => navigate("/account/departments/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Department
+                        Add Department
                       </Button>
                     </div>
                   </Col>

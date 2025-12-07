@@ -116,7 +116,7 @@ const GlobalUserCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create User" pageTitle="User Management" />
+        <BreadCrumb title="Add User" pageTitle="User Management" />
         <Row>
           <Col lg={12}>
             <Card>

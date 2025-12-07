@@ -55,7 +55,7 @@ const ClientContactCreate: React.FC = () => {
     enableReinitialize: true,
     initialValues: {
       clientId: clientIdFromUrl,
-      title: "Mr.",
+      title: "",
       contactFirstName: "",
       contactLastName: "",
       email: "",
@@ -93,7 +93,7 @@ const ClientContactCreate: React.FC = () => {
           }
         }, 500);
       } else {
-        showError("Failed to create contact");
+        showError("Failed to Add contact");
       }
     },
   });
@@ -101,7 +101,7 @@ const ClientContactCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Contact" pageTitle="Client Contacts" />
+        <BreadCrumb title="Add Contact" pageTitle="Client Contacts" />
         <Row>
           <Col lg={12}>
             <Card>
@@ -182,16 +182,12 @@ const ClientContactCreate: React.FC = () => {
                     <Col md={6}>
                       <Label className="form-label">Title</Label>
                       <Input
-                        type="select"
+                        type="text"
                         name="title"
                         value={validation.values.title}
                         onChange={validation.handleChange}
-                      >
-                        <option value="Mr.">Mr.</option>
-                        <option value="Ms.">Ms.</option>
-                        <option value="Mrs.">Mrs.</option>
-                        <option value="Dr.">Dr.</option>
-                      </Input>
+                        placeholder="Enter title (e.g., Mr., Ms., Mrs., Dr.)"
+                      />
                     </Col>
 
                     <Col md={6}>

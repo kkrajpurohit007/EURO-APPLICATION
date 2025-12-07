@@ -150,7 +150,7 @@ const TenantLocationList: React.FC = () => {
                         onClick={() => navigate("/tenant-locations/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Global Location
+                        Add Global Location
                       </Button>
                     </div>
                   </Col>

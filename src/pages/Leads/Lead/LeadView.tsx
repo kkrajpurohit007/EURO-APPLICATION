@@ -1,5 +1,5 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Container,
@@ -15,7 +15,8 @@ import {
   Alert,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import { selectLeadById } from "../../../slices/leads/lead.slice";
+import Loader from "../../../Components/Common/Loader";
+import { selectLeadById, selectLeadLoading, selectLeadList, fetchLeads } from "../../../slices/leads/lead.slice";
 import { LeadStatusLabels, LeadStatus } from "../../../slices/leads/lead.fakeData";
 
 import { PAGE_TITLES } from "../../../common/branding";
@@ -24,15 +25,38 @@ import LeadAttachmentManager from "../../../Components/Common/LeadAttachmentMana
 
 const LeadView: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_VIEW;
+  const dispatch = useDispatch<any>();
   const { id } = useParams();
   const navigate = useNavigate();
   const lead = useSelector((state: any) => selectLeadById(state, id || ""));
+  const loading = useSelector(selectLeadLoading);
+  const leads = useSelector(selectLeadList);
 
-  if (!lead) {
+  // Fetch leads if not already loaded
+  useEffect(() => {
+    if (!loading && (!leads || leads.length === 0)) {
+      dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
+    }
+  }, [dispatch, loading, leads]);
+
+  // Show loading while fetching data
+  if (loading || (!lead && id && leads.length === 0)) {
+    return <Loader />;
+  }
+
+  // Only show "not found" after loading is complete and lead doesn't exist
+  if (!loading && !lead && id) {
     return (
       <div className="page-content">
         <Container fluid>
-          <Alert color="danger">Lead not found</Alert>
+          <BreadCrumb title="View Lead" pageTitle="Leads" />
+          <Alert color="danger" className="mt-3">
+            Lead not found
+          </Alert>
+          <Button color="primary" onClick={() => navigate("/leads/list")} className="mt-3">
+            <i className="ri-arrow-left-line align-bottom me-1"></i>
+            Back to Leads
+          </Button>
         </Container>
       </div>
     );

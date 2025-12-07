@@ -121,7 +121,7 @@ const ClientCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Client" pageTitle="Clients" />
+        <BreadCrumb title="Add Client" pageTitle="Clients" />
         <Row>
           <Col lg={12}>
             <Card>

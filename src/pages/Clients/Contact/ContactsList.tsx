@@ -308,7 +308,7 @@ const ContactsList: React.FC = () => {
                         onClick={() => navigate("/clients/contacts/create")}
                       >
                         <i className="ri-add-line align-bottom me-1"></i>
-                        Create Contact
+                        Add Contact
                       </Button>
                     </div>
                   </Col>
@@ -404,7 +404,7 @@ const ContactsList: React.FC = () => {
                                 onClick={() => navigate("/clients/contacts/create")}
                               >
                                 <i className="ri-add-line align-bottom me-1"></i>
-                                Create Contact
+                              Add Contact
                               </Button>
                             )}
                           </div>
@@ -437,7 +437,7 @@ const ContactsList: React.FC = () => {
                                 onClick={() => navigate("/clients/contacts/create")}
                               >
                                 <i className="ri-add-line align-bottom me-1"></i>
-                                Create Contact
+                                Add Contact
                               </Button>
                             )}
                           </div>
