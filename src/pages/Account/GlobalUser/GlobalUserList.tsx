@@ -96,12 +96,6 @@ const GlobalUserList: React.FC = () => {
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "Profile Name",
-        accessorKey: "profileName",
-        enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
         header: "Department Name",
         accessorKey: "departmentName",
         enableColumnFilter: false,

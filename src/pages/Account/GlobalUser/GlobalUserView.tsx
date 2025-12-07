@@ -27,19 +27,6 @@ const GlobalUserView: React.FC = () => {
     selectGlobalUserById(state, id || "")
   );
 
-  // Helper function to map accessScope value to label
-  const getAccessScopeLabel = (value: string | number | undefined): string => {
-    if (!value) return "-";
-    const scopeMap: { [key: string]: string } = {
-      "1": "Tenant",
-      "2": "Client",
-      "3": "Site",
-      "4": "Work Order",
-      "5": "Scaffold",
-    };
-    return scopeMap[String(value)] || String(value);
-  };
-
   if (!user) {
     return (
       <div className="page-content">
@@ -140,16 +127,6 @@ const GlobalUserView: React.FC = () => {
                     <h5 className="mb-3">Access & Role Info</h5>
                     <Row className="g-3">
                       <Col md={6}>
-                        <Label className="form-label">Profile Name</Label>
-                        <Input
-                          name="profileName"
-                          value={user.profileName || "-"}
-                          readOnly
-                          plaintext
-                          className="form-control-plaintext bg-light px-3 py-2 rounded"
-                        />
-                      </Col>
-                      <Col md={6}>
                         <Label className="form-label">Role Name</Label>
                         <Input
                           name="roleName"
@@ -164,16 +141,6 @@ const GlobalUserView: React.FC = () => {
                         <Input
                           name="departmentName"
                           value={user.departmentName || "-"}
-                          readOnly
-                          plaintext
-                          className="form-control-plaintext bg-light px-3 py-2 rounded"
-                        />
-                      </Col>
-                      <Col md={6}>
-                        <Label className="form-label">Access Scope</Label>
-                        <Input
-                          name="accessScope"
-                          value={getAccessScopeLabel(user.accessScope)}
                           readOnly
                           plaintext
                           className="form-control-plaintext bg-light px-3 py-2 rounded"

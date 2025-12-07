@@ -454,6 +454,26 @@ const MeetingCreate: React.FC = () => {
                             options={globalUserOptions}
                             placeholder="Select internal users"
                             classNamePrefix="select2-selection"
+                            styles={{
+                              multiValue: (base: any) => ({
+                                ...base,
+                                backgroundColor: '#e7f3ff',
+                                border: '1px solid #0d6efd',
+                              }),
+                              multiValueLabel: (base: any) => ({
+                                ...base,
+                                color: '#0d6efd',
+                                fontWeight: 500,
+                              }),
+                              multiValueRemove: (base: any) => ({
+                                ...base,
+                                color: '#0d6efd',
+                                ':hover': {
+                                  backgroundColor: '#0d6efd',
+                                  color: '#fff',
+                                },
+                              }),
+                            }}
                           />
                           </FormGroup>
                         </Col>
@@ -499,6 +519,26 @@ const MeetingCreate: React.FC = () => {
                             }
                             isDisabled={!validation.values.clientId}
                             classNamePrefix="select2-selection"
+                            styles={{
+                              multiValue: (base: any) => ({
+                                ...base,
+                                backgroundColor: '#d1e7dd',
+                                border: '1px solid #198754',
+                              }),
+                              multiValueLabel: (base: any) => ({
+                                ...base,
+                                color: '#198754',
+                                fontWeight: 500,
+                              }),
+                              multiValueRemove: (base: any) => ({
+                                ...base,
+                                color: '#198754',
+                                ':hover': {
+                                  backgroundColor: '#198754',
+                                  color: '#fff',
+                                },
+                              }),
+                            }}
                             />
                           </FormGroup>
                         </Col>

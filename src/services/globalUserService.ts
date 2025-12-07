@@ -21,6 +21,7 @@ const getTenantId = (): string | null => {
 };
 
 // Map API response to internal format
+// Note: profileId is optional and may be in response, accessScope is not in API response
 const mapApiUserToInternal = (apiUser: any): GlobalUserItem => {
     return {
         id: apiUser.id,
@@ -30,13 +31,13 @@ const mapApiUserToInternal = (apiUser: any): GlobalUserItem => {
         username: apiUser.userName || apiUser.email, // Map userName to username
         mobileNumber: apiUser.mobileNumber,
         dateOfBirth: apiUser.dateOfBirth,
-        profileId: apiUser.profileId,
-        profileName: apiUser.profileName,
+        profileId: apiUser.profileId || undefined, // Optional - may be in response
+        profileName: apiUser.profileName || undefined,
         roleId: apiUser.roleId,
-        roleName: apiUser.roleName,
+        roleName: apiUser.roleName || undefined,
         departmentId: apiUser.departmentId,
-        departmentName: apiUser.departmentName,
-        accessScope: apiUser.accessScope ? String(apiUser.accessScope) : undefined,
+        departmentName: apiUser.departmentName || undefined,
+        // accessScope is not included as it's not in API response
         appUserCode: apiUser.appUserCode,
         emailVerified: apiUser.isEmailVerified || false,
         initialSetupDone: apiUser.isInitialSetupDone || false,
@@ -87,7 +88,9 @@ export const createGlobalUser = async (data: Partial<GlobalUserItem>): Promise<G
         return Promise.reject(new Error("Tenant ID is required"));
     }
     
-    // Clean payload for backend - username should equal email
+    // Clean payload for backend - matching API specification
+    // Remove profileId and accessScope as per API requirements
+    // tenantId should NOT be in payload body, only in query parameter
     const payload: any = {
         userName: data.username || data.email,
         firstName: data.firstName,
@@ -95,20 +98,18 @@ export const createGlobalUser = async (data: Partial<GlobalUserItem>): Promise<G
         email: data.email,
         mobileNumber: data.mobileNumber,
         dateOfBirth: data.dateOfBirth,
-        tenantId: tenantId,
         roleId: data.roleId,
-        accessScope: typeof data.accessScope === 'string' ? parseInt(data.accessScope) : data.accessScope,
     };
     
     // Include optional fields if present
-    if (data.profileId) {
-        payload.profileId = data.profileId;
-    }
     if (data.departmentId) {
         payload.departmentId = data.departmentId;
     }
     
-    const response: any = await api.create(url.ADD_NEW_GLOBAL_USER, payload);
+    // Build URL with tenantId as query parameter: /User/TenantUser?tenantId={tenantId}
+    const apiUrl = `${url.ADD_NEW_GLOBAL_USER}?tenantId=${tenantId}`;
+    
+    const response: any = await api.create(apiUrl, payload);
     // Handle API response wrapper if present
     const userData = response?.result || response;
     return mapApiUserToInternal(userData) as GlobalUserItem;
@@ -128,7 +129,8 @@ export const updateGlobalUser = async (
         return Promise.reject(new Error("Tenant ID is required"));
     }
     
-    // Clean payload for backend - username should equal email
+    // Clean payload for backend - matching API specification
+    // Remove profileId and accessScope as per API requirements
     const payload: any = {
         userName: data.username || data.email,
         firstName: data.firstName,
@@ -138,19 +140,18 @@ export const updateGlobalUser = async (
         dateOfBirth: data.dateOfBirth,
         tenantId: tenantId,
         roleId: data.roleId,
-        accessScope: typeof data.accessScope === 'string' ? parseInt(data.accessScope) : data.accessScope,
         isDisabled: data.disabled || false,
     };
     
     // Include optional fields if present
-    if (data.profileId) {
-        payload.profileId = data.profileId;
-    }
     if (data.departmentId) {
         payload.departmentId = data.departmentId;
     }
     
-    const response: any = await api.put(url.UPDATE_GLOBAL_USER + "/" + id, payload);
+    // Build URL with tenantId as query parameter: /User/TenantUser/{id}?tenantId={tenantId}
+    const apiUrl = `${url.UPDATE_GLOBAL_USER}/${id}?tenantId=${tenantId}`;
+    
+    const response: any = await api.put(apiUrl, payload);
     // Handle API response wrapper if present
     const userData = response?.result || response;
     return mapApiUserToInternal(userData) as GlobalUserItem;

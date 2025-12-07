@@ -26,10 +26,8 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
-import { selectProfileList } from "../../../slices/userProfiles/profile.slice";
 import { selectTenantRoleList, getTenantRoles } from "../../../slices/tenantRoles/tenantRole.slice";
 import { selectDepartmentList } from "../../../slices/departments/department.slice";
-import { fetchProfiles } from "../../../slices/userProfiles/profile.slice";
 import { fetchDepartments } from "../../../slices/departments/department.slice";
 import Select from "react-select";
 import { PAGE_TITLES } from "../../../common/branding";
@@ -42,7 +40,6 @@ const GlobalUserCreate: React.FC = () => {
   const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectGlobalUserLoading);
   const error = useSelector(selectGlobalUserError);
-  const profiles = useSelector(selectProfileList);
   const tenantRoles: any[] = useSelector(selectTenantRoleList) || [];
   const departments = useSelector(selectDepartmentList);
 
@@ -50,23 +47,13 @@ const GlobalUserCreate: React.FC = () => {
 
   // Fetch dropdown data if not already loaded
   useEffect(() => {
-    if (!profiles || profiles.length === 0) {
-      dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
-    }
     if (!tenantRoles || tenantRoles.length === 0) {
       dispatch(getTenantRoles({ pageNumber: 1, pageSize: 50 }));
     }
     if (!departments || departments.length === 0) {
       dispatch(fetchDepartments({ pageNumber: 1, pageSize: 50 }));
     }
-  }, [dispatch, profiles, tenantRoles, departments]);
-
-  const profileOptions = profiles
-    .filter((p: any) => !p.isDeleted)
-    .map((profile: any) => ({
-      value: profile.id,
-      label: profile.name,
-    }));
+  }, [dispatch, tenantRoles, departments]);
 
   const roleOptions = tenantRoles
     .filter((r: any) => !r.isDeleted)
@@ -82,14 +69,6 @@ const GlobalUserCreate: React.FC = () => {
       label: dept.name,
     }));
 
-  const accessScopeOptions = [
-    { value: "1", label: "Tenant" },
-    { value: "2", label: "Client" },
-    { value: "3", label: "Site" },
-    { value: "4", label: "Work Order" },
-    { value: "5", label: "Scaffold" },
-  ];
-
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -98,10 +77,8 @@ const GlobalUserCreate: React.FC = () => {
       email: "",
       mobileNumber: "",
       dateOfBirth: "",
-      profileId: "",
       roleId: "",
       departmentId: "",
-      accessScope: "",
     },
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
@@ -109,10 +86,8 @@ const GlobalUserCreate: React.FC = () => {
       email: Yup.string()
         .email("Enter a valid email")
         .required("Email is required"),
-      profileId: Yup.string().required("Profile is required"),
       roleId: Yup.string().required("Role is required"),
       departmentId: Yup.string().required("Department is required"),
-      accessScope: Yup.string().required("Access scope is required"),
     }),
     onSubmit: async (values) => {
       const payload = {
@@ -269,30 +244,6 @@ const GlobalUserCreate: React.FC = () => {
                     <h5 className="mb-3">Permission/Role</h5>
                     <Row className="g-3">
                       <Col md={6}>
-                        <Label className="form-label">Profile *</Label>
-                        <Select
-                          value={profileOptions.find(
-                            (option: any) =>
-                              option.value === validation.values.profileId
-                          )}
-                          onChange={(selectedOption: any) => {
-                            validation.setFieldValue(
-                              "profileId",
-                              selectedOption?.value || ""
-                            );
-                          }}
-                          options={profileOptions}
-                          placeholder="Select profile"
-                          classNamePrefix="select2-selection"
-                        />
-                        {validation.touched.profileId &&
-                          validation.errors.profileId && (
-                            <div className="invalid-feedback d-block">
-                              {String(validation.errors.profileId)}
-                            </div>
-                          )}
-                      </Col>
-                      <Col md={6}>
                         <Label className="form-label">Role *</Label>
                         <Select
                           value={roleOptions.find(
@@ -337,30 +288,6 @@ const GlobalUserCreate: React.FC = () => {
                           validation.errors.departmentId && (
                             <div className="invalid-feedback d-block">
                               {String(validation.errors.departmentId)}
-                            </div>
-                          )}
-                      </Col>
-                      <Col md={6}>
-                        <Label className="form-label">Access Scope *</Label>
-                        <Select
-                          value={accessScopeOptions.find(
-                            (option: any) =>
-                              option.value === validation.values.accessScope
-                          )}
-                          onChange={(selectedOption: any) => {
-                            validation.setFieldValue(
-                              "accessScope",
-                              selectedOption?.value || ""
-                            );
-                          }}
-                          options={accessScopeOptions}
-                          placeholder="Select access scope"
-                          classNamePrefix="select2-selection"
-                        />
-                        {validation.touched.accessScope &&
-                          validation.errors.accessScope && (
-                            <div className="invalid-feedback d-block">
-                              {String(validation.errors.accessScope)}
                             </div>
                           )}
                       </Col>
