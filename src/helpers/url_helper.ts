@@ -83,8 +83,8 @@ export const DELETE_TENANT_ROLE = "/Role";
 // CLIENT RENTAL CONFIGURATION
 export const CLIENT_RENTAL_CONFIG = "/ClientRentalConfiguration";
 
-// GLOBAL USERS
-export const GET_GLOBAL_USERS = "/User/TenantStaff";
+// GLOBAL USERS (User Management)
+export const GET_GLOBAL_USERS = "/User/TenantUser";
 export const ADD_NEW_GLOBAL_USER = "/User/TenantUser";
 export const UPDATE_GLOBAL_USER = "/User/TenantUser";
 export const DELETE_GLOBAL_USER = "/User/TenantUser";

@@ -133,17 +133,18 @@ const Navdata = () => {
         },
         {
           id: "tenant-roles",
-          label: "Staff Roles",
+          label: "User Roles",
           link: "/account/tenant-roles",
         },
-        {
-          id: "profiles",
-          label: "Profiles",
-          link: "/account/profiles",
-        },
+        // Profiles hidden from UI but backend functionality remains active
+        // {
+        //   id: "profiles",
+        //   label: "Profiles",
+        //   link: "/account/profiles",
+        // },
         {
           id: "global-users",
-          label: "Global User Management",
+          label: "User Management",
           link: "/account/global-users",
         },
         {

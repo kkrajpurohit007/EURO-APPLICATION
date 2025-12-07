@@ -68,11 +68,11 @@ export const PAGE_TITLES = {
   MEETING_VIEW: getPageTitle("Meeting Details"),
   MEETING_CALENDAR: getPageTitle("Meeting Calendar"),
 
-  // Staff Roles (formerly Tenant Roles)
-  TENANT_ROLES_LIST: getPageTitle("Staff Roles"),
-  TENANT_ROLE_CREATE: getPageTitle("Create Staff Role"),
-  TENANT_ROLE_EDIT: getPageTitle("Edit Staff Role"),
-  TENANT_ROLE_VIEW: getPageTitle("View Staff Role"),
+  // User Roles (formerly Tenant Roles/Staff Roles)
+  TENANT_ROLES_LIST: getPageTitle("User Roles"),
+  TENANT_ROLE_CREATE: getPageTitle("Create User Role"),
+  TENANT_ROLE_EDIT: getPageTitle("Edit User Role"),
+  TENANT_ROLE_VIEW: getPageTitle("View User Role"),
 
   // Profiles
   PROFILES_LIST: getPageTitle("Profiles"),
@@ -98,11 +98,11 @@ export const PAGE_TITLES = {
   TENANT_LOCATION_EDIT: getPageTitle("Edit Global Location"),
   TENANT_LOCATION_VIEW: getPageTitle("View Global Location"),
 
-  // Global Users
-  GLOBAL_USERS_LIST: getPageTitle("Global Users"),
-  GLOBAL_USER_CREATE: getPageTitle("Create Global User"),
-  GLOBAL_USER_EDIT: getPageTitle("Edit Global User"),
-  GLOBAL_USER_VIEW: getPageTitle("View Global User"),
+  // User Management (formerly Global Users)
+  GLOBAL_USERS_LIST: getPageTitle("User Management"),
+  GLOBAL_USER_CREATE: getPageTitle("Create User"),
+  GLOBAL_USER_EDIT: getPageTitle("Edit User"),
+  GLOBAL_USER_VIEW: getPageTitle("View User"),
 
   // Auth
   LOGIN_PAGE: getPageTitle("Login"),

@@ -27,11 +27,24 @@ const GlobalUserView: React.FC = () => {
     selectGlobalUserById(state, id || "")
   );
 
+  // Helper function to map accessScope value to label
+  const getAccessScopeLabel = (value: string | number | undefined): string => {
+    if (!value) return "-";
+    const scopeMap: { [key: string]: string } = {
+      "1": "Tenant",
+      "2": "Client",
+      "3": "Site",
+      "4": "Work Order",
+      "5": "Scaffold",
+    };
+    return scopeMap[String(value)] || String(value);
+  };
+
   if (!user) {
     return (
       <div className="page-content">
         <Container fluid>
-          <Alert color="danger">Global User not found</Alert>
+          <Alert color="danger">User not found</Alert>
         </Container>
       </div>
     );
@@ -40,12 +53,12 @@ const GlobalUserView: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="View Global User" pageTitle="Global Users" />
+        <BreadCrumb title="View User" pageTitle="User Management" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">View Global User Details</h5>
+                <h5 className="card-title mb-0">View User Details</h5>
                 <div className="d-flex gap-2">
                   <Button
                     color="light"
@@ -83,16 +96,6 @@ const GlobalUserView: React.FC = () => {
                         <Input
                           name="lastName"
                           value={user.lastName || ""}
-                          readOnly
-                          plaintext
-                          className="form-control-plaintext bg-light px-3 py-2 rounded"
-                        />
-                      </Col>
-                      <Col md={6}>
-                        <Label className="form-label">Username</Label>
-                        <Input
-                          name="username"
-                          value={user.username || ""}
                           readOnly
                           plaintext
                           className="form-control-plaintext bg-light px-3 py-2 rounded"
@@ -170,7 +173,7 @@ const GlobalUserView: React.FC = () => {
                         <Label className="form-label">Access Scope</Label>
                         <Input
                           name="accessScope"
-                          value={user.accessScope || "-"}
+                          value={getAccessScopeLabel(user.accessScope)}
                           readOnly
                           plaintext
                           className="form-control-plaintext bg-light px-3 py-2 rounded"

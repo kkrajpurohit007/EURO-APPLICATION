@@ -90,12 +90,6 @@ const GlobalUserList: React.FC = () => {
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
-        header: "Username",
-        accessorKey: "username",
-        enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
         header: "Role Name",
         accessorKey: "roleName",
         enableColumnFilter: false,
@@ -110,12 +104,6 @@ const GlobalUserList: React.FC = () => {
       {
         header: "Department Name",
         accessorKey: "departmentName",
-        enableColumnFilter: false,
-        cell: (cell: any) => cell.getValue() || "-",
-      },
-      {
-        header: "App User Code",
-        accessorKey: "appUserCode",
         enableColumnFilter: false,
         cell: (cell: any) => cell.getValue() || "-",
       },
@@ -180,14 +168,14 @@ const GlobalUserList: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Global Users" pageTitle="Account Settings" />
+        <BreadCrumb title="User Management" pageTitle="Account Settings" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader>
                 <Row className="g-3 align-items-center">
                   <Col sm={6}>
-                    <h5 className="card-title mb-0">Global User List</h5>
+                    <h5 className="card-title mb-0">User Management List</h5>
                   </Col>
                   <Col sm={6}>
                     <div className="d-flex gap-2 flex-wrap justify-content-end">
@@ -212,7 +200,7 @@ const GlobalUserList: React.FC = () => {
                 {loading ? (
                   <div className="text-center py-5">
                     <Spinner color="primary" />
-                    <p className="mt-2">Loading global users...</p>
+                    <p className="mt-2">Loading users...</p>
                   </div>
                 ) : (
                   <div>

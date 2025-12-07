@@ -37,9 +37,15 @@ export const fetchGlobalUsers = createAsyncThunk(
         pageNumber?: number;
         pageSize?: number;
     } = {}) => {
+        // Get tenantId from logged-in user
+        const { getLoggedinUser } = await import("../../helpers/api_helper");
+        const authUser = getLoggedinUser();
+        const tenantId = authUser?.tenantId;
+        
         const response: GlobalUsersResponse = await globalUserService.getAllGlobalUsers(
             pageNumber,
-            pageSize
+            pageSize,
+            tenantId
         );
         return response;
     }

@@ -39,7 +39,12 @@ export const getTenantRoles = createAsyncThunk(
   "tenantRoles/getTenantRoles",
   async ({ pageNumber = 1, pageSize = 20 }: { pageNumber?: number; pageSize?: number } = {}, { rejectWithValue }) => {
     try {
-      const response: TenantRolesResponse = await getAllTenantRoles(pageNumber, pageSize);
+      // Get tenantId from logged-in user
+      const { getLoggedinUser } = await import("../../helpers/api_helper");
+      const authUser = getLoggedinUser();
+      const tenantId = authUser?.tenantId;
+      
+      const response: TenantRolesResponse = await getAllTenantRoles(pageNumber, pageSize, tenantId);
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch tenant roles");
@@ -185,4 +190,13 @@ const TenantRolesSlice = createSlice({
 });
 
 export default TenantRolesSlice.reducer;
+
+// Selectors - Export selectors for use in components
+export const selectTenantRoleList = (state: any) => state.TenantRoles.tenantRoles || [];
+export const selectSelectedTenantRole = (state: any) => state.TenantRoles.tenantRole;
+export const selectTenantRoleById = (state: any, id: string) =>
+  state.TenantRoles.tenantRoles?.find((role: TenantRoleItem) => role.id === id);
+export const selectTenantRoleLoading = (state: any) => state.TenantRoles.loading;
+export const selectTenantRoleError = (state: any) => state.TenantRoles.error;
+export const selectTenantRoleTotalCount = (state: any) => state.TenantRoles.totalCount;
 

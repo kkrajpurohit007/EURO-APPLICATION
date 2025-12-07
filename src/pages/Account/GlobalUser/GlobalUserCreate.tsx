@@ -27,10 +27,9 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getLoggedinUser } from "../../../helpers/api_helper";
 import { selectProfileList } from "../../../slices/userProfiles/profile.slice";
-import { selectRoleList } from "../../../slices/roles/role.slice";
+import { selectTenantRoleList, getTenantRoles } from "../../../slices/tenantRoles/tenantRole.slice";
 import { selectDepartmentList } from "../../../slices/departments/department.slice";
 import { fetchProfiles } from "../../../slices/userProfiles/profile.slice";
-import { fetchRoles } from "../../../slices/roles/role.slice";
 import { fetchDepartments } from "../../../slices/departments/department.slice";
 import Select from "react-select";
 import { PAGE_TITLES } from "../../../common/branding";
@@ -44,7 +43,7 @@ const GlobalUserCreate: React.FC = () => {
   const loading = useSelector(selectGlobalUserLoading);
   const error = useSelector(selectGlobalUserError);
   const profiles = useSelector(selectProfileList);
-  const roles = useSelector(selectRoleList);
+  const tenantRoles: any[] = useSelector(selectTenantRoleList) || [];
   const departments = useSelector(selectDepartmentList);
 
   const authUser = getLoggedinUser();
@@ -54,13 +53,13 @@ const GlobalUserCreate: React.FC = () => {
     if (!profiles || profiles.length === 0) {
       dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
     }
-    if (!roles || roles.length === 0) {
-      dispatch(fetchRoles({ pageNumber: 1, pageSize: 50 }));
+    if (!tenantRoles || tenantRoles.length === 0) {
+      dispatch(getTenantRoles({ pageNumber: 1, pageSize: 50 }));
     }
     if (!departments || departments.length === 0) {
       dispatch(fetchDepartments({ pageNumber: 1, pageSize: 50 }));
     }
-  }, [dispatch, profiles, roles, departments]);
+  }, [dispatch, profiles, tenantRoles, departments]);
 
   const profileOptions = profiles
     .filter((p: any) => !p.isDeleted)
@@ -69,7 +68,7 @@ const GlobalUserCreate: React.FC = () => {
       label: profile.name,
     }));
 
-  const roleOptions = roles
+  const roleOptions = tenantRoles
     .filter((r: any) => !r.isDeleted)
     .map((role: any) => ({
       value: role.id,
@@ -84,9 +83,11 @@ const GlobalUserCreate: React.FC = () => {
     }));
 
   const accessScopeOptions = [
-    { value: "Global", label: "Global" },
-    { value: "Department", label: "Department" },
-    { value: "Client", label: "Client" },
+    { value: "1", label: "Tenant" },
+    { value: "2", label: "Client" },
+    { value: "3", label: "Site" },
+    { value: "4", label: "Work Order" },
+    { value: "5", label: "Scaffold" },
   ];
 
   const validation = useFormik({
@@ -94,7 +95,6 @@ const GlobalUserCreate: React.FC = () => {
     initialValues: {
       firstName: "",
       lastName: "",
-      username: "",
       email: "",
       mobileNumber: "",
       dateOfBirth: "",
@@ -106,7 +106,6 @@ const GlobalUserCreate: React.FC = () => {
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
       lastName: Yup.string().required("Last name is required"),
-      username: Yup.string().required("Username is required"),
       email: Yup.string()
         .email("Enter a valid email")
         .required("Email is required"),
@@ -119,10 +118,11 @@ const GlobalUserCreate: React.FC = () => {
       const payload = {
         tenantId: authUser?.tenantId || "",
         ...values,
+        username: values.email, // Username must equal email
       };
       const result = await dispatch(createGlobalUser(payload));
       if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Global user created successfully");
+        showSuccess("User created successfully");
         // Refresh global users list
         dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 20 }));
         // Delay navigation to show notification
@@ -130,7 +130,7 @@ const GlobalUserCreate: React.FC = () => {
           navigate("/account/global-users");
         }, 500);
       } else {
-        showError("Failed to create global user");
+        showError("Failed to create user");
       }
     },
   });
@@ -138,12 +138,12 @@ const GlobalUserCreate: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Create Global User" pageTitle="Global Users" />
+        <BreadCrumb title="Create User" pageTitle="User Management" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">New Global User</h5>
+                <h5 className="card-title mb-0">New User</h5>
                 <div className="d-flex gap-2">
                   <Button
                     color="light"
@@ -221,27 +221,6 @@ const GlobalUserCreate: React.FC = () => {
                           validation.errors.lastName && (
                             <FormFeedback type="invalid">
                               {String(validation.errors.lastName)}
-                            </FormFeedback>
-                          )}
-                      </Col>
-                      <Col md={6}>
-                        <Label className="form-label">Username *</Label>
-                        <Input
-                          name="username"
-                          value={validation.values.username}
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          invalid={
-                            !!(
-                              validation.touched.username &&
-                              validation.errors.username
-                            )
-                          }
-                        />
-                        {validation.touched.username &&
-                          validation.errors.username && (
-                            <FormFeedback type="invalid">
-                              {String(validation.errors.username)}
                             </FormFeedback>
                           )}
                       </Col>

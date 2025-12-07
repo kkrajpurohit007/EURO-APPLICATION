@@ -25,10 +25,9 @@ import {
   selectGlobalUserError,
 } from "../../../slices/globalUsers/globalUser.slice";
 import { selectProfileList } from "../../../slices/userProfiles/profile.slice";
-import { selectRoleList } from "../../../slices/roles/role.slice";
+import { selectTenantRoleList, getTenantRoles } from "../../../slices/tenantRoles/tenantRole.slice";
 import { selectDepartmentList } from "../../../slices/departments/department.slice";
 import { fetchProfiles } from "../../../slices/userProfiles/profile.slice";
-import { fetchRoles } from "../../../slices/roles/role.slice";
 import { fetchDepartments } from "../../../slices/departments/department.slice";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -46,7 +45,7 @@ const GlobalUserEdit: React.FC = () => {
   const loading = useSelector(selectGlobalUserLoading);
   const error = useSelector(selectGlobalUserError);
   const profiles = useSelector(selectProfileList);
-  const roles = useSelector(selectRoleList);
+  const tenantRoles: any[] = useSelector(selectTenantRoleList) || [];
   const departments = useSelector(selectDepartmentList);
 
   // Fetch dropdown data if not already loaded
@@ -54,13 +53,13 @@ const GlobalUserEdit: React.FC = () => {
     if (!profiles || profiles.length === 0) {
       dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
     }
-    if (!roles || roles.length === 0) {
-      dispatch(fetchRoles({ pageNumber: 1, pageSize: 50 }));
+    if (!tenantRoles || tenantRoles.length === 0) {
+      dispatch(getTenantRoles({ pageNumber: 1, pageSize: 50 }));
     }
     if (!departments || departments.length === 0) {
       dispatch(fetchDepartments({ pageNumber: 1, pageSize: 50 }));
     }
-  }, [dispatch, profiles, roles, departments]);
+  }, [dispatch, profiles, tenantRoles, departments]);
 
   const profileOptions = profiles
     .filter((p: any) => !p.isDeleted)
@@ -69,7 +68,7 @@ const GlobalUserEdit: React.FC = () => {
       label: profile.name,
     }));
 
-  const roleOptions = roles
+  const roleOptions = tenantRoles
     .filter((r: any) => !r.isDeleted)
     .map((role: any) => ({
       value: role.id,
@@ -84,23 +83,24 @@ const GlobalUserEdit: React.FC = () => {
     }));
 
   const accessScopeOptions = [
-    { value: "Global", label: "Global" },
-    { value: "Department", label: "Department" },
-    { value: "Client", label: "Client" },
+    { value: "1", label: "Tenant" },
+    { value: "2", label: "Client" },
+    { value: "3", label: "Site" },
+    { value: "4", label: "Work Order" },
+    { value: "5", label: "Scaffold" },
   ];
 
   const initialValues = useMemo(
     () => ({
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
-      username: user?.username || "",
       email: user?.email || "",
       mobileNumber: user?.mobileNumber || "",
       dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : "",
       profileId: user?.profileId || "",
       roleId: user?.roleId || "",
       departmentId: user?.departmentId || "",
-      accessScope: user?.accessScope || "",
+      accessScope: user?.accessScope ? String(user.accessScope) : "",
       disabled: user?.disabled || false,
     }),
     [user]
@@ -112,7 +112,6 @@ const GlobalUserEdit: React.FC = () => {
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
       lastName: Yup.string().required("Last name is required"),
-      username: Yup.string().required("Username is required"),
       email: Yup.string()
         .email("Enter a valid email")
         .required("Email is required"),
@@ -124,11 +123,14 @@ const GlobalUserEdit: React.FC = () => {
     onSubmit: async (values) => {
       const payload = {
         id: id as string,
-        data: values,
+        data: {
+          ...values,
+          username: values.email, // Username must equal email
+        },
       };
       const result = await dispatch(updateGlobalUser(payload));
       if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Global user updated successfully");
+        showSuccess("User updated successfully");
         // Refresh global users list after successful update
         dispatch(fetchGlobalUsers({ pageNumber: 1, pageSize: 20 }));
         // Delay navigation to show notification
@@ -136,7 +138,7 @@ const GlobalUserEdit: React.FC = () => {
           navigate("/account/global-users");
         }, 500);
       } else {
-        showError("Failed to update global user");
+        showError("Failed to update user");
       }
     },
   });
@@ -145,7 +147,7 @@ const GlobalUserEdit: React.FC = () => {
     return (
       <div className="page-content">
         <Container fluid>
-          <Alert color="danger">Global User not found</Alert>
+          <Alert color="danger">User not found</Alert>
         </Container>
       </div>
     );
@@ -154,12 +156,12 @@ const GlobalUserEdit: React.FC = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Edit Global User" pageTitle="Global Users" />
+        <BreadCrumb title="Edit User" pageTitle="User Management" />
         <Row>
           <Col lg={12}>
             <Card>
               <CardHeader className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">Edit Global User</h5>
+                <h5 className="card-title mb-0">Edit User</h5>
                 <div className="d-flex gap-2">
                   <Button color="light" onClick={() => navigate("/account/global-users")}>
                     Close
@@ -234,27 +236,6 @@ const GlobalUserEdit: React.FC = () => {
                           validation.errors.lastName && (
                             <FormFeedback type="invalid">
                               {String(validation.errors.lastName)}
-                            </FormFeedback>
-                          )}
-                      </Col>
-                      <Col md={6}>
-                        <Label className="form-label">Username *</Label>
-                        <Input
-                          name="username"
-                          value={validation.values.username}
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          invalid={
-                            !!(
-                              validation.touched.username &&
-                              validation.errors.username
-                            )
-                          }
-                        />
-                        {validation.touched.username &&
-                          validation.errors.username && (
-                            <FormFeedback type="invalid">
-                              {String(validation.errors.username)}
                             </FormFeedback>
                           )}
                       </Col>
