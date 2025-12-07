@@ -42,8 +42,11 @@ const GlobalUserEdit: React.FC = () => {
   const user = useSelector((state: any) => selectGlobalUserById(state, id || ""));
   const loading = useSelector(selectGlobalUserLoading);
   const error = useSelector(selectGlobalUserError);
-  const tenantRoles: any[] = useSelector(selectTenantRoleList) || [];
+  const tenantRolesList = useSelector(selectTenantRoleList);
   const departments = useSelector(selectDepartmentList);
+
+  // Memoize tenantRoles to prevent unnecessary re-renders
+  const tenantRoles = useMemo(() => tenantRolesList || [], [tenantRolesList]);
 
   // Fetch dropdown data if not already loaded
   useEffect(() => {

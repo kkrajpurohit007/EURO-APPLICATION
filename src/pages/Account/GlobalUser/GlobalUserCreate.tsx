@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -40,10 +40,13 @@ const GlobalUserCreate: React.FC = () => {
   const { showSuccess, showError } = useFlash();
   const loading = useSelector(selectGlobalUserLoading);
   const error = useSelector(selectGlobalUserError);
-  const tenantRoles: any[] = useSelector(selectTenantRoleList) || [];
+  const tenantRolesList = useSelector(selectTenantRoleList);
   const departments = useSelector(selectDepartmentList);
 
   const authUser = getLoggedinUser();
+
+  // Memoize tenantRoles to prevent unnecessary re-renders
+  const tenantRoles = useMemo(() => tenantRolesList || [], [tenantRolesList]);
 
   // Fetch dropdown data if not already loaded
   useEffect(() => {

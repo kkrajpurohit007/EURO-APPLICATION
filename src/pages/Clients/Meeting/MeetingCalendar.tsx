@@ -15,7 +15,6 @@ import {
   Label,
   Input,
   Form,
-  FormFeedback,
   FormGroup,
   Alert,
 } from "reactstrap";
@@ -62,9 +61,7 @@ import {
   formatTimeForInput,
   formatDateToISO,
   formatTimeWithSeconds,
-  parseExternalAttendees,
   getMeetingTypeOptions,
-  getStatusColor,
 } from "./utils/meetingUtils";
 import { createMeetingSchema, editMeetingSchema } from "./utils/validationSchemas";
 import { useFlash } from "../../../hooks/useFlash";
@@ -139,14 +136,17 @@ const MeetingCalendar: React.FC = () => {
   }, [dispatch, clients]);
 
   // Fetch meetings when selected client changes
+  // Only fetch if a client is selected (mandatory)
   useEffect(() => {
-    dispatch(
-      fetchClientMeetings({
-        clientId: selectedClientId,
-        pageNumber: 1,
-        pageSize: 100, // Get more meetings for calendar view
-      })
-    );
+    if (selectedClientId) {
+      dispatch(
+        fetchClientMeetings({
+          clientId: selectedClientId,
+          pageNumber: 1,
+          pageSize: 100, // Get more meetings for calendar view
+        })
+      );
+    }
   }, [dispatch, selectedClientId]);
 
   // Initialize draggable external events
@@ -166,15 +166,12 @@ const MeetingCalendar: React.FC = () => {
   }, []);
 
   const clientOptions = useMemo(() => {
-    return [
-      { value: "", label: "All Clients" },
-      ...clients
-        .filter((c: any) => !c.isDeleted)
-        .map((client: any) => ({
-          value: client.id,
-          label: client.name,
-        })),
-    ];
+    return clients
+      .filter((c: any) => !c.isDeleted)
+      .map((client: any) => ({
+        value: client.id,
+        label: client.name,
+      }));
   }, [clients]);
 
   // Filter meetings by selected client
@@ -641,7 +638,9 @@ const MeetingCalendar: React.FC = () => {
           <BreadCrumb title="Meeting Calendar" pageTitle="Meetings" />
           <Row className="mb-3">
             <Col md={4}>
-              <Label className="form-label">Filter by Client</Label>
+              <Label className="form-label">
+                Filter by Client <span className="text-danger">*</span>
+              </Label>
               <Select
                 value={clientOptions.find(
                   (opt: any) => opt.value === selectedClientId
@@ -650,10 +649,26 @@ const MeetingCalendar: React.FC = () => {
                   setSelectedClientId(selectedOption?.value || undefined);
                 }}
                 options={clientOptions}
-                placeholder="Select Client"
+                placeholder="Select Client (Required)"
                 classNamePrefix="select2-selection"
-                isClearable
+                isClearable={false}
               />
+              {!selectedClientId && (
+                <small className="text-danger d-block mt-1">
+                  <i className="ri-error-warning-line align-middle me-1"></i>
+                  Please select a client to view meetings calendar
+                </small>
+              )}
+            </Col>
+            <Col md={8} className="d-flex align-items-end justify-content-end">
+              <Button 
+                color="light" 
+                onClick={() => navigate("/clients/meetings")}
+                className="d-flex align-items-center"
+              >
+                <i className="ri-arrow-left-line align-bottom me-1"></i>
+                Back to Card View
+              </Button>
             </Col>
           </Row>
           <Row>
@@ -670,6 +685,8 @@ const MeetingCalendar: React.FC = () => {
                           setSelectedDay(new Date());
                           toggle();
                         }}
+                        disabled={!selectedClientId}
+                        title={!selectedClientId ? "Please select a client first" : ""}
                       >
                         <i className="mdi mdi-calendar-clock"></i> Schedule
                         Meeting

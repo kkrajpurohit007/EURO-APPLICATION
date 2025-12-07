@@ -12,7 +12,6 @@ import {
   Input,
   Button,
   Alert,
-  Badge,
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -45,10 +44,8 @@ import {
   formatTimeForInput,
   formatDateToISO,
   formatTimeWithSeconds,
-  parseExternalAttendees,
   getMeetingTypeOptions,
 } from "./utils/meetingUtils";
-import { meetingFormSchema } from "./utils/validationSchemas";
 
 const MeetingEdit: React.FC = () => {
   document.title = PAGE_TITLES.MEETING_EDIT;
@@ -107,13 +104,6 @@ const MeetingEdit: React.FC = () => {
   }, [dispatch, clients, clientContacts, globalUsers]);
 
   const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
-
-  const clientOptions = clients
-    .filter((c: any) => !c.isDeleted)
-    .map((client: any) => ({
-      value: client.id,
-      label: client.name,
-    }));
 
   const globalUserOptions = globalUsers
     .filter((u: any) => !u.isDeleted)

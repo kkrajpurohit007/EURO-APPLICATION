@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Container,
   Row,
@@ -15,11 +15,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import Loader from "../../../Components/Common/Loader";
-import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
   fetchClientMeetings,
   fetchClientMeetingForEdit,
-  deleteClientMeeting,
   selectClientMeetingById,
   selectClientMeetingDetailLoading,
   selectClientMeetingError,
@@ -50,7 +48,6 @@ const MeetingView: React.FC = () => {
   const meetingsList = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingDetailLoading);
   const error = useSelector(selectClientMeetingError);
-  const [deleteModal, setDeleteModal] = useState(false);
 
   // Get clientId from meeting or list store - REQUIRED for ForEdit endpoint
   const clientId = React.useMemo(() => {
@@ -76,21 +73,6 @@ const MeetingView: React.FC = () => {
     }
   }, [dispatch, id, clientId]);
 
-  const handleDelete = () => {
-    setDeleteModal(true);
-  };
-
-  const confirmDelete = async () => {
-    if (id) {
-      const result = await dispatch(deleteClientMeeting(id));
-      if (result.meta.requestStatus === "fulfilled") {
-      setTimeout(() => {
-          navigate("/clients/meetings");
-      }, 1000);
-      }
-    }
-    setDeleteModal(false);
-  };
 
   // Show loading if fetching or waiting for clientId
   if (loading || (!meeting && id && !clientId)) {
@@ -431,7 +413,7 @@ const MeetingView: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Action Buttons - Fixed at bottom after all content, responsive for all devices */}
+        {/* Back Button */}
         <Row className="mt-4">
           <Col xs={12}>
             <div className="d-flex flex-wrap gap-2 justify-content-start">
@@ -439,51 +421,10 @@ const MeetingView: React.FC = () => {
                 <i className="ri-arrow-left-line align-bottom me-1"></i>
                 Back to Meetings
               </Button>
-              {meeting.meetingStatus !== 3 && meeting.meetingStatus !== 4 && (
-                <>
-                  <Button
-                    color="primary"
-                    onClick={() => navigate(`/meetings/edit/${id}`)}
-                    title="Edit Meeting"
-                  >
-                    <i className="ri-pencil-line align-bottom"></i>
-                  </Button>
-                  <Button 
-                    color="warning" 
-                    onClick={() => navigate(`/meetings/reschedule/${id}`)}
-                    title="Reschedule Meeting"
-                  >
-                    <i className="ri-calendar-event-line align-bottom"></i>
-                  </Button>
-                  <Button 
-                    color="danger" 
-                    outline 
-                    onClick={handleDelete}
-                    title="Delete Meeting"
-                  >
-                    <i className="ri-delete-bin-line align-bottom"></i>
-                  </Button>
-                </>
-              )}
-              {meeting.meetingStatus === 4 && (
-                <Button 
-                  color="danger" 
-                  outline 
-                  onClick={handleDelete}
-                  title="Delete Meeting"
-                >
-                  <i className="ri-delete-bin-line align-bottom"></i>
-                </Button>
-              )}
             </div>
           </Col>
         </Row>
       </Container>
-      <DeleteModal
-        show={deleteModal}
-        onDeleteClick={confirmDelete}
-        onCloseClick={() => setDeleteModal(false)}
-      />
     </div>
   );
 };

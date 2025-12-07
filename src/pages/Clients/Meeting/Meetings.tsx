@@ -63,15 +63,18 @@ const Meetings: React.FC = () => {
   }, [dispatch, clients]);
 
   // Fetch meetings when selected client changes - reset to page 1
+  // Only fetch if a client is selected (mandatory)
   useEffect(() => {
-    hasMoreRef.current = true;
-    dispatch(
-      fetchClientMeetings({
-        clientId: selectedClientId,
-        pageNumber: 1,
-        pageSize: 20,
-      })
-    );
+    if (selectedClientId) {
+      hasMoreRef.current = true;
+      dispatch(
+        fetchClientMeetings({
+          clientId: selectedClientId,
+          pageNumber: 1,
+          pageSize: 20,
+        })
+      );
+    }
   }, [dispatch, selectedClientId]);
 
   // Infinite scroll observer
@@ -117,15 +120,12 @@ const Meetings: React.FC = () => {
   }, [pagination.pageNumber, pagination.totalPages]);
 
   const clientOptions = useMemo(() => {
-    return [
-      { value: "", label: "All Clients" },
-      ...clients
-        .filter((c: any) => !c.isDeleted)
-        .map((client: any) => ({
-          value: client.id,
-          label: client.name,
-        })),
-    ];
+    return clients
+      .filter((c: any) => !c.isDeleted)
+      .map((client: any) => ({
+        value: client.id,
+        label: client.name,
+      }));
   }, [clients]);
 
   // Status filter options
@@ -227,7 +227,9 @@ const Meetings: React.FC = () => {
 
         <Row className="mb-3">
           <Col md={4}>
-            <Label className="form-label">Filter by Client</Label>
+            <Label className="form-label">
+              Filter by Client <span className="text-danger">*</span>
+            </Label>
             <Select
               value={clientOptions.find(
                 (opt: any) => opt.value === selectedClientId
@@ -236,10 +238,16 @@ const Meetings: React.FC = () => {
                 setSelectedClientId(selectedOption?.value || undefined);
               }}
               options={clientOptions}
-              placeholder="Select Client"
+              placeholder="Select Client (Required)"
               classNamePrefix="select2-selection"
-              isClearable
+              isClearable={false}
             />
+            {!selectedClientId && (
+              <small className="text-danger d-block mt-1">
+                <i className="ri-error-warning-line align-middle me-1"></i>
+                Please select a client to view meetings
+              </small>
+            )}
           </Col>
         </Row>
 
@@ -269,6 +277,8 @@ const Meetings: React.FC = () => {
                     <Button
                       color="success"
                       onClick={() => navigate("/meetings/create")}
+                      disabled={!selectedClientId}
+                      title={!selectedClientId ? "Please select a client first" : ""}
                     >
                       <i className="ri-add-line align-bottom me-1"></i>
                       Schedule Meeting
@@ -421,12 +431,27 @@ const Meetings: React.FC = () => {
                 </div>
               </CardHeader>
               <CardBody>
-                {filteredMeetings.length === 0 && !loading ? (
+                {!selectedClientId ? (
+                  <div className="text-center py-5">
+                    <div className="mb-4">
+                      <i className="ri-user-search-line display-4 text-primary"></i>
+                    </div>
+                    <h4 className="mb-2">Select a Client to Continue</h4>
+                    <p className="text-muted mb-4">
+                      Please select a client from the dropdown above to view their meetings and schedule new ones.
+                      <br />
+                      <small className="text-muted">
+                        <i className="ri-information-line align-middle me-1"></i>
+                        Client selection is required to access meeting management features.
+                      </small>
+                    </p>
+                  </div>
+                ) : filteredMeetings.length === 0 && !loading ? (
                   <div className="text-center py-5">
                     <i className="ri-calendar-line display-4 text-muted"></i>
                     <h5 className="mt-3">No meetings found</h5>
                     <p className="text-muted">
-                      {selectedClientId ? "No meetings for this client" : "Schedule your first meeting"}
+                      No meetings scheduled for this client yet.
                     </p>
                     <Button
                       color="primary"
