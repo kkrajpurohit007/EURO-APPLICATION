@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Container,
   Row,
@@ -22,10 +22,15 @@ import { PAGE_TITLES } from "../../../common/branding";
 const ClientContactView: React.FC = () => {
   document.title = PAGE_TITLES.CLIENT_CONTACT_VIEW;
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const contact = useSelector((state: any) =>
     selectClientContactById(state, id || "")
   );
+
+  // Get clientId from URL params or from contact object
+  const clientIdFromUrl = searchParams.get("clientId") || "";
+  const clientId = clientIdFromUrl || contact?.clientId || "";
 
   if (!contact) {
     return (
@@ -49,13 +54,26 @@ const ClientContactView: React.FC = () => {
                 <div className="d-flex gap-2">
                   <Button
                     color="light"
-                    onClick={() => navigate("/clients/contacts")}
+                    onClick={() => {
+                      if (clientId) {
+                        navigate(`/clients/view/${clientId}`);
+                      } else {
+                        navigate("/clients/contacts");
+                      }
+                    }}
                   >
                     Close
                   </Button>
                   <Button
                     color="primary"
-                    onClick={() => navigate(`/clients/contacts/edit/${id}`)}
+                    onClick={() => {
+                      // Pass clientId as query param when navigating to edit
+                      if (clientId) {
+                        navigate(`/clients/contacts/edit/${id}?clientId=${clientId}`);
+                      } else {
+                        navigate(`/clients/contacts/edit/${id}`);
+                      }
+                    }}
                   >
                     <i className="ri-pencil-line align-bottom me-1"></i>
                     Edit

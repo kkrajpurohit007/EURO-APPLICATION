@@ -48,7 +48,12 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, onDelete }) => {
       }}
       onClick={() => {
         dispatch(selectClientContact(contact.id));
-        navigate(`/clients/contacts/view/${contact.id}`);
+        // Include clientId in URL if available for proper redirect
+        if (contact.clientId) {
+          navigate(`/clients/contacts/view/${contact.id}?clientId=${contact.clientId}`);
+        } else {
+          navigate(`/clients/contacts/view/${contact.id}`);
+        }
       }}
     >
       <CardBody className="d-flex flex-column p-3">
@@ -132,7 +137,12 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, onDelete }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch(selectClientContact(contact.id));
-                navigate(`/clients/contacts/view/${contact.id}`);
+                // Include clientId in URL if available for proper redirect
+                if (contact.clientId) {
+                  navigate(`/clients/contacts/view/${contact.id}?clientId=${contact.clientId}`);
+                } else {
+                  navigate(`/clients/contacts/view/${contact.id}`);
+                }
               }}
             >
               <i className="ri-eye-line align-bottom me-1"></i>
@@ -145,7 +155,12 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, onDelete }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch(selectClientContact(contact.id));
-                navigate(`/clients/contacts/edit/${contact.id}`);
+                // Include clientId in URL if available for proper redirect
+                if (contact.clientId) {
+                  navigate(`/clients/contacts/edit/${contact.id}?clientId=${contact.clientId}`);
+                } else {
+                  navigate(`/clients/contacts/edit/${contact.id}`);
+                }
               }}
             >
               <i className="ri-pencil-line align-bottom me-1"></i>
