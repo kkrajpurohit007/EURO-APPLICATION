@@ -80,10 +80,11 @@ const LeadList: React.FC = () => {
     }
   };
 
-  // Filter leads based on status filter
+  // Filter leads based on status filter and remove any undefined/null items
   const filtered = useMemo(() => {
-    if (statusFilter === "") return leads;
-    return leads.filter((lead) => lead.leadStatus === statusFilter);
+    const validLeads = leads.filter((lead) => lead != null && lead !== undefined);
+    if (statusFilter === "") return validLeads;
+    return validLeads.filter((lead) => lead.leadStatus === statusFilter);
   }, [leads, statusFilter]);
 
   const columns = useMemo(
@@ -92,16 +93,28 @@ const LeadList: React.FC = () => {
         header: "Lead Name",
         accessorKey: "title",
         enableColumnFilter: false,
+        cell: (cell: any) => {
+          const value = cell.getValue();
+          return value || "-";
+        },
       },
       {
         header: "Contact Person",
         accessorKey: "contactPerson",
         enableColumnFilter: false,
+        cell: (cell: any) => {
+          const value = cell.getValue();
+          return value || "-";
+        },
       },
       {
         header: "Contact Email",
         accessorKey: "contactEmail",
         enableColumnFilter: false,
+        cell: (cell: any) => {
+          const value = cell.getValue();
+          return value || "-";
+        },
       },
       {
         header: "Phone Number",

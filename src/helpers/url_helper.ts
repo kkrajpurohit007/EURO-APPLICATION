@@ -35,6 +35,7 @@ export const DELETE_DEPARTMENT = "/Department";
 // LEADS
 export const GET_LEADS = "/Lead";
 export const ADD_NEW_LEAD = "/Lead";
+export const ADD_NEW_LEAD_WITH_ATTACHMENTS = "/Lead/WithAttachments";
 export const UPDATE_LEAD = "/Lead";
 export const DELETE_LEAD = "/Lead";
 

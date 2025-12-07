@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,6 +15,8 @@ import {
   FormFeedback,
   Alert,
   Spinner,
+  ListGroup,
+  ListGroupItem,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { createLead, selectLeadLoading, selectLeadError } from "../../../slices/leads/lead.slice";
@@ -30,6 +32,7 @@ import { getLoggedinUser } from "../../../helpers/api_helper";
 
 import { PAGE_TITLES } from "../../../common/branding";
 import { useFlash } from "../../../hooks/useFlash";
+import { formatFileSize } from "../../../common/attachmentUtils";
 
 const LeadCreate: React.FC = () => {
   document.title = PAGE_TITLES.LEAD_CREATE;
@@ -41,10 +44,56 @@ const LeadCreate: React.FC = () => {
   const tenantLocations = useSelector(selectTenantLocationList);
   const authUser = getLoggedinUser();
 
+  // State for file attachments
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+
   // Fetch tenant locations on component mount
   useEffect(() => {
     dispatch(fetchTenantLocations({ pageNumber: 1, pageSize: 200 }));
   }, [dispatch]);
+
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...files]);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...files]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -74,7 +123,7 @@ const LeadCreate: React.FC = () => {
       tentativeProjectStartDate: Yup.string().nullable(),
     }),
     onSubmit: async (values) => {
-      const payload = {
+      const payload: any = {
         tenantId: authUser?.tenantId || "",
         userId: authUser?.userId || "",
         title: values.title,
@@ -92,15 +141,25 @@ const LeadCreate: React.FC = () => {
           : null,
       };
 
+      // Include attachments if any files are selected
+      if (selectedFiles.length > 0) {
+        payload.attachments = selectedFiles;
+      }
+
       const result = await dispatch(createLead(payload));
       if (result.meta.requestStatus === "fulfilled") {
-        showSuccess("Lead created successfully");
+        // Use API success message if available, otherwise default message
+        const successMessage = result.payload?.message || "Lead created successfully";
+        showSuccess(successMessage);
+        // Clear selected files after successful creation
+        setSelectedFiles([]);
         // Delay navigation to show notification
         setTimeout(() => {
           navigate("/leads/list");
         }, 500);
       } else {
-        showError("Failed to create lead");
+        const errorMessage = result.error?.message || "Failed to create lead";
+        showError(errorMessage);
       }
     },
   });
@@ -324,6 +383,97 @@ const LeadCreate: React.FC = () => {
                     </Col>
                   </Row>
                 </Form>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Attachments Section - Matching LeadView/LeadEdit style */}
+        <Row>
+          <Col lg={12}>
+            <Card>
+              <CardBody>
+                <h5 className="card-title mb-3">Attachments</h5>
+                
+                <div
+                  ref={dropZoneRef}
+                  className={`border-2 border-dashed rounded p-4 mb-3 text-center ${
+                    isDragging ? "border-primary bg-primary bg-opacity-10" : "border-secondary"
+                  }`}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  style={{ cursor: "pointer", transition: "all 0.3s ease" }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="mb-2">
+                    <i className="ri-upload-cloud-2-line fs-1 text-primary"></i>
+                  </div>
+                  <h5 className="mb-1">
+                    {isDragging ? "Drop files here" : "Drag & drop files here"}
+                  </h5>
+                  <p className="text-muted mb-2">or</p>
+                  <Button
+                    color="primary"
+                    outline
+                    size="sm"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={validation.isSubmitting || loading}
+                  >
+                    <i className="ri-folder-line align-bottom me-1"></i>
+                    Browse Files
+                  </Button>
+                  <p className="text-muted mt-2 mb-0 small">
+                    Supports multiple files • Max file size: 10MB
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    disabled={validation.isSubmitting || loading}
+                    className="d-none"
+                    accept="*/*"
+                  />
+                </div>
+
+                {selectedFiles.length > 0 && (
+                  <div className="mb-3">
+                    <Label className="form-label">Selected Files ({selectedFiles.length})</Label>
+                    <ListGroup>
+                      {selectedFiles.map((file, index) => (
+                        <ListGroupItem
+                          key={index}
+                          className="d-flex justify-content-between align-items-center"
+                        >
+                          <div className="d-flex align-items-center">
+                            <i className="ri-file-line fs-5 text-primary me-2"></i>
+                            <div>
+                              <div className="fw-medium">{file.name}</div>
+                              <small className="text-muted">
+                                {formatFileSize(file.size)}
+                              </small>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            color="soft-danger"
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            disabled={validation.isSubmitting || loading}
+                          >
+                            <i className="ri-close-line"></i>
+                          </Button>
+                        </ListGroupItem>
+                      ))}
+                    </ListGroup>
+                  </div>
+                )}
               </CardBody>
             </Card>
           </Col>

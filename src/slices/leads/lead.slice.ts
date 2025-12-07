@@ -96,7 +96,8 @@ const leadSlice = createSlice({
       .addCase(fetchLeads.fulfilled, (state, action) => {
         state.loading = false;
         state.error = null; // Clear any previous errors on success
-        state.items = action.payload.items;
+        // Filter out any undefined/null items
+        state.items = (action.payload.items || []).filter((item: LeadItem) => item != null && item !== undefined);
         state.pageNumber = action.payload.pageNumber;
         state.pageSize = action.payload.pageSize;
         state.totalCount = action.payload.totalCount;
@@ -115,8 +116,11 @@ const leadSlice = createSlice({
       })
       .addCase(createLead.fulfilled, (state, action) => {
         state.loading = false;
-        state.items.unshift(action.payload);
-        state.totalCount += 1;
+        // Only add if payload is valid
+        if (action.payload && action.payload.id) {
+          state.items.unshift(action.payload);
+          state.totalCount += 1;
+        }
       })
       .addCase(createLead.rejected, (state, action) => {
         state.loading = false;
