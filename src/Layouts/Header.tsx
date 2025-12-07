@@ -8,8 +8,6 @@ import logoDark from "../assets/images/logo-dark.png";
 import logoLight from "../assets/images/logo-light.png";
 
 //import Components
-import FullScreenDropdown from "../Components/Common/FullScreenDropdown";
-import NotificationDropdown from "../Components/Common/NotificationDropdown";
 import ProfileDropdown from "../Components/Common/ProfileDropdown";
 
 import { changeSidebarVisibility } from "../slices/thunks";
@@ -143,12 +141,11 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
               </Dropdown>
 
               {/* FullScreenDropdown */}
-              <FullScreenDropdown />
+             
 
               {/* Dark/Light Mode removed (static default theme) */}
 
               {/* NotificationDropdown */}
-              <NotificationDropdown />
 
               {/* ProfileDropdown */}
               <ProfileDropdown />

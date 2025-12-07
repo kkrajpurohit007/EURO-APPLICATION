@@ -49,7 +49,6 @@ const ProfileDropdown = () => {
                 {userName}
               </span>
               <span className="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text">
-                Founder
               </span>
             </span>
           </span>
