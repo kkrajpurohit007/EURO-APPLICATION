@@ -16,6 +16,8 @@ import {
   Input,
   Form,
   FormFeedback,
+  FormGroup,
+  Alert,
 } from "reactstrap";
 import Select from "react-select";
 import FullCalendar from "@fullcalendar/react";
@@ -24,17 +26,21 @@ import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import BootstrapTheme from "@fullcalendar/bootstrap5";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import Flatpickr from "react-flatpickr";
 import SimpleBar from "simplebar-react";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import Loader from "../../../Components/Common/Loader";
+import DeleteModal from "../../../Components/Common/DeleteModal";
 import {
   selectClientMeetingsList,
   fetchClientMeetings,
   updateClientMeeting,
   deleteClientMeeting,
   selectClientMeetingLoading,
+  fetchClientMeetingById,
+  selectClientMeetingById,
+  selectClientMeetingDetailLoading,
+  selectClientMeetingSaving,
+  selectClientMeetingError,
 } from "../../../slices/clientMeetings/clientMeeting.slice";
 import { selectClientList } from "../../../slices/clients/client.slice";
 import { fetchClients } from "../../../slices/clients/client.slice";
@@ -44,6 +50,16 @@ import {
   MEETING_STATUS_MAP,
 } from "../../../slices/clientMeetings/clientMeeting.fakeData";
 import { PAGE_TITLES } from "../../../common/branding";
+import {
+  formatDateForInput,
+  formatTimeForInput,
+  formatDateToISO,
+  formatTimeWithSeconds,
+  parseExternalAttendees,
+  getMeetingTypeOptions,
+} from "./utils/meetingUtils";
+import { meetingFormSchema } from "./utils/validationSchemas";
+import { useFlash } from "../../../hooks/useFlash";
 
 const MeetingCalendar: React.FC = () => {
   document.title = PAGE_TITLES.MEETING_CALENDAR;
@@ -54,16 +70,32 @@ const MeetingCalendar: React.FC = () => {
   const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
   const loading = useSelector(selectClientMeetingLoading);
   const clients = useSelector(selectClientList);
+  const { showSuccess, showError } = useFlash();
 
   const [modal, setModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [event, setEvent] = useState<any>({});
   const [selectedDay, setSelectedDay] = useState<any>(0);
   const [isEdit, setIsEdit] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
   const [dayMeetingsModal, setDayMeetingsModal] = useState(false);
   const [selectedDayMeetings, setSelectedDayMeetings] = useState<ClientMeeting[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
+
+  // Get meeting detail when editing
+  const meetingDetail = useSelector((state: any) =>
+    editingMeetingId ? selectClientMeetingById(state, editingMeetingId) : null
+  );
+  const detailLoading = useSelector(selectClientMeetingDetailLoading);
+  const saving = useSelector(selectClientMeetingSaving);
+  const error = useSelector(selectClientMeetingError);
+
+  // Fetch meeting detail when editing
+  useEffect(() => {
+    if (editingMeetingId && !meetingDetail) {
+      dispatch(fetchClientMeetingById(editingMeetingId));
+    }
+  }, [dispatch, editingMeetingId, meetingDetail]);
 
   // Fetch clients if not loaded
   useEffect(() => {
@@ -114,7 +146,8 @@ const MeetingCalendar: React.FC = () => {
   // Filter meetings by selected client
   const filteredMeetings = useMemo(() => {
     if (!meetings) return [];
-    let filtered = meetings.filter((m) => !m.isDeleted);
+    // Filter out deleted meetings and meetings without valid meetingDate
+    let filtered = meetings.filter((m) => !m.isDeleted && m.meetingDate);
     if (selectedClientId) {
       filtered = filtered.filter((m) => m.clientId === selectedClientId);
     }
@@ -125,6 +158,8 @@ const MeetingCalendar: React.FC = () => {
   const meetingsByDate = useMemo(() => {
     const grouped: Record<string, ClientMeeting[]> = {};
     filteredMeetings.forEach((meeting: ClientMeeting) => {
+      // Skip meetings without valid meetingDate
+      if (!meeting.meetingDate) return;
       const dateKey = meeting.meetingDate.split("T")[0];
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
@@ -144,6 +179,8 @@ const MeetingCalendar: React.FC = () => {
       if (dayMeetings.length <= 2) {
         // Show individual events if 2 or fewer meetings
         dayMeetings.forEach((meeting: ClientMeeting) => {
+          // Skip meetings without valid start time
+          if (!meeting.meetingStartTime) return;
           const startDateTime = `${dateKey}T${meeting.meetingStartTime}`;
           const endDateTime = meeting.meetingEndTime ? `${dateKey}T${meeting.meetingEndTime}` : undefined;
 
@@ -244,26 +281,7 @@ const MeetingCalendar: React.FC = () => {
     );
 
     if (meeting) {
-      const startDateTime = meeting.meetingDate
-        ? `${meeting.meetingDate.split("T")[0]}T${meeting.meetingStartTime}`
-        : "";
-      const endDateTime = meeting.meetingEndTime
-        ? `${meeting.meetingDate.split("T")[0]}T${meeting.meetingEndTime}`
-        : "";
-
-      setEvent({
-        id: meeting.id,
-        title: meeting.meetingTitle || "Untitled Meeting",
-        start: startDateTime ? new Date(startDateTime) : new Date(),
-        end: endDateTime ? new Date(endDateTime) : "",
-        clientName: meeting.clientName,
-        location: meeting.meetingLocation,
-        meetingType: MEETING_TYPE_MAP[meeting.meetingType] || "Unknown",
-        organizer: meeting.organizerUserName,
-        description: meeting.meetingDescription,
-        status: MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown",
-        className: getStatusClassName(meeting.meetingStatus),
-      });
+      setEditingMeetingId(meeting.id);
       setIsEdit(true);
       setModal(true);
     }
@@ -369,86 +387,131 @@ const MeetingCalendar: React.FC = () => {
   const toggle = () => {
     if (modal) {
       setModal(false);
-      setEvent({});
       setIsEdit(false);
+      setEditingMeetingId(null);
     } else {
       setModal(true);
     }
   };
 
-  // Toggle delete modal
-  const toggleDelete = () => {
-    setDeleteModal(!deleteModal);
+  // Get meeting type options
+  const meetingTypeOptions = useMemo(() => getMeetingTypeOptions(), []);
+
+  // Get selected client contacts for display (when editing)
+  const selectedClientContacts = useMemo(() => {
+    if (!meetingDetail || !meetingDetail.attendees) return [];
+    return meetingDetail.attendees
+      .filter((a: any) => a.clientContactName)
+      .map((a: any) => ({
+        id: a.clientContactId,
+        name: a.clientContactName,
+      }));
+  }, [meetingDetail]);
+
+  // Get selected tenant users for display (when editing)
+  const selectedTenantUsers = useMemo(() => {
+    if (!meetingDetail || !meetingDetail.attendees) return [];
+    return meetingDetail.attendees
+      .filter((a: any) => a.userName)
+      .map((a: any) => ({
+        id: a.userId,
+        name: a.userName,
+      }));
+  }, [meetingDetail]);
+
+  const getExternalAttendees = (): string[] => {
+    return parseExternalAttendees(meetingDetail?.externalAttendees);
   };
 
-  // Formik validation schema
+  // Initial values for form - matching MeetingEdit exactly
+  const initialValues = useMemo(() => {
+    if (isEdit && meetingDetail) {
+      return {
+        meetingTitle: meetingDetail.meetingTitle || "",
+        meetingDescription: meetingDetail.meetingDescription || "",
+        meetingDate: formatDateForInput(meetingDetail.meetingDate || ""),
+        meetingStartTime: formatTimeForInput(meetingDetail.meetingStartTime || ""),
+        meetingEndTime: formatTimeForInput(meetingDetail.meetingEndTime || ""),
+        meetingLocation: meetingDetail.meetingLocation || "",
+        meetingType: meetingDetail.meetingType || 1,
+      };
+    }
+    // For new meetings, use selected day or current date
+    const defaultDate = selectedDay || new Date();
+    return {
+      meetingTitle: "",
+      meetingDescription: "",
+      meetingDate: formatDateForInput(defaultDate.toISOString()),
+      meetingStartTime: formatTimeForInput(defaultDate.toTimeString().split(" ")[0]),
+      meetingEndTime: "",
+      meetingLocation: "",
+      meetingType: 1,
+    };
+  }, [isEdit, meetingDetail, selectedDay]);
+
+  // Formik validation schema - matching MeetingEdit exactly
   const validation = useFormik({
     enableReinitialize: true,
-    initialValues: {
-      title: (event && event.title) || "",
-      start: (event && event.start) || selectedDay,
-      end: (event && event.end) || "",
-      clientName: (event && event.clientName) || "",
-      location: (event && event.location) || "",
-      locationType: (event && event.locationType) || "On-site",
-      meetingLink: (event && event.meetingLink) || "",
-      organizer: (event && event.organizer) || "",
-      agenda: (event && event.agenda) || "",
-      notes: (event && event.notes) || "",
-      status: (event && event.status) || "Scheduled",
-      meetingType: (event && event.meetingType) || "Regular",
-      priority: (event && event.priority) || "Medium",
-    },
-    validationSchema: Yup.object({
-      title: Yup.string().required("Please enter meeting title"),
-      clientName: Yup.string().required("Please enter client name"),
-      location: Yup.string().required("Please enter location"),
-      locationType: Yup.string().required("Please select location type"),
-      organizer: Yup.string().required("Please enter organizer name"),
-    }),
-    onSubmit: (values: any) => {
-      if (isEdit) {
-        // Update existing meeting
-        const startDate = new Date(values.start);
-        const endDate = values.end ? new Date(values.end) : null;
+    initialValues,
+    validationSchema: meetingFormSchema,
+    onSubmit: async (values) => {
+      if (isEdit && editingMeetingId) {
+        const payload = {
+          meetingTitle: values.meetingTitle,
+          meetingDescription: values.meetingDescription,
+          meetingDate: formatDateToISO(values.meetingDate),
+          meetingStartTime: formatTimeWithSeconds(values.meetingStartTime),
+          meetingEndTime: formatTimeWithSeconds(values.meetingEndTime),
+          meetingLocation: values.meetingLocation,
+          meetingType: values.meetingType,
+        };
 
-        dispatch(
-          updateClientMeeting({
-            id: event.id,
-            data: {
-              meetingTitle: values.title,
-              meetingDescription: values.agenda,
-              meetingDate: startDate.toISOString(),
-              meetingStartTime: startDate.toTimeString().split(" ")[0],
-              meetingEndTime: endDate
-                ? endDate.toTimeString().split(" ")[0]
-                : startDate.toTimeString().split(" ")[0],
-              meetingLocation: values.location,
-              meetingType: values.meetingType === "Virtual" ? 2 : values.meetingType === "Phone" ? 3 : values.meetingType === "Hybrid" ? 4 : 1,
-            },
-          })
-        );
+        const result = await dispatch(updateClientMeeting({ id: editingMeetingId, data: payload }));
+        if (result.meta.requestStatus === "fulfilled") {
+          showSuccess("Meeting updated successfully");
+          toggle();
+          // Refresh meetings list
+          dispatch(
+            fetchClientMeetings({
+              clientId: selectedClientId,
+              pageNumber: 1,
+              pageSize: 100,
+            })
+          );
+        } else {
+          const errorMessage = result.payload?.message || "Failed to update meeting";
+          showError(errorMessage);
+        }
       } else {
         // Navigate to create meeting page for new meetings
-        // Calendar drag-and-drop create should use the dedicated form
         toggle();
         navigate("/meetings/create");
-        return;
       }
-
-      toggle();
-      validation.resetForm();
     },
   });
 
 
-  // Handle delete meeting
-  const handleDeleteEvent = () => {
-    if (event.id) {
-      dispatch(deleteClientMeeting(event.id));
+  // Handle delete meeting confirmation
+  const confirmDelete = async () => {
+    if (editingMeetingId) {
+      const result = await dispatch(deleteClientMeeting(editingMeetingId));
+      if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Meeting deleted successfully");
+        // Refresh meetings list
+        dispatch(
+          fetchClientMeetings({
+            clientId: selectedClientId,
+            pageNumber: 1,
+            pageSize: 100,
+          })
+        );
+      } else {
+        const errorMessage = result.payload?.message || "Failed to delete meeting";
+        showError(errorMessage);
+      }
     }
     setDeleteModal(false);
-    toggle();
+    toggle(); // Close edit modal after delete
   };
 
   // Get upcoming meetings
@@ -458,10 +521,14 @@ const MeetingCalendar: React.FC = () => {
 
     return filteredMeetings
       .filter((meeting: ClientMeeting) => {
+        if (!meeting.meetingDate) return false;
         const meetingDate = new Date(meeting.meetingDate);
         return meetingDate >= today && meeting.meetingStatus !== 4; // 4 = Cancelled
       })
       .sort((a: ClientMeeting, b: ClientMeeting) => {
+        // Skip meetings without valid date/time
+        if (!a.meetingDate || !a.meetingStartTime) return 1;
+        if (!b.meetingDate || !b.meetingStartTime) return -1;
         const dateA = new Date(`${a.meetingDate.split("T")[0]}T${a.meetingStartTime}`);
         const dateB = new Date(`${b.meetingDate.split("T")[0]}T${b.meetingStartTime}`);
         return dateA.getTime() - dateB.getTime();
@@ -550,6 +617,8 @@ const MeetingCalendar: React.FC = () => {
                         <SimpleBar style={{ maxHeight: "420px" }}>
                           <div className="d-flex flex-column gap-3">
                             {getUpcomingMeetings().map((m: ClientMeeting) => {
+                              // Skip if meetingDate is missing (defensive check)
+                              if (!m.meetingDate) return null;
                               const startDateTime = `${m.meetingDate.split("T")[0]}T${m.meetingStartTime || "09:00:00"}`;
                               const d = new Date(startDateTime);
                               const month = d
@@ -699,245 +768,424 @@ const MeetingCalendar: React.FC = () => {
               </Row>
 
               {/* Event Modal */}
-              <Modal isOpen={modal} toggle={toggle} centered>
+              <Modal isOpen={modal} toggle={toggle} centered size="lg">
                 <ModalHeader toggle={toggle}>
-                  {isEdit ? "Edit Meeting" : "Add New Meeting"}
+                  {isEdit ? "Edit Meeting Details" : "Add New Meeting"}
                 </ModalHeader>
                 <ModalBody>
-                  <Form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      validation.handleSubmit();
-                      return false;
-                    }}
-                  >
-                    <Row className="g-3">
-                      <Col xs={12}>
-                        <Label className="form-label">Meeting Title</Label>
-                        <Input
-                          name="title"
-                          type="text"
-                          placeholder="Enter meeting title"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.title || ""}
-                          invalid={
-                            validation.touched.title && validation.errors.title
-                              ? true
-                              : false
-                          }
-                        />
-                        {validation.touched.title && validation.errors.title ? (
-                          <FormFeedback type="invalid">
-                            {String(validation.errors.title)}
-                          </FormFeedback>
-                        ) : null}
-                      </Col>
+                  {detailLoading && isEdit ? (
+                    <div className="text-center py-4">
+                      <Loader />
+                    </div>
+                  ) : (
+                    <>
+                      {error && (
+                        <Alert color="danger" className="mb-3">
+                          {error}
+                        </Alert>
+                      )}
+                      <Form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          validation.handleSubmit();
+                        }}
+                      >
+                        {/* Group 1 - Meeting Details */}
+                        <div className="mb-4">
+                          <h6 className="text-muted mb-3">
+                            <i className="ri-file-text-line align-middle me-1"></i>
+                            Meeting Details
+                          </h6>
+                          <Row className="g-3">
+                            <Col md={12}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  Meeting Title{" "}
+                                  <span className="text-danger">*</span>
+                                </Label>
+                                <Input
+                                  type="text"
+                                  name="meetingTitle"
+                                  value={validation.values.meetingTitle}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.meetingTitle &&
+                                      validation.errors.meetingTitle
+                                    )
+                                  }
+                                  maxLength={200}
+                                  placeholder="Enter meeting title"
+                                />
+                                {validation.touched.meetingTitle &&
+                                  validation.errors.meetingTitle && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingTitle)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
 
-                      <Col xs={12}>
-                        <Label className="form-label">Client Name</Label>
-                        <Input
-                          name="clientName"
-                          type="text"
-                          placeholder="Enter client name"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.clientName || ""}
-                          invalid={
-                            validation.touched.clientName &&
-                              validation.errors.clientName
-                              ? true
-                              : false
-                          }
-                        />
-                        {validation.touched.clientName &&
-                          validation.errors.clientName ? (
-                          <FormFeedback type="invalid">
-                            {String(validation.errors.clientName)}
-                          </FormFeedback>
-                        ) : null}
-                      </Col>
+                            <Col md={12}>
+                              <FormGroup>
+                                <Label className="form-label">Description</Label>
+                                <Input
+                                  type="textarea"
+                                  name="meetingDescription"
+                                  rows={4}
+                                  value={validation.values.meetingDescription}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.meetingDescription &&
+                                      validation.errors.meetingDescription
+                                    )
+                                  }
+                                  maxLength={1000}
+                                  placeholder="Enter meeting description (optional)"
+                                />
+                                {validation.touched.meetingDescription &&
+                                  validation.errors.meetingDescription && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingDescription)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
 
-                      <Col xs={12}>
-                        <Label className="form-label">Start Date & Time</Label>
-                        <Flatpickr
-                          className="form-control"
-                          name="start"
-                          placeholder="Select date and time"
-                          value={validation.values.start || ""}
-                          onChange={(date: any) => {
-                            validation.setFieldValue("start", date[0]);
-                          }}
-                          options={{
-                            enableTime: true,
-                            dateFormat: "Y-m-d H:i",
-                          }}
-                        />
-                      </Col>
+                            <Col md={6}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  Meeting Type{" "}
+                                  <span className="text-danger">*</span>
+                                </Label>
+                                <Select
+                                  value={meetingTypeOptions.find(
+                                    (opt) => opt.value === validation.values.meetingType
+                                  )}
+                                  onChange={(selectedOption: any) => {
+                                    validation.setFieldValue(
+                                      "meetingType",
+                                      selectedOption?.value || 1
+                                    );
+                                  }}
+                                  options={meetingTypeOptions}
+                                  placeholder="Select Meeting Type"
+                                  classNamePrefix="select2-selection"
+                                  isSearchable={false}
+                                />
+                                {validation.touched.meetingType &&
+                                  validation.errors.meetingType && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingType)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
+                          </Row>
+                        </div>
 
-                      <Col xs={12}>
-                        <Label className="form-label">
-                          End Time (Optional)
-                        </Label>
-                        <Flatpickr
-                          className="form-control"
-                          name="end"
-                          placeholder="Select end time"
-                          value={validation.values.end || ""}
-                          onChange={(date: any) => {
-                            validation.setFieldValue("end", date[0]);
-                          }}
-                          options={{
-                            enableTime: true,
-                            dateFormat: "Y-m-d H:i",
-                            noCalendar: false,
-                          }}
-                        />
-                      </Col>
+                        {/* Group 2 - Schedule */}
+                        <div className="mb-4">
+                          <h6 className="text-muted mb-3">
+                            <i className="ri-calendar-line align-middle me-1"></i>
+                            Schedule
+                          </h6>
+                          <Row className="g-3">
+                            <Col md={4}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  Meeting Date{" "}
+                                  <span className="text-danger">*</span>
+                                </Label>
+                                <Input
+                                  type="date"
+                                  name="meetingDate"
+                                  value={validation.values.meetingDate}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.meetingDate &&
+                                      validation.errors.meetingDate
+                                    )
+                                  }
+                                  min={new Date().toISOString().split("T")[0]}
+                                />
+                                {validation.touched.meetingDate &&
+                                  validation.errors.meetingDate && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingDate)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
 
-                      <Col xs={12}>
-                        <Label className="form-label">Location Type</Label>
-                        <Input
-                          name="locationType"
-                          type="select"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.locationType || ""}
-                        >
-                          <option value="On-site">On-site</option>
-                          <option value="Virtual">Virtual</option>
-                          <option value="Hybrid">Hybrid</option>
-                        </Input>
-                      </Col>
+                            <Col md={4}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  Start Time{" "}
+                                  <span className="text-danger">*</span>
+                                </Label>
+                                <Input
+                                  type="time"
+                                  name="meetingStartTime"
+                                  value={validation.values.meetingStartTime}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.meetingStartTime &&
+                                      validation.errors.meetingStartTime
+                                    )
+                                  }
+                                />
+                                {validation.touched.meetingStartTime &&
+                                  validation.errors.meetingStartTime && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingStartTime)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
 
-                      <Col xs={12}>
-                        <Label className="form-label">Location</Label>
-                        <Input
-                          name="location"
-                          type="text"
-                          placeholder="Enter location"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.location || ""}
-                          invalid={
-                            validation.touched.location &&
-                              validation.errors.location
-                              ? true
-                              : false
-                          }
-                        />
-                        {validation.touched.location &&
-                          validation.errors.location ? (
-                          <FormFeedback type="invalid">
-                            {String(validation.errors.location)}
-                          </FormFeedback>
-                        ) : null}
-                      </Col>
+                            <Col md={4}>
+                              <FormGroup>
+                                <Label className="form-label">
+                                  End Time{" "}
+                                  <span className="text-danger">*</span>
+                                </Label>
+                                <Input
+                                  type="time"
+                                  name="meetingEndTime"
+                                  value={validation.values.meetingEndTime}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.meetingEndTime &&
+                                      validation.errors.meetingEndTime
+                                    )
+                                  }
+                                />
+                                {validation.touched.meetingEndTime &&
+                                  validation.errors.meetingEndTime && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingEndTime)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
 
-                      {(validation.values.locationType === "Virtual" ||
-                        validation.values.locationType === "Hybrid") && (
-                          <Col xs={12}>
-                            <Label className="form-label">Meeting Link</Label>
-                            <Input
-                              name="meetingLink"
-                              type="url"
-                              placeholder="Enter meeting link"
-                              onChange={validation.handleChange}
-                              onBlur={validation.handleBlur}
-                              value={validation.values.meetingLink || ""}
-                            />
-                          </Col>
+                            <Col md={12}>
+                              <FormGroup>
+                                <Label className="form-label">Location</Label>
+                                <Input
+                                  type="text"
+                                  name="meetingLocation"
+                                  value={validation.values.meetingLocation}
+                                  onChange={validation.handleChange}
+                                  onBlur={validation.handleBlur}
+                                  invalid={
+                                    !!(
+                                      validation.touched.meetingLocation &&
+                                      validation.errors.meetingLocation
+                                    )
+                                  }
+                                  maxLength={500}
+                                  placeholder="Office address, Zoom link, Teams link, etc."
+                                />
+                                {validation.touched.meetingLocation &&
+                                  validation.errors.meetingLocation && (
+                                    <div className="invalid-feedback d-block">
+                                      {String(validation.errors.meetingLocation)}
+                                    </div>
+                                  )}
+                              </FormGroup>
+                            </Col>
+                          </Row>
+                        </div>
+
+                        {/* Group 3 - Participants (Read-only) - Only show when editing */}
+                        {isEdit && meetingDetail && (
+                          <div className="mb-4">
+                            <h6 className="text-muted mb-3">
+                              <i className="ri-group-line align-middle me-1"></i>
+                              Participants
+                              <Badge color="light" className="ms-2 fs-12">
+                                Read-only
+                              </Badge>
+                            </h6>
+                            <Row className="g-3">
+                              <Col md={6}>
+                                <FormGroup>
+                                  <Label className="form-label">
+                                    <i className="ri-building-line align-middle me-1"></i>
+                                    Client
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    value={meetingDetail?.clientName || "-"}
+                                    readOnly
+                                    plaintext
+                                    className="form-control-plaintext bg-light px-3 py-2 rounded"
+                                  />
+                                </FormGroup>
+                              </Col>
+
+                              <Col md={6}>
+                                <FormGroup>
+                                  <Label className="form-label">
+                                    <i className="ri-user-line align-middle me-1"></i>
+                                    Organizer
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    value={meetingDetail?.organizerUserName || "-"}
+                                    readOnly
+                                    plaintext
+                                    className="form-control-plaintext bg-light px-3 py-2 rounded"
+                                  />
+                                </FormGroup>
+                              </Col>
+
+                              <Col md={6}>
+                                <FormGroup>
+                                  <Label className="form-label">
+                                    <i className="ri-user-3-line align-middle me-1"></i>
+                                    Internal Users (Tenant Users)
+                                  </Label>
+                                  {selectedTenantUsers.length > 0 ? (
+                                    <div className="bg-light px-3 py-2 rounded">
+                                      {selectedTenantUsers.map((user: any, index: number) => (
+                                        <Badge
+                                          key={`user-${index}`}
+                                          color="primary"
+                                          className="me-1 mb-1"
+                                        >
+                                          {user.name}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      type="text"
+                                      value="No internal users selected"
+                                      readOnly
+                                      plaintext
+                                      className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
+                                    />
+                                  )}
+                                </FormGroup>
+                              </Col>
+
+                              <Col md={6}>
+                                <FormGroup>
+                                  <Label className="form-label">
+                                    <i className="ri-contacts-line align-middle me-1"></i>
+                                    Client Contacts
+                                  </Label>
+                                  {selectedClientContacts.length > 0 ? (
+                                    <div className="bg-light px-3 py-2 rounded">
+                                      {selectedClientContacts.map((contact: any, index: number) => (
+                                        <Badge
+                                          key={`contact-${index}`}
+                                          color="success"
+                                          className="me-1 mb-1"
+                                        >
+                                          {contact.name}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      type="text"
+                                      value="No client contacts selected"
+                                      readOnly
+                                      plaintext
+                                      className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
+                                    />
+                                  )}
+                                </FormGroup>
+                              </Col>
+
+                              <Col md={12}>
+                                <FormGroup>
+                                  <Label className="form-label">
+                                    <i className="ri-mail-line align-middle me-1"></i>
+                                    External Attendees (Emails)
+                                  </Label>
+                                  {getExternalAttendees().length > 0 ? (
+                                    <div className="bg-light px-3 py-2 rounded">
+                                      {getExternalAttendees().map((email: string, index: number) => (
+                                        <Badge
+                                          key={`external-${index}`}
+                                          color="info"
+                                          className="me-1 mb-1"
+                                        >
+                                          {email}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      type="text"
+                                      value="No external attendees"
+                                      readOnly
+                                      plaintext
+                                      className="form-control-plaintext bg-light px-3 py-2 rounded text-muted"
+                                    />
+                                  )}
+                                </FormGroup>
+                              </Col>
+                            </Row>
+                            <Alert color="info" className="mt-2 mb-0">
+                              <i className="ri-information-line align-middle me-1"></i>
+                              Participants cannot be modified here. To change participants, please delete and recreate the meeting.
+                            </Alert>
+                          </div>
                         )}
 
-                      <Col xs={12}>
-                        <Label className="form-label">Organizer</Label>
-                        <Input
-                          name="organizer"
-                          type="text"
-                          placeholder="Enter organizer name"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.organizer || ""}
-                          invalid={
-                            validation.touched.organizer &&
-                              validation.errors.organizer
-                              ? true
-                              : false
-                          }
-                        />
-                        {validation.touched.organizer &&
-                          validation.errors.organizer ? (
-                          <FormFeedback type="invalid">
-                            {String(validation.errors.organizer)}
-                          </FormFeedback>
-                        ) : null}
-                      </Col>
-
-                      {isEdit && (
-                        <Col xs={12}>
-                          <Label className="form-label">Status</Label>
-                          <Input
-                            name="status"
-                            type="select"
-                            onChange={validation.handleChange}
-                            onBlur={validation.handleBlur}
-                            value={validation.values.status || ""}
-                          >
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                          </Input>
-                        </Col>
-                      )}
-
-                      <Col xs={12}>
-                        <Label className="form-label">Agenda (Optional)</Label>
-                        <Input
-                          name="agenda"
-                          type="textarea"
-                          rows={3}
-                          placeholder="Enter meeting agenda"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.agenda || ""}
-                        />
-                      </Col>
-
-                      <Col xs={12}>
-                        <Label className="form-label">Notes (Optional)</Label>
-                        <Input
-                          name="notes"
-                          type="textarea"
-                          rows={2}
-                          placeholder="Add any notes"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.notes || ""}
-                        />
-                      </Col>
-                    </Row>
-
-                    <div className="mt-4 hstack gap-2 justify-content-end">
-                      {isEdit && (
-                        <Button
-                          color="danger"
-                          onClick={() => {
-                            toggle();
-                            setDeleteModal(true);
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                      <Button color="light" onClick={toggle}>
-                        Close
-                      </Button>
-                      <Button color="primary" type="submit">
-                        {isEdit ? "Update Meeting" : "Create Meeting"}
-                      </Button>
-                    </div>
-                  </Form>
+                        <div className="d-flex gap-2 justify-content-end mt-4 pt-3 border-top">
+                          {isEdit && (
+                            <Button
+                              color="danger"
+                              onClick={() => {
+                                setDeleteModal(true);
+                              }}
+                              disabled={saving}
+                            >
+                              <i className="ri-delete-bin-line align-bottom me-1"></i>
+                              Delete
+                            </Button>
+                          )}
+                          <Button color="light" onClick={toggle} disabled={saving}>
+                            <i className="ri-close-line align-bottom me-1"></i>
+                            Cancel
+                          </Button>
+                          <Button color="primary" type="submit" disabled={saving}>
+                            {saving ? (
+                              <>
+                                <span
+                                  className="spinner-border spinner-border-sm me-1"
+                                  role="status"
+                                  aria-hidden="true"
+                                ></span>
+                                Updating...
+                              </>
+                            ) : (
+                              <>
+                                <i className="ri-save-line align-bottom me-1"></i>
+                                {isEdit ? "Update Meeting" : "Create Meeting"}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </Form>
+                    </>
+                  )}
                 </ModalBody>
               </Modal>
 
@@ -972,23 +1220,7 @@ const MeetingCalendar: React.FC = () => {
                               style={{ cursor: "pointer" }}
                               onClick={() => {
                                 setDayMeetingsModal(false);
-                                const startDateTime = `${meeting.meetingDate.split("T")[0]}T${meeting.meetingStartTime}`;
-                                const endDateTime = meeting.meetingEndTime
-                                  ? `${meeting.meetingDate.split("T")[0]}T${meeting.meetingEndTime}`
-                                  : "";
-                                setEvent({
-                                  id: meeting.id,
-                                  title: meeting.meetingTitle || "Untitled Meeting",
-                                  start: startDateTime ? new Date(startDateTime) : new Date(),
-                                  end: endDateTime ? new Date(endDateTime) : "",
-                                  clientName: meeting.clientName,
-                                  location: meeting.meetingLocation,
-                                  meetingType: MEETING_TYPE_MAP[meeting.meetingType] || "Unknown",
-                                  organizer: meeting.organizerUserName,
-                                  description: meeting.meetingDescription,
-                                  status: MEETING_STATUS_MAP[meeting.meetingStatus] || "Unknown",
-                                  className: getStatusClassName(meeting.meetingStatus),
-                                });
+                                setEditingMeetingId(meeting.id);
                                 setIsEdit(true);
                                 setModal(true);
                               }}
@@ -1059,44 +1291,16 @@ const MeetingCalendar: React.FC = () => {
                   </div>
                 </ModalBody>
               </Modal>
-
-              {/* Delete Modal */}
-              <Modal isOpen={deleteModal} toggle={toggleDelete} centered>
-                <ModalHeader toggle={toggleDelete}>Delete Meeting</ModalHeader>
-                <ModalBody>
-                  <div className="mt-2 text-center">
-                    <div className="fs-1 text-warning mb-4">
-                      <i className="mdi mdi-alert-circle-outline"></i>
-                    </div>
-                    <div className="mt-4 pt-2 fs-15 mx-4 mx-sm-5">
-                      <h4>Are you sure?</h4>
-                      <p className="text-muted mx-4 mb-0">
-                        Are you sure you want to remove this meeting?
-                      </p>
-                    </div>
-                  </div>
-                  <div className="d-flex gap-2 justify-content-center mt-4 mb-2">
-                    <button
-                      type="button"
-                      className="btn w-sm btn-light"
-                      onClick={toggleDelete}
-                    >
-                      Close
-                    </button>
-                    <button
-                      type="button"
-                      className="btn w-sm btn-danger"
-                      onClick={handleDeleteEvent}
-                    >
-                      Yes, Delete It!
-                    </button>
-                  </div>
-                </ModalBody>
-              </Modal>
             </Col>
           </Row>
         </Container>
       </div>
+      {/* Delete Modal */}
+      <DeleteModal
+        show={deleteModal}
+        onDeleteClick={confirmDelete}
+        onCloseClick={() => setDeleteModal(false)}
+      />
     </React.Fragment>
   );
 };

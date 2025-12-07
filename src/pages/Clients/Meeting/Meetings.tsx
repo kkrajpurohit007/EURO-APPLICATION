@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import Loader from "../../../Components/Common/Loader";
+import DeleteModal from "../../../Components/Common/DeleteModal";
+import { useFlash } from "../../../hooks/useFlash";
 import {
   selectClientMeetingsList,
   selectClientMeetingPagination,
@@ -38,6 +40,7 @@ const Meetings: React.FC = () => {
 
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useFlash();
   const meetings: ClientMeeting[] = useSelector(selectClientMeetingsList);
   const pagination = useSelector(selectClientMeetingPagination);
   const loading = useSelector(selectClientMeetingLoading);
@@ -47,6 +50,8 @@ const Meetings: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<number | "">("");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [meetingToDelete, setMeetingToDelete] = useState<string | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
   const hasMoreRef = useRef(true);
 
@@ -180,6 +185,35 @@ const Meetings: React.FC = () => {
       (m: ClientMeeting) => m.meetingStatus === 3 // Completed
     );
   }, [filteredMeetings]);
+
+  // Handle delete meeting
+  const onDelete = (id: string) => {
+    setMeetingToDelete(id);
+    setDeleteModal(true);
+  };
+
+  // Confirm delete meeting
+  const confirmDelete = async () => {
+    if (meetingToDelete !== null) {
+      const result = await dispatch(deleteClientMeeting(meetingToDelete));
+      if (result.meta.requestStatus === "fulfilled") {
+        showSuccess("Meeting deleted successfully");
+        // Refresh meetings list after deletion
+        dispatch(
+          fetchClientMeetings({
+            clientId: selectedClientId,
+            pageNumber: 1,
+            pageSize: 20,
+          })
+        );
+      } else {
+        const errorMessage = result.payload?.message || "Failed to delete meeting";
+        showError(errorMessage);
+      }
+    }
+    setDeleteModal(false);
+    setMeetingToDelete(null);
+  };
 
   // Show loader only on initial load, not when loading more
   if (loading && meetings.length === 0) {
@@ -412,20 +446,7 @@ const Meetings: React.FC = () => {
                             onView={() => navigate(`/meetings/view/${meeting.id}`)}
                             onEdit={() => navigate(`/meetings/edit/${meeting.id}`)}
                             onReschedule={() => navigate(`/meetings/reschedule/${meeting.id}`)}
-                            onDelete={() => {
-                              if (window.confirm("Are you sure you want to delete this meeting?")) {
-                                dispatch(deleteClientMeeting(meeting.id)).then(() => {
-                                  // Refresh meetings list after deletion
-                                  dispatch(
-                                    fetchClientMeetings({
-                                      clientId: selectedClientId,
-                                      pageNumber: 1,
-                                      pageSize: 20,
-                                    })
-                                  );
-                                });
-                              }
-                            }}
+                            onDelete={() => onDelete(meeting.id)}
                           />
                         </Col>
                       ))}
@@ -453,6 +474,15 @@ const Meetings: React.FC = () => {
           </Col>
         </Row>
       </Container>
+      {/* Delete Modal */}
+      <DeleteModal
+        show={deleteModal}
+        onDeleteClick={confirmDelete}
+        onCloseClick={() => {
+          setDeleteModal(false);
+          setMeetingToDelete(null);
+        }}
+      />
     </div>
   );
 };
