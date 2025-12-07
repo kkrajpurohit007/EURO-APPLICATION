@@ -298,10 +298,6 @@ const OtpVerification = () => {
                             ))}
                           </div>
                         </div>
-
-                        <small className="text-muted d-block mt-2 text-center">
-                          Demo OTP: 123456
-                        </small>
                       </FormGroup>
 
                       <div className="text-center mt-4 mb-3">
