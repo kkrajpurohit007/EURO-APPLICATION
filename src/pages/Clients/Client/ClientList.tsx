@@ -74,24 +74,32 @@ const ClientList: React.FC = () => {
         header: "Name",
         accessorKey: "name",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Registration",
         accessorKey: "registeredNumber",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 200,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "GST",
         accessorKey: "gstNumber",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Manager Name",
         accessorKey: "managerFirstName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
         cell: (cellProps: any) => {
           const client = cellProps.row.original;
           return `${client.managerFirstName} ${client.managerLastName}` || "-";
@@ -101,12 +109,17 @@ const ClientList: React.FC = () => {
         header: "Manager Email",
         accessorKey: "managerEmailId",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 300,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Status",
         accessorKey: "isPriority",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const isPriority = cell.getValue();
           return isPriority ? (
@@ -118,10 +131,13 @@ const ClientList: React.FC = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const client = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -151,6 +167,9 @@ const ClientList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -209,7 +228,7 @@ const ClientList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -229,7 +248,7 @@ const ClientList: React.FC = () => {
                         data={filtered || []}
                         isGlobalFilter={true}
                         customPageSize={10}
-                        divClass="table-responsive table-card mb-3"
+                        divClass="table-responsive mb-3"
                         tableClass="align-middle table-nowrap mb-0"
                         SearchPlaceholder="Search clients..."
                       />

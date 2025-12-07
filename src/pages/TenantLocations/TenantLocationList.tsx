@@ -70,12 +70,16 @@ const TenantLocationList: React.FC = () => {
         header: "Name",
         accessorKey: "name",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Description",
         accessorKey: "description",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 400,
         cell: (cell: any) => {
           const desc = cell.getValue();
           return desc ? (desc.length > 50 ? desc.substring(0, 50) + "..." : desc) : "-";
@@ -85,6 +89,9 @@ const TenantLocationList: React.FC = () => {
         header: "Created",
         accessorKey: "created",
         enableColumnFilter: false,
+        size: 120,
+        minSize: 120,
+        maxSize: 140,
         cell: (cell: any) => {
           const date = cell.getValue();
           return date ? new Date(date).toLocaleDateString() : "-";
@@ -92,10 +99,13 @@ const TenantLocationList: React.FC = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const location = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -125,6 +135,9 @@ const TenantLocationList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -156,7 +169,7 @@ const TenantLocationList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -175,7 +188,7 @@ const TenantLocationList: React.FC = () => {
                       data={filtered || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive table-card mb-3"
+                      divClass="table-responsive mb-3"
                       tableClass="align-middle table-nowrap mb-0"
                       SearchPlaceholder="Search global locations..."
                     />

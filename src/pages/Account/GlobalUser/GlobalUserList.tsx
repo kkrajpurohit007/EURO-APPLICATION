@@ -75,36 +75,49 @@ const GlobalUserList: React.FC = () => {
         header: "First Name",
         accessorKey: "firstName",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Last Name",
         accessorKey: "lastName",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Email",
         accessorKey: "email",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 300,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Role Name",
         accessorKey: "roleName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Department Name",
         accessorKey: "departmentName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Status",
         accessorKey: "disabled",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const isDisabled = cell.getValue();
           return isDisabled ? (
@@ -120,10 +133,13 @@ const GlobalUserList: React.FC = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const user = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -153,6 +169,9 @@ const GlobalUserList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -184,7 +203,7 @@ const GlobalUserList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -203,7 +222,7 @@ const GlobalUserList: React.FC = () => {
                       data={filtered || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive table-card mb-3"
+                      divClass="table-responsive mb-3"
                       tableClass="align-middle table-nowrap mb-0"
                       SearchPlaceholder="Search users..."
                     />

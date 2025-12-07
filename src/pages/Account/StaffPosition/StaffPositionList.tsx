@@ -63,6 +63,9 @@ const StaffPositionList = () => {
         header: "ID",
         accessorKey: "id",
         enableColumnFilter: false,
+        size: 80,
+        minSize: 80,
+        maxSize: 100,
         cell: (cell: any) => {
           return <span className="fw-medium">{cell.getValue()}</span>;
         },
@@ -71,6 +74,8 @@ const StaffPositionList = () => {
         header: "Position Name",
         accessorKey: "positionName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => {
           return (
             <div>
@@ -86,6 +91,8 @@ const StaffPositionList = () => {
         header: "Code",
         accessorKey: "code",
         enableColumnFilter: false,
+        minSize: 100,
+        maxSize: 150,
         cell: (cell: any) => {
           return <span className="badge bg-info">{cell.getValue()}</span>;
         },
@@ -94,16 +101,23 @@ const StaffPositionList = () => {
         header: "Level",
         accessorKey: "level",
         enableColumnFilter: false,
+        minSize: 100,
+        maxSize: 150,
       },
       {
         header: "Department",
         accessorKey: "department",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
       },
       {
         header: "Status",
         accessorKey: "status",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const status = cell.getValue();
           const badgeClass =
@@ -120,9 +134,12 @@ const StaffPositionList = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-secondary"
@@ -146,6 +163,9 @@ const StaffPositionList = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -183,7 +203,7 @@ const StaffPositionList = () => {
                     </Col>
                   </Row>
                 </CardHeader>
-                <CardBody className="pt-0">
+                <CardBody className="p-4">
                   <div>
                     {staffPositions && staffPositions.length > 0 ? (
                       <TableContainer
@@ -191,7 +211,7 @@ const StaffPositionList = () => {
                         data={staffPositions || []}
                         isGlobalFilter={true}
                         customPageSize={10}
-                        divClass="table-responsive table-card mb-3"
+                        divClass="table-responsive mb-3"
                         tableClass="align-middle table-nowrap mb-0"
                         SearchPlaceholder="Search for staff positions..."
                       />

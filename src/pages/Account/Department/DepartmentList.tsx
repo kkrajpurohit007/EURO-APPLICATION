@@ -69,12 +69,16 @@ const DepartmentList: React.FC = () => {
         header: "Name",
         accessorKey: "name",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Description",
         accessorKey: "description",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 400,
         cell: (cell: any) => {
           const desc = cell.getValue() || "-";
           return desc.length > 50 ? desc.substring(0, 50) + "..." : desc;
@@ -84,6 +88,9 @@ const DepartmentList: React.FC = () => {
         header: "Status",
         accessorKey: "isActive",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const isActive = cell.getValue();
           return (
@@ -99,10 +106,13 @@ const DepartmentList: React.FC = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const dept = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-secondary"
@@ -122,6 +132,9 @@ const DepartmentList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -153,7 +166,7 @@ const DepartmentList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -172,7 +185,7 @@ const DepartmentList: React.FC = () => {
                       data={filtered || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive table-card mb-3"
+                      divClass="table-responsive mb-3"
                       tableClass="align-middle table-nowrap mb-0"
                       SearchPlaceholder="Search departments..."
                     />

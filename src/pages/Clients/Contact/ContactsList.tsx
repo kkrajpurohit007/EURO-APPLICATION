@@ -159,48 +159,65 @@ const ContactsList: React.FC = () => {
         header: "Title",
         accessorKey: "title",
         enableColumnFilter: false,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "First Name",
         accessorKey: "contactFirstName",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Last Name",
         accessorKey: "contactLastName",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Email",
         accessorKey: "email",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 300,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Mobile",
         accessorKey: "mobile",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Work Phone",
         accessorKey: "workPhone",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Client",
         accessorKey: "clientName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Portal Access",
         accessorKey: "isAllowPortalAccess",
         enableColumnFilter: false,
+        size: 120,
+        minSize: 120,
+        maxSize: 140,
         cell: (cell: any) => {
           const hasAccess = cell.getValue();
           return hasAccess ? (
@@ -216,10 +233,13 @@ const ContactsList: React.FC = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const contact = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -249,6 +269,9 @@ const ContactsList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -314,7 +337,7 @@ const ContactsList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -414,7 +437,7 @@ const ContactsList: React.FC = () => {
                             data={filtered || []}
                             isGlobalFilter={!searchQuery && statusFilter === "all" && !clientFilter}
                             customPageSize={10}
-                            divClass="table-responsive table-card mb-3"
+                            divClass="table-responsive mb-3"
                             tableClass="align-middle table-nowrap mb-0"
                             SearchPlaceholder="Search contacts..."
                           />

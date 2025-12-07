@@ -93,6 +93,8 @@ const LeadList: React.FC = () => {
         header: "Lead Name",
         accessorKey: "title",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => {
           const value = cell.getValue();
           return value || "-";
@@ -102,6 +104,8 @@ const LeadList: React.FC = () => {
         header: "Contact Person",
         accessorKey: "contactPerson",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
         cell: (cell: any) => {
           const value = cell.getValue();
           return value || "-";
@@ -111,6 +115,8 @@ const LeadList: React.FC = () => {
         header: "Contact Email",
         accessorKey: "contactEmail",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 300,
         cell: (cell: any) => {
           const value = cell.getValue();
           return value || "-";
@@ -120,12 +126,17 @@ const LeadList: React.FC = () => {
         header: "Phone Number",
         accessorKey: "phoneNumber",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Status",
         accessorKey: "leadStatus",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const status: LeadStatus = cell.getValue();
           const statusLabel = LeadStatusLabels[status];
@@ -151,14 +162,19 @@ const LeadList: React.FC = () => {
         header: "Location",
         accessorKey: "tenantLocationName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const lead = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -188,6 +204,9 @@ const LeadList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -238,8 +257,7 @@ const LeadList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
-
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -258,9 +276,10 @@ const LeadList: React.FC = () => {
                       data={filtered || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive mb-1"
-                      tableClass="align-middle table-nowrap"
+                      divClass="table-responsive mb-3"
+                      tableClass="align-middle table-nowrap mb-0"
                       theadClass="table-light text-muted"
+                      SearchPlaceholder="Search leads..."
                     />
                   </div>
                 )}

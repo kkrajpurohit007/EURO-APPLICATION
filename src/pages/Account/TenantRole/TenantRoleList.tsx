@@ -47,6 +47,8 @@ const TenantRoleList = () => {
         header: "Name",
         accessorKey: "name",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => {
           return (
             <div>
@@ -62,6 +64,8 @@ const TenantRoleList = () => {
         header: "Profile",
         accessorKey: "profileName",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => {
           return <span className="badge bg-info">{cell.getValue() || "-"}</span>;
         },
@@ -70,6 +74,9 @@ const TenantRoleList = () => {
         header: "Sensitive",
         accessorKey: "isSensitive",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const isSensitive = cell.getValue();
           return isSensitive ? (
@@ -83,6 +90,9 @@ const TenantRoleList = () => {
         header: "Status",
         accessorKey: "isDeleted",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const isDeleted = cell.getValue();
           return isDeleted ? (
@@ -94,9 +104,12 @@ const TenantRoleList = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -121,6 +134,9 @@ const TenantRoleList = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -163,7 +179,7 @@ const TenantRoleList = () => {
                     </Col>
                   </Row>
                 </CardHeader>
-                <CardBody className="pt-0">
+                <CardBody className="p-4">
                   <div>
                     {loading && (!tenantRoles || tenantRoles.length === 0) ? (
                       <Loader error={error} />
@@ -173,7 +189,7 @@ const TenantRoleList = () => {
                         data={filtered || []}
                         isGlobalFilter={true}
                         customPageSize={10}
-                        divClass="table-responsive table-card mb-3"
+                        divClass="table-responsive mb-3"
                         tableClass="align-middle table-nowrap mb-0"
                         SearchPlaceholder="Search for user roles..."
                       />

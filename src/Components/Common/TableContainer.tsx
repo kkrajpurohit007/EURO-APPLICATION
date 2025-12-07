@@ -242,7 +242,7 @@ const TableContainer = ({
                 {headerGroup.headers.map((header: any) => (
                   <th
                     key={header.id}
-                    className={thClass}
+                    className={`${thClass} ${header.column.columnDef.meta?.className || ""}`}
                     {...{
                       onClick: header.column.getToggleSortingHandler(),
                     }}
@@ -277,7 +277,7 @@ const TableContainer = ({
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell: any) => {
                       return (
-                        <td key={cell.id}>
+                        <td key={cell.id} className={cell.column.columnDef.meta?.className || ""}>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext(),
@@ -306,7 +306,7 @@ const TableContainer = ({
         </Table>
       </div>
 
-      <Row className="align-items-center mt-2 g-3 text-center text-sm-start">
+      <Row className="align-items-center mt-3 g-3 text-center text-sm-start">
         <div className="col-sm">
           <div className="text-muted">
             Showing

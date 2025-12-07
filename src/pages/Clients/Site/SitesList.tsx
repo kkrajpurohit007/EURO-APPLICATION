@@ -68,6 +68,8 @@ const SitesList: React.FC = () => {
         header: "Site Name",
         accessorKey: "siteName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => {
           const site = cell.row.original;
           return (
@@ -82,6 +84,8 @@ const SitesList: React.FC = () => {
         header: "Address",
         accessorKey: "address1",
         enableColumnFilter: false,
+        minSize: 200,
+        maxSize: 350,
         cell: (cell: any) => {
           const site = cell.row.original;
           const fullAddress = [site.address1, site.address2, site.zipcode]
@@ -94,12 +98,17 @@ const SitesList: React.FC = () => {
         header: "Country",
         accessorKey: "countryName",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Geofencing",
         accessorKey: "requireGeofencing",
         enableColumnFilter: false,
+        size: 120,
+        minSize: 120,
+        maxSize: 140,
         cell: (cell: any) => {
           const required = cell.getValue();
           return (
@@ -119,14 +128,20 @@ const SitesList: React.FC = () => {
         header: "Radius (m)",
         accessorKey: "siteRadiusMeters",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => cell.getValue() || "-",
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           const site = cellProps.row.original;
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-primary"
@@ -150,6 +165,9 @@ const SitesList: React.FC = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -181,7 +199,7 @@ const SitesList: React.FC = () => {
                   </Col>
                 </Row>
               </CardHeader>
-              <CardBody>
+              <CardBody className="p-4">
                 {error && (
                   <Alert color="danger" className="mb-3">
                     {error}
@@ -200,7 +218,7 @@ const SitesList: React.FC = () => {
                       data={filteredSites || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive table-card mb-3"
+                      divClass="table-responsive mb-3"
                       tableClass="align-middle table-nowrap mb-0"
                       SearchPlaceholder="Search sites..."
                     />

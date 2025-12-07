@@ -89,6 +89,9 @@ const StaffUsersList = () => {
         header: "ID",
         accessorKey: "id",
         enableColumnFilter: false,
+        size: 80,
+        minSize: 80,
+        maxSize: 100,
         cell: (cell: any) => {
           return <span className="fw-medium">{cell.getValue()}</span>;
         },
@@ -97,6 +100,8 @@ const StaffUsersList = () => {
         header: "Employee ID",
         accessorKey: "employeeId",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
         cell: (cell: any) => {
           return <span className="badge bg-info">{cell.getValue()}</span>;
         },
@@ -105,6 +110,8 @@ const StaffUsersList = () => {
         header: "Name",
         accessorKey: "firstName",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 250,
         cell: (cell: any) => {
           return (
             <div>
@@ -120,21 +127,30 @@ const StaffUsersList = () => {
         header: "Phone",
         accessorKey: "phone",
         enableColumnFilter: false,
+        minSize: 120,
+        maxSize: 180,
       },
       {
         header: "Position",
         accessorKey: "position",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
       },
       {
         header: "Department",
         accessorKey: "department",
         enableColumnFilter: false,
+        minSize: 150,
+        maxSize: 200,
       },
       {
         header: "Status",
         accessorKey: "status",
         enableColumnFilter: false,
+        size: 100,
+        minSize: 100,
+        maxSize: 120,
         cell: (cell: any) => {
           const status = cell.getValue();
           const badgeClass =
@@ -149,9 +165,12 @@ const StaffUsersList = () => {
       },
       {
         header: "Action",
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
         cell: (cellProps: any) => {
           return (
-            <div className="d-inline-flex gap-1">
+            <div className="d-inline-flex gap-1 justify-content-end">
               <Button
                 size="sm"
                 color="soft-secondary"
@@ -173,6 +192,9 @@ const StaffUsersList = () => {
               </Button>
             </div>
           );
+        },
+        meta: {
+          className: "text-end",
         },
       },
     ],
@@ -207,14 +229,14 @@ const StaffUsersList = () => {
                     </Col>
                   </Row>
                 </CardHeader>
-                <CardBody className="pt-0">
+                <CardBody className="p-4">
                   <div>
                     <TableContainer
                       columns={columns}
                       data={staffUsers || []}
                       isGlobalFilter={true}
                       customPageSize={10}
-                      divClass="table-responsive table-card mb-3"
+                      divClass="table-responsive mb-3"
                       tableClass="align-middle table-nowrap mb-0"
                       SearchPlaceholder="Search for staff users..."
                     />
