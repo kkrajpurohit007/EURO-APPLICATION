@@ -47,7 +47,7 @@ export const getTenantRoles = createAsyncThunk(
       const response: TenantRolesResponse = await getAllTenantRoles(pageNumber, pageSize, tenantId);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch tenant roles");
+      return rejectWithValue(error.message || "Failed to fetch user roles");
     }
   }
 );
@@ -60,7 +60,7 @@ export const getTenantRoleById = createAsyncThunk(
       const response = await getTenantRoleByIdService(id);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch tenant role details");
+      return rejectWithValue(error.message || "Failed to fetch user role details");
     }
   }
 );
@@ -73,7 +73,7 @@ export const addNewTenantRole = createAsyncThunk(
       const response = await createTenantRoleService(tenantRole);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to create tenant role");
+      return rejectWithValue(error.message || "Failed to create user role");
     }
   }
 );
@@ -86,7 +86,7 @@ export const updateTenantRole = createAsyncThunk(
       const response = await updateTenantRoleService(id, data);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to update tenant role");
+      return rejectWithValue(error.message || "Failed to update user role");
     }
   }
 );
@@ -99,7 +99,7 @@ export const deleteTenantRole = createAsyncThunk(
       await deleteTenantRoleService(id);
       return id;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to delete tenant role");
+      return rejectWithValue(error.message || "Failed to delete user role");
     }
   }
 );

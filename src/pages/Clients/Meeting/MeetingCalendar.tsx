@@ -550,7 +550,7 @@ const MeetingCalendar: React.FC = () => {
           return;
         }
         if (!authUser?.tenantId) {
-          showError("Tenant ID is required");
+          showError("Organization ID is required");
           return;
         }
 

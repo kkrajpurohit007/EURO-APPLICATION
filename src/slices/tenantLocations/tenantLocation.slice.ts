@@ -98,7 +98,7 @@ const tenantLocationSlice = createSlice({
             })
             .addCase(fetchTenantLocations.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || "Failed to fetch tenant locations";
+                state.error = action.error.message || "Failed to fetch global locations";
             })
             // Create tenant location
             .addCase(createTenantLocation.pending, (state) => {
@@ -112,7 +112,7 @@ const tenantLocationSlice = createSlice({
             })
             .addCase(createTenantLocation.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || "Failed to create tenant location";
+                state.error = action.error.message || "Failed to create global location";
             })
             // Update tenant location
             .addCase(updateTenantLocation.pending, (state) => {
@@ -128,7 +128,7 @@ const tenantLocationSlice = createSlice({
             })
             .addCase(updateTenantLocation.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || "Failed to update tenant location";
+                state.error = action.error.message || "Failed to update global location";
             })
             // Delete tenant location
             .addCase(deleteTenantLocation.pending, (state) => {
@@ -142,7 +142,7 @@ const tenantLocationSlice = createSlice({
             })
             .addCase(deleteTenantLocation.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || "Failed to delete tenant location";
+                state.error = action.error.message || "Failed to delete global location";
             });
     },
 });

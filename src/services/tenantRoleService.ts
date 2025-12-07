@@ -60,7 +60,7 @@ export const createTenantRoleService = (data: Partial<TenantRoleItem>): Promise<
     const tenantId = (data as any).tenantId || getTenantId();
     
     if (!tenantId) {
-        return Promise.reject(new Error("Tenant ID is required"));
+        return Promise.reject(new Error("Organization ID is required"));
     }
     
     // Format payload according to API specification
@@ -86,7 +86,7 @@ export const updateTenantRoleService = (
     const tenantId = (data as any).tenantId || getTenantId();
     
     if (!tenantId) {
-        return Promise.reject(new Error("Tenant ID is required"));
+        return Promise.reject(new Error("Organization ID is required"));
     }
     
     // Format payload according to API specification

@@ -160,11 +160,11 @@ const TenantRentalConfig = () => {
                   React.createElement("i", { className: "ri-settings-3-line ri-2x text-muted mb-3" }),
                   React.createElement("h5", null, "Global Rental Configuration Not Found"),
                   React.createElement("p", { className: "text-muted" },
-                    "No rental configuration has been set up for your tenant yet."
+                    "No rental configuration has been set up yet."
                   ),
                   React.createElement("div", { className: "bg-soft-warning text-warning p-3 rounded mt-4" },
                     React.createElement("i", { className: "ri-error-warning-line ri-lg me-2" }),
-                    "Please contact your system administrator to set up the tenant rental configuration."
+                    "Please contact your system administrator to set up the rental configuration."
                   ),
                   React.createElement("p", { className: "text-muted mt-4 mb-0" },
                     "Once configured, you'll be able to manage all rental settings here."
@@ -181,7 +181,7 @@ const TenantRentalConfig = () => {
   return React.createElement("div", { className: "page-content" },
     React.createElement(Container, { fluid: true },
       React.createElement(BreadCrumb, {
-        title: "Tenant Rental Configuration",
+        title: "Rental Configuration",
         pageTitle: "Settings"
       }),
       React.createElement(Form, { onSubmit: handleSubmit },

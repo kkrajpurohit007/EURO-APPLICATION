@@ -376,7 +376,7 @@ export const getTenantRentalConfig = (tenantId: string) => {
         resolve(tenantRentalConfigData);
       } else {
         // If no config found for this tenant, reject with 404-like error
-        reject({ message: "Tenant rental config not found", status: 404 });
+        reject({ message: "Rental config not found", status: 404 });
       }
     }, 300);
   });

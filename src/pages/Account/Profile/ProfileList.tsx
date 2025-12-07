@@ -45,7 +45,7 @@ const ProfileList: React.FC = () => {
     if (userGroup === null || userGroup === undefined) return "System";
     switch (userGroup) {
       case 3:
-        return "Tenant User";
+        return "Internal User";
       case 4:
         return "Client User";
       default:

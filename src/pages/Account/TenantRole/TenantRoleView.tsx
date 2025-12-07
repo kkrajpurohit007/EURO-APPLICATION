@@ -105,7 +105,7 @@ const TenantRoleView: React.FC = () => {
                     </Col>
 
                     <Col md={6}>
-                      <Label className="form-label">Tenant</Label>
+                      <Label className="form-label">Organization</Label>
                       <Input
                         name="tenantName"
                         value={tenantRole?.tenantName || "-"}

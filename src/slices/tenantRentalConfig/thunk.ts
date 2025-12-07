@@ -13,7 +13,7 @@ export const getTenantRentalConfig = createAsyncThunk(
             const tenantId = authUser?.tenantId;
 
             if (!tenantId) {
-                throw new Error("Tenant ID not found. Please ensure you are logged in.");
+                throw new Error("Organization ID not found. Please ensure you are logged in.");
             }
 
             const response = await getRentalConfig(tenantId);

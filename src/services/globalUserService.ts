@@ -85,7 +85,7 @@ export const createGlobalUser = async (data: Partial<GlobalUserItem>): Promise<G
     const tenantId = (data as any).tenantId || getTenantId();
     
     if (!tenantId) {
-        return Promise.reject(new Error("Tenant ID is required"));
+        return Promise.reject(new Error("Organization ID is required"));
     }
     
     // Clean payload for backend - matching API specification
@@ -126,7 +126,7 @@ export const updateGlobalUser = async (
     const tenantId = (data as any).tenantId || getTenantId();
     
     if (!tenantId) {
-        return Promise.reject(new Error("Tenant ID is required"));
+        return Promise.reject(new Error("Organization ID is required"));
     }
     
     // Clean payload for backend - matching API specification
