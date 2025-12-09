@@ -28,13 +28,10 @@ import ContactCreate from "../pages/Clients/Contact/ContactCreate";
 import ContactEdit from "../pages/Clients/Contact/ContactEdit";
 import ContactView from "../pages/Clients/Contact/ContactView";
 
-// Staff Management
-
 // Account Management (migrated to module structure)
 import { Department } from "../modules/account";
-const DepartmentList = Department.DepartmentList;
-const DepartmentCreate = Department.DepartmentCreate;
-const DepartmentEdit = Department.DepartmentEdit;
+
+// Account sub-modules
 import TenantRoleList from "../pages/Account/TenantRole/TenantRoleList";
 import TenantRoleCreate from "../pages/Account/TenantRole/TenantRoleCreate";
 import TenantRoleEdit from "../pages/Account/TenantRole/TenantRoleEdit";
@@ -59,17 +56,23 @@ import TenantLocationView from "../pages/TenantLocations/TenantLocationView";
 // Client Rental Config
 import ClientRentalConfig from "../pages/Clients/ClientRentalConfig";
 
+// Error Pages
 import Basic404 from "../pages/AuthenticationInner/Errors/Basic404";
 import Cover404 from "../pages/AuthenticationInner/Errors/Cover404";
 import Alt404 from "../pages/AuthenticationInner/Errors/Alt404";
 import Error500 from "../pages/AuthenticationInner/Errors/Error500";
 import Offlinepage from "../pages/AuthenticationInner/Errors/Offlinepage";
 
-//login
+// Authentication
 import Login from "../pages/Authentication/components/Login";
 import OtpVerification from "../pages/Authentication/components/OtpVerification";
 import ForgetPasswordPage from "../pages/Authentication/components/ForgetPassword";
 import Logout from "../pages/Authentication/components/Logout";
+
+// Extract Department components after all imports
+const DepartmentList = Department.DepartmentList;
+const DepartmentCreate = Department.DepartmentCreate;
+const DepartmentEdit = Department.DepartmentEdit;
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <DashboardEcommerce /> },

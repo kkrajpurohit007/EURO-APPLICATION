@@ -2,7 +2,7 @@ import { APIClient } from "./api_helper";
 
 import * as url from "./url_helper";
 
-import { staffPositions } from "../common/data/staffPositions";
+// Staff Positions module removed - no longer used
 import { tenantRentalConfigData } from "../common/data/tenantRentalConfig";
 import { clientRentalConfigData } from "../common/data/clientRentalConfig";
 import { meetingsData } from "../common/data/meetings";
@@ -305,66 +305,8 @@ export const deleteDepartment = (id: string) => {
   });
 };
 
-// Staff Positions
-export const getStaffPositions = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(staffPositions);
-    }, 300);
-  });
-};
-
-export const getStaffPositionById = (id: number) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const position = staffPositions.find((p) => p.id === id);
-      resolve(position);
-    }, 300);
-  });
-};
-
-export const addNewStaffPosition = (data: any) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newPosition = {
-        ...data,
-        id: staffPositions.length + 1,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
-      };
-      staffPositions.unshift(newPosition);
-      resolve(newPosition);
-    }, 300);
-  });
-};
-
-export const updateStaffPosition = (data: any) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const index = staffPositions.findIndex((p) => p.id === data.id);
-      if (index !== -1) {
-        staffPositions[index] = {
-          ...staffPositions[index],
-          ...data,
-          updatedAt: new Date().toISOString().split("T")[0],
-        };
-        resolve(staffPositions[index]);
-      }
-    }, 300);
-  });
-};
-
-export const deleteStaffPosition = (id: number) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const index = staffPositions.findIndex((p) => p.id === id);
-      if (index !== -1) {
-        staffPositions.splice(index, 1);
-      }
-      resolve({ success: true });
-    }, 300);
-  });
-};
+// Staff Positions - Removed (module no longer exists)
+// These functions have been deprecated and removed
 
 // Tenant Rental Configuration
 export const getTenantRentalConfig = (tenantId: string) => {

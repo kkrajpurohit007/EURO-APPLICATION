@@ -8,8 +8,7 @@ export * from "./auth/forgetpwd/thunk";
 export * from "./auth/profile/thunk";
 export * from "./auth/otp/thunk";
 
-// Staff Positions
-export * from "./staffPositions/thunk";
+// Staff Positions - Removed (module no longer exists)
 
 // Tenant Rental Config - Using modern Redux Toolkit slice pattern (exports from slice file)
 export * from "./tenantRentalConfig/tenantRentalConfig.slice";

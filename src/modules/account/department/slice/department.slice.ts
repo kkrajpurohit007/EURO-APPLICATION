@@ -4,7 +4,7 @@
  */
 
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import {
+import type {
   DepartmentItem,
   DepartmentsResponse,
 } from "./department.types";
@@ -166,4 +166,7 @@ export const selectDepartmentById = (state: any, id: string) =>
 export const selectDepartmentLoading = (state: any) => state.Departments.loading;
 export const selectDepartmentError = (state: any) => state.Departments.error;
 export const selectDepartmentTotalCount = (state: any) => state.Departments.totalCount;
+
+// Export types
+export type { DepartmentItem, DepartmentsResponse } from "./department.types";
 

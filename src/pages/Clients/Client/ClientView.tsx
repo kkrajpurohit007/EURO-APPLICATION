@@ -21,7 +21,7 @@ import {
   Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-import ContactCard from "../Contact/ContactCard";
+import ContactCard from "../../../modules/client/contact/components/ContactCard";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import { selectClientById } from "../../../slices/clients/client.slice";
 import {

@@ -30,7 +30,7 @@ import { selectClientList, selectClientLoading, fetchClients } from "../../../sl
 import {
   ClientMeeting,
 } from "../../../slices/clientMeetings/clientMeeting.fakeData";
-import MeetingCard from "../../modules/client/meeting/components/MeetingCard";
+import MeetingCard from "../../../modules/client/meeting/components/MeetingCard";
 import { PAGE_TITLES } from "../../../common/branding";
 import { getMeetingStatusOptions } from "./utils/meetingUtils";
 

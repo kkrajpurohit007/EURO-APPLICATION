@@ -104,7 +104,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
     metadata.push({
       icon: <i className="ri-time-line align-middle"></i>,
       label: "Duration",
-      value: duration,
+      value: `${duration} min`,
     });
   }
 

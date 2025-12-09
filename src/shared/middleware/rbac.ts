@@ -3,7 +3,7 @@
  * Centralized permission checking and route/component guards
  */
 
-import { getCurrentUser, hasRole, hasGroup } from "../utils/authUtils";
+import { getCurrentUser, hasRole, hasGroup } from "../../helpers/authUtils";
 
 export enum Permission {
   // Client Module
