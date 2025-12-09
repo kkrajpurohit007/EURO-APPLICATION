@@ -25,7 +25,7 @@ import Select from "react-select";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import TableContainer from "../../../Components/Common/TableContainer";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-import ContactCard from "./ContactCard";
+import ContactCard from "../../modules/client/contact/components/ContactCard";
 import {
   selectClientContactList,
   selectClientContact,

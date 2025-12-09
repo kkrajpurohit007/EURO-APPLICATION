@@ -1,24 +1,21 @@
-import { fetchLeads } from "../slices/leads/lead.slice";
-import { fetchDepartments } from "../slices/departments/department.slice";
-import { fetchCountries } from "../slices/countries/country.slice";
-import { fetchClients } from "../slices/clients/client.slice";
-import { fetchClientContacts } from "../slices/clientContacts/clientContact.slice";
-import { fetchClientSites } from "../slices/clientSites/clientSite.slice";
-import { fetchProfiles } from "../slices/userProfiles/profile.slice";
-import { fetchRoles } from "../slices/roles/role.slice";
-import { fetchClientRentalConfigs } from "../slices/clientRentalConfig/clientRentalConfig.slice";
-
 /**
  * Centralized App Initialization Service
- * Handles loading of master data once on application bootstrap
+ * 
+ * REFACTORED: Removed global prefetching to implement lazy loading strategy
+ * Each module now loads its own data when needed, preventing stale data issues
+ * 
+ * This service now only handles:
+ * - Authentication state validation
+ * - Essential app-level configuration
+ * - No module data prefetching
  */
 class AppInitService {
     private isInitialized = false;
     private isLoading = false;
 
     /**
-     * Initialize application data on app startup
-     * Loads all required master data once
+     * Initialize application - minimal initialization only
+     * No longer prefetches module data (lazy loading strategy)
      */
     async initialize(dispatch: any) {
         if (this.isInitialized || this.isLoading) {
@@ -28,37 +25,13 @@ class AppInitService {
 
         this.isLoading = true;
         try {
-            console.log("Initializing app data...");
+            console.log("Initializing app...");
 
-            // Load Leads
-            await dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-
-            // Load Departments
-            await dispatch(fetchDepartments({ pageNumber: 1, pageSize: 500 }));
-
-            // Load Countries
-            await dispatch(fetchCountries({ pageNumber: 1, pageSize: 50 }));
-
-            // Load Clients
-            await dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
-
-            // Load Client Contacts
-            await dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
-
-            // Load Client Sites
-            await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
-
-            // Load Client Rental Configs
-            await dispatch(fetchClientRentalConfigs({ pageNumber: 1, pageSize: 50 }));
-
-            // Load User Profiles
-            await dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
-
-            // Load Roles
-            await dispatch(fetchRoles({ pageNumber: 1, pageSize: 50 }));
-
-            // Future: Load other master data here
-            // await dispatch(fetchMeetings());
+            // Only initialize essential app-level configuration
+            // Module data will be loaded lazily when modules are accessed
+            
+            // TODO: Add any essential app-level initialization here
+            // Examples: theme, language, feature flags, etc.
 
             this.isInitialized = true;
             console.log("App initialization complete");
@@ -70,76 +43,13 @@ class AppInitService {
     }
 
     /**
-     * Force refresh leads data
-     * Used after CRUD operations
+     * DEPRECATED: Force refresh methods removed
+     * 
+     * Modules should handle their own data refresh using RTK Query cache invalidation
+     * or by dispatching their own fetch actions when needed.
+     * 
+     * This prevents stale data issues and keeps modules self-contained.
      */
-    async forceRefreshLeads(dispatch: any) {
-        await dispatch(fetchLeads({ pageNumber: 1, pageSize: 500 }));
-    }
-
-    /**
-     * Force refresh departments data
-     * Used after CRUD operations
-     */
-    async forceRefreshDepartments(dispatch: any) {
-        await dispatch(fetchDepartments({ pageNumber: 1, pageSize: 500 }));
-    }
-
-    /**
-     * Force refresh countries data
-     * Used after CRUD operations or manual refresh
-     */
-    async forceRefreshCountries(dispatch: any) {
-        await dispatch(fetchCountries({ pageNumber: 1, pageSize: 50 }));
-    }
-
-    /**
-     * Force refresh clients data
-     * Used after CRUD operations
-     */
-    async forceRefreshClients(dispatch: any) {
-        await dispatch(fetchClients({ pageNumber: 1, pageSize: 50 }));
-    }
-
-    /**
-     * Force refresh client contacts data
-     * Used after CRUD operations
-     */
-    async forceRefreshClientContacts(dispatch: any) {
-        await dispatch(fetchClientContacts({ pageNumber: 1, pageSize: 50 }));
-    }
-
-    /**
-     * Force refresh client sites data
-     * Used after CRUD operations
-     */
-    async forceRefreshClientSites(dispatch: any) {
-        await dispatch(fetchClientSites({ pageNumber: 1, pageSize: 50 }));
-    }
-
-    /**
-     * Force refresh client rental configs data
-     * Used after CRUD operations
-     */
-    async forceRefreshClientRentalConfigs(dispatch: any) {
-        await dispatch(fetchClientRentalConfigs({ pageNumber: 1, pageSize: 50 }));
-    }
-
-    /**
-     * Force refresh user profiles data
-     * Used after CRUD operations
-     */
-    async forceRefreshProfiles(dispatch: any) {
-        await dispatch(fetchProfiles({ pageNumber: 1, pageSize: 50 }));
-    }
-
-    /**
-     * Force refresh roles data
-     * Used after CRUD operations
-     */
-    async forceRefreshRoles(dispatch: any) {
-        await dispatch(fetchRoles({ pageNumber: 1, pageSize: 20 }));
-    }
 
     /**
      * Reset initialization state

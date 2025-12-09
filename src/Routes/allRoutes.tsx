@@ -4,17 +4,11 @@ import { Navigate } from "react-router-dom";
 //Dashboard
 import DashboardEcommerce from "../pages/Dashboard";
 
-// Lead Management
-import LeadList from "../pages/Leads/Lead/LeadList";
-import LeadCreate from "../pages/Leads/Lead/LeadCreate";
-import LeadEdit from "../pages/Leads/Lead/LeadEdit";
-import LeadView from "../pages/Leads/Lead/LeadView";
+// Lead Management (migrated to module structure)
+import { LeadList, LeadCreate, LeadEdit, LeadView } from "../modules/lead";
 
-// Client Management
-import ClientList from "../pages/Clients/Client/ClientList";
-import ClientCreate from "../pages/Clients/Client/ClientCreate";
-import ClientEdit from "../pages/Clients/Client/ClientEdit";
-import ClientView from "../pages/Clients/Client/ClientView";
+// Client Management (migrated to module structure)
+import { ClientList, ClientCreate, ClientEdit, ClientView } from "../modules/client";
 import MeetingSchedule from "../pages/Clients/Meeting/Meetings";
 import MeetingCreate from "../pages/Clients/Meeting/MeetingCreate";
 import MeetingEdit from "../pages/Clients/Meeting/MeetingEdit";
@@ -36,10 +30,11 @@ import ContactView from "../pages/Clients/Contact/ContactView";
 
 // Staff Management
 
-// Account Management
-import DepartmentList from "../pages/Account/Department/DepartmentList";
-import DepartmentCreate from "../pages/Account/Department/DepartmentCreate";
-import DepartmentEdit from "../pages/Account/Department/DepartmentEdit";
+// Account Management (migrated to module structure)
+import { Department } from "../modules/account";
+const DepartmentList = Department.DepartmentList;
+const DepartmentCreate = Department.DepartmentCreate;
+const DepartmentEdit = Department.DepartmentEdit;
 import TenantRoleList from "../pages/Account/TenantRole/TenantRoleList";
 import TenantRoleCreate from "../pages/Account/TenantRole/TenantRoleCreate";
 import TenantRoleEdit from "../pages/Account/TenantRole/TenantRoleEdit";

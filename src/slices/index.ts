@@ -10,8 +10,8 @@ import ForgetPasswordReducer from "./auth/forgetpwd/reducer";
 import ProfileReducer from "./auth/profile/reducer";
 import OtpReducer from "./auth/otp/reducer";
 
-// Departments
-import DepartmentsReducer from "./departments/department.slice";
+// Departments (migrated to module structure)
+import DepartmentsReducer from "../modules/account/department/slice/department.slice";
 
 // Tenant Roles
 import TenantRolesReducer from "./tenantRoles/tenantRole.slice";
@@ -25,8 +25,8 @@ import ClientRentalConfigReducer from "./clientRentalConfig/clientRentalConfig.s
 // Meetings
 import MeetingsReducer from "./meetings/reducer";
 
-// Leads
-import LeadsReducer from "./leads/lead.slice";
+// Leads (migrated to module structure)
+import LeadsReducer from "../modules/lead/slice/lead.slice";
 
 // Lead Attachments
 import LeadAttachmentsReducer from "./leadAttachments/leadAttachment.slice";
@@ -34,8 +34,8 @@ import LeadAttachmentsReducer from "./leadAttachments/leadAttachment.slice";
 // Countries
 import CountriesReducer from "./countries/country.slice";
 
-// Clients
-import ClientsReducer from "./clients/client.slice";
+// Clients (migrated to module structure)
+import ClientsReducer from "../modules/client/slice/client.slice";
 
 // Client Contacts
 import ClientContactsReducer from "./clientContacts/clientContact.slice";
